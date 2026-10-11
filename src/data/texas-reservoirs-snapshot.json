@@ -1,0 +1,1129 @@
+{
+ "fetchedAt": "2026-10-11T03:21:16Z",
+ "sources": {
+  "statewide": "https://www.waterdatafortexas.org/reservoirs/statewide.csv",
+  "recentConditions": "https://www.waterdatafortexas.org/reservoirs/recent-conditions.csv"
+ },
+ "statewideFirst": {
+  "date": "1933-07-01",
+  "reservoir_storage": 57800.0,
+  "conservation_storage": 19591.0,
+  "percent_full": 21.6,
+  "conservation_capacity": 90630.0
+ },
+ "statewideLatest": {
+  "date": "2026-10-10",
+  "reservoir_storage": 26659722.0,
+  "conservation_storage": 22871519.0,
+  "percent_full": 72.5,
+  "conservation_capacity": 31531332.0
+ },
+ "statewideSameDay": [
+  {
+   "date": "1933-10-10",
+   "percent_full": 6.4
+  },
+  {
+   "date": "1934-10-10",
+   "percent_full": 14.0
+  },
+  {
+   "date": "1935-10-10",
+   "percent_full": 94.6
+  },
+  {
+   "date": "1936-10-10",
+   "percent_full": 99.5
+  },
+  {
+   "date": "1937-10-10",
+   "percent_full": 40.0
+  },
+  {
+   "date": "1938-10-10",
+   "percent_full": 81.6
+  },
+  {
+   "date": "1939-10-10",
+   "percent_full": 77.4
+  },
+  {
+   "date": "1940-10-10",
+   "percent_full": 45.0
+  },
+  {
+   "date": "1941-10-10",
+   "percent_full": 73.1
+  },
+  {
+   "date": "1942-10-10",
+   "percent_full": 96.5
+  },
+  {
+   "date": "1943-10-10",
+   "percent_full": 45.4
+  },
+  {
+   "date": "1944-10-10",
+   "percent_full": 70.6
+  },
+  {
+   "date": "1945-10-10",
+   "percent_full": 91.6
+  },
+  {
+   "date": "1946-10-10",
+   "percent_full": 79.4
+  },
+  {
+   "date": "1947-10-10",
+   "percent_full": 66.9
+  },
+  {
+   "date": "1948-10-10",
+   "percent_full": 64.1
+  },
+  {
+   "date": "1949-10-10",
+   "percent_full": 76.3
+  },
+  {
+   "date": "1950-10-10",
+   "percent_full": 74.0
+  },
+  {
+   "date": "1951-10-10",
+   "percent_full": 57.3
+  },
+  {
+   "date": "1952-10-10",
+   "percent_full": 54.5
+  },
+  {
+   "date": "1953-10-10",
+   "percent_full": 55.3
+  },
+  {
+   "date": "1954-10-10",
+   "percent_full": 68.0
+  },
+  {
+   "date": "1955-10-10",
+   "percent_full": 74.5
+  },
+  {
+   "date": "1956-10-10",
+   "percent_full": 43.6
+  },
+  {
+   "date": "1957-10-10",
+   "percent_full": 77.9
+  },
+  {
+   "date": "1958-10-10",
+   "percent_full": 83.6
+  },
+  {
+   "date": "1959-10-10",
+   "percent_full": 90.3
+  },
+  {
+   "date": "1960-10-10",
+   "percent_full": 70.0
+  },
+  {
+   "date": "1961-10-10",
+   "percent_full": 80.6
+  },
+  {
+   "date": "1962-10-10",
+   "percent_full": 67.8
+  },
+  {
+   "date": "1963-10-10",
+   "percent_full": 54.6
+  },
+  {
+   "date": "1964-10-10",
+   "percent_full": 64.4
+  },
+  {
+   "date": "1965-10-10",
+   "percent_full": 59.9
+  },
+  {
+   "date": "1966-10-10",
+   "percent_full": 66.7
+  },
+  {
+   "date": "1967-10-10",
+   "percent_full": 63.2
+  },
+  {
+   "date": "1968-10-10",
+   "percent_full": 73.2
+  },
+  {
+   "date": "1969-10-10",
+   "percent_full": 66.3
+  },
+  {
+   "date": "1970-10-10",
+   "percent_full": 69.9
+  },
+  {
+   "date": "1971-10-10",
+   "percent_full": 80.9
+  },
+  {
+   "date": "1972-10-10",
+   "percent_full": 81.6
+  },
+  {
+   "date": "1973-10-10",
+   "percent_full": 88.5
+  },
+  {
+   "date": "1974-10-10",
+   "percent_full": 89.1
+  },
+  {
+   "date": "1975-10-10",
+   "percent_full": 88.0
+  },
+  {
+   "date": "1976-10-10",
+   "percent_full": 86.2
+  },
+  {
+   "date": "1977-10-10",
+   "percent_full": 80.9
+  },
+  {
+   "date": "1978-10-10",
+   "percent_full": 78.2
+  },
+  {
+   "date": "1979-10-10",
+   "percent_full": 84.3
+  },
+  {
+   "date": "1980-10-10",
+   "percent_full": 78.9
+  },
+  {
+   "date": "1981-10-10",
+   "percent_full": 83.9
+  },
+  {
+   "date": "1982-10-10",
+   "percent_full": 84.1
+  },
+  {
+   "date": "1983-10-10",
+   "percent_full": 80.8
+  },
+  {
+   "date": "1984-10-10",
+   "percent_full": 66.7
+  },
+  {
+   "date": "1985-10-10",
+   "percent_full": 75.3
+  },
+  {
+   "date": "1986-10-10",
+   "percent_full": 86.3
+  },
+  {
+   "date": "1987-10-10",
+   "percent_full": 85.6
+  },
+  {
+   "date": "1988-10-10",
+   "percent_full": 77.4
+  },
+  {
+   "date": "1989-10-10",
+   "percent_full": 85.0
+  },
+  {
+   "date": "1990-10-10",
+   "percent_full": 84.6
+  },
+  {
+   "date": "1991-10-10",
+   "percent_full": 87.4
+  },
+  {
+   "date": "1992-10-10",
+   "percent_full": 90.1
+  },
+  {
+   "date": "1993-10-10",
+   "percent_full": 84.7
+  },
+  {
+   "date": "1994-10-10",
+   "percent_full": 83.5
+  },
+  {
+   "date": "1995-10-10",
+   "percent_full": 81.2
+  },
+  {
+   "date": "1996-10-10",
+   "percent_full": 70.7
+  },
+  {
+   "date": "1997-10-10",
+   "percent_full": 81.4
+  },
+  {
+   "date": "1998-10-10",
+   "percent_full": 74.1
+  },
+  {
+   "date": "1999-10-10",
+   "percent_full": 73.8
+  },
+  {
+   "date": "2000-10-10",
+   "percent_full": 64.6
+  },
+  {
+   "date": "2001-10-10",
+   "percent_full": 74.6
+  },
+  {
+   "date": "2002-10-10",
+   "percent_full": 76.4
+  },
+  {
+   "date": "2003-10-10",
+   "percent_full": 76.6
+  },
+  {
+   "date": "2004-10-10",
+   "percent_full": 84.2
+  },
+  {
+   "date": "2005-10-10",
+   "percent_full": 79.4
+  },
+  {
+   "date": "2006-10-10",
+   "percent_full": 66.9
+  },
+  {
+   "date": "2007-10-10",
+   "percent_full": 89.6
+  },
+  {
+   "date": "2008-10-10",
+   "percent_full": 82.4
+  },
+  {
+   "date": "2009-10-10",
+   "percent_full": 78.9
+  },
+  {
+   "date": "2010-10-10",
+   "percent_full": 82.9
+  },
+  {
+   "date": "2011-10-10",
+   "percent_full": 60.2
+  },
+  {
+   "date": "2012-10-10",
+   "percent_full": 68.5
+  },
+  {
+   "date": "2013-10-10",
+   "percent_full": 59.4
+  },
+  {
+   "date": "2014-10-10",
+   "percent_full": 63.2
+  },
+  {
+   "date": "2015-10-10",
+   "percent_full": 78.4
+  },
+  {
+   "date": "2016-10-10",
+   "percent_full": 84.3
+  },
+  {
+   "date": "2017-10-10",
+   "percent_full": 84.0
+  },
+  {
+   "date": "2018-10-10",
+   "percent_full": 80.6
+  },
+  {
+   "date": "2019-10-10",
+   "percent_full": 81.0
+  },
+  {
+   "date": "2020-10-10",
+   "percent_full": 81.0
+  },
+  {
+   "date": "2021-10-10",
+   "percent_full": 80.4
+  },
+  {
+   "date": "2022-10-10",
+   "percent_full": 68.3
+  },
+  {
+   "date": "2023-10-10",
+   "percent_full": 65.5
+  },
+  {
+   "date": "2024-10-10",
+   "percent_full": 72.6
+  },
+  {
+   "date": "2025-10-10",
+   "percent_full": 74.9
+  }
+ ],
+ "reservoirs": [
+  {
+   "full_name": "Lake Abilene",
+   "short_name": "Abilene",
+   "percent_full": 7.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Addicks Reservoir",
+   "short_name": "Addicks",
+   "percent_full": null,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Alan Henry",
+   "short_name": "Alan Henry",
+   "percent_full": 70.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Amistad Reservoir",
+   "short_name": "Amistad",
+   "percent_full": 43.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Amon G Carter",
+   "short_name": "Amon G Carter",
+   "percent_full": 80.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Aquilla Lake",
+   "short_name": "Aquilla",
+   "percent_full": 83.5,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Arlington",
+   "short_name": "Arlington",
+   "percent_full": 84.8,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Arrowhead",
+   "short_name": "Arrowhead",
+   "percent_full": 69.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Athens",
+   "short_name": "Athens",
+   "percent_full": 97.8,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Austin",
+   "short_name": "Austin",
+   "percent_full": 96.0,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "B. A. Steinhagen Lake",
+   "short_name": "B A Steinhagen",
+   "percent_full": 97.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Bardwell Lake",
+   "short_name": "Bardwell",
+   "percent_full": 88.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Barker Reservoir",
+   "short_name": "Barker",
+   "percent_full": null,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Belton Lake",
+   "short_name": "Belton",
+   "percent_full": 97.8,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Benbrook Lake",
+   "short_name": "Benbrook",
+   "percent_full": 74.0,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Bob Sandlin",
+   "short_name": "Bob Sandlin",
+   "percent_full": 88.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Bois d'Arc Lake",
+   "short_name": "Bois d'Arc",
+   "percent_full": 89.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Bonham",
+   "short_name": "Bonham",
+   "percent_full": 77.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Brady Creek Reservoir",
+   "short_name": "Brady Creek",
+   "percent_full": 83.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Bridgeport Reservoir",
+   "short_name": "Bridgeport",
+   "percent_full": 72.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Brownwood",
+   "short_name": "Brownwood",
+   "percent_full": 88.2,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Buchanan",
+   "short_name": "Buchanan",
+   "percent_full": 96.3,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Caddo Lake",
+   "short_name": "Caddo",
+   "percent_full": 56.2,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Canyon Lake",
+   "short_name": "Canyon",
+   "percent_full": 97.8,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Cedar Creek Reservoir",
+   "short_name": "Cedar Creek",
+   "percent_full": 74.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Champion Creek Reservoir",
+   "short_name": "Champion Creek",
+   "percent_full": 42.5,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Cherokee",
+   "short_name": "Cherokee",
+   "percent_full": 79.3,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Choke Canyon Reservoir",
+   "short_name": "Choke Canyon",
+   "percent_full": 21.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Cisco",
+   "short_name": "Cisco",
+   "percent_full": 42.5,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Coleman",
+   "short_name": "Coleman",
+   "percent_full": 77.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Coleto Creek Reservoir",
+   "short_name": "Coleto Creek",
+   "percent_full": 75.2,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Colorado City",
+   "short_name": "Colorado City",
+   "percent_full": 52.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Comanche Creek Reservoir",
+   "short_name": "Comanche Creek",
+   "percent_full": 100.0,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Conroe",
+   "short_name": "Conroe",
+   "percent_full": 94.3,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Corpus Christi",
+   "short_name": "Corpus Christi",
+   "percent_full": 82.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Crook",
+   "short_name": "Crook",
+   "percent_full": 84.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Cypress Springs",
+   "short_name": "Cypress Springs",
+   "percent_full": 89.3,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "E. V. Spence Reservoir",
+   "short_name": "E V Spence",
+   "percent_full": 9.2,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Eagle Mountain Reservoir",
+   "short_name": "Eagle Mountain",
+   "percent_full": 74.2,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Elephant Butte Lake",
+   "short_name": "Elephant Butte",
+   "percent_full": 4.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Falcon Reservoir",
+   "short_name": "Falcon",
+   "percent_full": 21.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Fork Reservoir",
+   "short_name": "Fork",
+   "percent_full": 81.3,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Fort Phantom Hill Reservoir",
+   "short_name": "Fort Phantom Hill",
+   "percent_full": 67.0,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Georgetown",
+   "short_name": "Georgetown",
+   "percent_full": 79.5,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Gibbons Creek Reservoir",
+   "short_name": "Gibbons Creek",
+   "percent_full": 87.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Graham",
+   "short_name": "Graham",
+   "percent_full": 65.0,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Granbury",
+   "short_name": "Granbury",
+   "percent_full": 87.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Granger Lake",
+   "short_name": "Granger",
+   "percent_full": 99.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Grapevine Lake",
+   "short_name": "Grapevine",
+   "percent_full": 93.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Greenbelt Lake",
+   "short_name": "Greenbelt",
+   "percent_full": 4.5,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Halbert Lake",
+   "short_name": "Halbert",
+   "percent_full": 77.0,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Hords Creek Lake",
+   "short_name": "Hords Creek",
+   "percent_full": 44.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Houston",
+   "short_name": "Houston",
+   "percent_full": 100.0,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Houston County Lake",
+   "short_name": "Houston County",
+   "percent_full": 94.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Hubbard Creek Reservoir",
+   "short_name": "Hubbard Creek",
+   "percent_full": 35.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Moss Lake",
+   "short_name": "Hubert H Moss",
+   "percent_full": 99.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Inks Lake",
+   "short_name": "Inks",
+   "percent_full": 95.2,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake J.B. Thomas",
+   "short_name": "J B Thomas",
+   "percent_full": 19.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Jacksonville",
+   "short_name": "Jacksonville",
+   "percent_full": 96.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Cooper (Chapman) Lake",
+   "short_name": "Jim Chapman",
+   "percent_full": 67.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Joe Pool Lake",
+   "short_name": "Joe Pool",
+   "percent_full": 92.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Kemp",
+   "short_name": "Kemp",
+   "percent_full": 62.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Kickapoo",
+   "short_name": "Kickapoo",
+   "percent_full": 77.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake O the Pines",
+   "short_name": "Lake O' the Pines",
+   "percent_full": 92.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lavon Lake",
+   "short_name": "Lavon",
+   "percent_full": 80.8,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Leon Reservoir",
+   "short_name": "Leon",
+   "percent_full": 75.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lewisville Lake",
+   "short_name": "Lewisville",
+   "percent_full": 83.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Limestone",
+   "short_name": "Limestone",
+   "percent_full": 84.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Livingston Reservoir",
+   "short_name": "Livingston",
+   "percent_full": 93.2,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lost Creek Reservoir",
+   "short_name": "Lost Creek",
+   "percent_full": 87.8,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake L. B. Johnson",
+   "short_name": "Lyndon B Johnson",
+   "percent_full": 98.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Mackenzie Reservoir",
+   "short_name": "Mackenzie",
+   "percent_full": 10.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Marble Falls",
+   "short_name": "Marble Falls",
+   "percent_full": 98.2,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Martin Lake",
+   "short_name": "Martin",
+   "percent_full": 77.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Medina Lake",
+   "short_name": "Medina",
+   "percent_full": 28.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Meredith",
+   "short_name": "Meredith",
+   "percent_full": 44.5,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Millers Creek Reservoir",
+   "short_name": "Millers Creek",
+   "percent_full": 56.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Mineral Wells",
+   "short_name": "Mineral Wells",
+   "percent_full": 85.0,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Monticello Reservoir",
+   "short_name": "Monticello",
+   "percent_full": 73.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Mountain Creek Lake",
+   "short_name": "Mountain Creek",
+   "percent_full": 100.0,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Murvaul Lake",
+   "short_name": "Murvaul",
+   "percent_full": 88.8,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Nacogdoches",
+   "short_name": "Nacogdoches",
+   "percent_full": 84.8,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Nasworthy",
+   "short_name": "Nasworthy",
+   "percent_full": 85.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Navarro Mills Lake",
+   "short_name": "Navarro Mills",
+   "percent_full": 82.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "New Terrell City Lake",
+   "short_name": "New Terrell City",
+   "percent_full": 24.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Nocona (Farmer's Creek)",
+   "short_name": "Nocona",
+   "percent_full": 73.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "North Fork Buffalo Creek Reservoir",
+   "short_name": "North Fork Buffalo Creek",
+   "percent_full": 70.3,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "O. C. Fisher Lake",
+   "short_name": "O C Fisher",
+   "percent_full": 10.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "O. H. Ivie Reservoir",
+   "short_name": "O H Ivie",
+   "percent_full": 41.3,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Oak Creek Reservoir",
+   "short_name": "Oak Creek",
+   "percent_full": 13.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Palestine",
+   "short_name": "Palestine",
+   "percent_full": 88.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Palo Duro Reservoir",
+   "short_name": "Palo Duro",
+   "percent_full": 0.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Palo Pinto",
+   "short_name": "Palo Pinto",
+   "percent_full": 79.2,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Pat Cleburne",
+   "short_name": "Pat Cleburne",
+   "percent_full": 88.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Pat Mayse Lake",
+   "short_name": "Pat Mayse",
+   "percent_full": 90.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Possum Kingdom Lake",
+   "short_name": "Possum Kingdom",
+   "percent_full": 85.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Proctor Lake",
+   "short_name": "Proctor",
+   "percent_full": 57.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Ray Hubbard",
+   "short_name": "Ray Hubbard",
+   "percent_full": 85.8,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Ray Roberts Lake",
+   "short_name": "Ray Roberts",
+   "percent_full": 94.8,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Red Bluff Reservoir",
+   "short_name": "Red Bluff",
+   "percent_full": 46.3,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Richland-Chambers Reservoir",
+   "short_name": "Richland-Chambers",
+   "percent_full": 91.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Sam Rayburn Reservoir",
+   "short_name": "Sam Rayburn",
+   "percent_full": 63.4,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Somerville Lake",
+   "short_name": "Somerville",
+   "percent_full": 90.5,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Stamford",
+   "short_name": "Stamford",
+   "percent_full": 61.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Stillhouse Hollow Lake",
+   "short_name": "Stillhouse Hollow",
+   "percent_full": 98.2,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Striker",
+   "short_name": "Striker",
+   "percent_full": 80.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Sulphur Springs",
+   "short_name": "Sulphur Springs",
+   "percent_full": 85.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Sweetwater",
+   "short_name": "Sweetwater",
+   "percent_full": 16.5,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Tawakoni",
+   "short_name": "Tawakoni",
+   "percent_full": 91.3,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Texana",
+   "short_name": "Texana",
+   "percent_full": 89.2,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Texoma",
+   "short_name": "Texoma",
+   "percent_full": 94.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Toledo Bend Reservoir",
+   "short_name": "Toledo Bend",
+   "percent_full": 85.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Travis",
+   "short_name": "Travis",
+   "percent_full": 94.9,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Twin Buttes Reservoir",
+   "short_name": "Twin Buttes",
+   "percent_full": 4.7,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Tyler",
+   "short_name": "Tyler",
+   "percent_full": 85.0,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Waco Lake",
+   "short_name": "Waco",
+   "percent_full": 89.0,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Waxahachie",
+   "short_name": "Waxahachie",
+   "percent_full": 75.6,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Weatherford",
+   "short_name": "Weatherford",
+   "percent_full": 59.5,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "White River Reservoir",
+   "short_name": "White River",
+   "percent_full": 20.5,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Whitney Lake",
+   "short_name": "Whitney",
+   "percent_full": 91.8,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Lake Worth",
+   "short_name": "Worth",
+   "percent_full": 69.1,
+   "timestamp": "2026-10-10"
+  },
+  {
+   "full_name": "Wright Patman Lake",
+   "short_name": "Wright Patman",
+   "percent_full": 100.0,
+   "timestamp": "2026-10-10"
+  }
+ ]
+}

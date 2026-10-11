@@ -1,0 +1,476 @@
+---
+// /texas-lake-levels/ : the statewide Texas reservoir storage figure from the Texas Water
+// Development Board (TWDB), its rank against the same calendar day in earlier years of the
+// TWDB file, and every reservoir in the TWDB recent-conditions file.
+//
+// Data design: both TWDB CSV files are fetched here, at BUILD time, with a 45 s timeout
+// each. On any error, timeout or bad parse the page uses src/data/texas-reservoirs-snapshot.json
+// for that file and says so on the page. Every figure is rendered into the HTML here. The
+// client script only filters and re-orders rows that are already in the HTML. No browser
+// fetch, no JSON island.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { authorLd, breadcrumbLd, absUrl } from '../lib/seo';
+import { AUTHOR, SITE } from '../consts';
+import snapshot from '../data/texas-reservoirs-snapshot.json';
+
+const PATH = '/texas-lake-levels/';
+const TWDB_STATEWIDE_PAGE = 'https://www.waterdatafortexas.org/reservoirs/statewide';
+const URL_STATEWIDE = 'https://www.waterdatafortexas.org/reservoirs/statewide.csv';
+const URL_RECENT = 'https://www.waterdatafortexas.org/reservoirs/recent-conditions.csv';
+const FETCH_TIMEOUT_MS = 45000;
+const STALE_DAYS = 7;
+const DAY_MS = 86400000;
+
+type SwRow = {
+  date: string;
+  reservoir_storage: number;
+  conservation_storage: number;
+  percent_full: number;
+  conservation_capacity: number;
+};
+type SameDay = { date: string; percent_full: number };
+type ResRow = { full_name: string; short_name: string; percent_full: number | null; timestamp: string };
+type Snapshot = {
+  fetchedAt: string;
+  sources: { statewide: string; recentConditions: string };
+  statewideFirst: SwRow;
+  statewideLatest: SwRow;
+  statewideSameDay: SameDay[];
+  reservoirs: ResRow[];
+};
+const SNAP = snapshot as unknown as Snapshot;
+
+// ---- fetch and parse, build time only -----------------------------------------------------
+async function fetchText(url: string): Promise<string> {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { signal: ctl.signal });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+    return await res.text();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// CSV parser that respects double quotes (the tags and gauge_location fields hold commas).
+function parseCsv(text: string): string[][] {
+  const out: string[][] = [];
+  let row: string[] = [];
+  let field = '';
+  let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; } else { quoted = false; }
+      } else {
+        field += ch;
+      }
+    } else if (ch === '"') {
+      quoted = true;
+    } else if (ch === ',') {
+      row.push(field); field = '';
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(field); field = '';
+      if (row.length > 1 || row[0] !== '') out.push(row);
+      row = [];
+    } else {
+      field += ch;
+    }
+  }
+  if (field !== '' || row.length) { row.push(field); out.push(row); }
+  return out;
+}
+
+function isIsoDate(s: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d = new Date(`${s}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+}
+function toNum(s: string, what: string): number {
+  const t = s.trim();
+  const n = t === '' ? NaN : Number(t);
+  if (!Number.isFinite(n)) throw new Error(`bad number for ${what}: "${s}"`);
+  return n;
+}
+function table(text: string, need: string[]): { idx: Record<string, number>; rows: string[][] } {
+  const body = text.split(/\r?\n/).filter((l) => !l.startsWith('#')).join('\n');
+  const all = parseCsv(body);
+  if (all.length < 2) throw new Error('no data rows');
+  const head = all[0].map((h) => h.trim());
+  const idx: Record<string, number> = {};
+  for (const n of need) {
+    const k = head.indexOf(n);
+    if (k < 0) throw new Error(`missing column ${n}`);
+    idx[n] = k;
+  }
+  const rows = all.slice(1);
+  // A body cut off in transit leaves a short last row: every row must have every column.
+  rows.forEach((r, i) => {
+    if (r.length !== head.length) throw new Error(`row ${i + 1} has ${r.length} of ${head.length} columns`);
+  });
+  return { idx, rows };
+}
+
+type Statewide = { first: SwRow; latest: SwRow; sameDay: SameDay[] };
+function parseStatewide(text: string): Statewide {
+  const cols = ['date', 'reservoir_storage', 'conservation_storage', 'percent_full', 'conservation_capacity'];
+  const { idx, rows } = table(text, cols);
+  const list: SwRow[] = rows.map((r) => ({
+    date: r[idx.date].trim(),
+    reservoir_storage: toNum(r[idx.reservoir_storage], 'reservoir_storage'),
+    conservation_storage: toNum(r[idx.conservation_storage], 'conservation_storage'),
+    percent_full: toNum(r[idx.percent_full], 'percent_full'),
+    conservation_capacity: toNum(r[idx.conservation_capacity], 'conservation_capacity'),
+  }));
+  if (list.length === 0) throw new Error('0 statewide rows');
+  for (const r of list) if (!isIsoDate(r.date)) throw new Error(`bad date ${r.date}`);
+  const latest = list[list.length - 1];
+  // A body cut inside the last field still has 5 columns. TWDB defines percent_full as
+  // 100 * conservation_storage / conservation_capacity, so the latest row must agree with it.
+  if (!(latest.conservation_capacity > 0) || Math.abs((100 * latest.conservation_storage) / latest.conservation_capacity - latest.percent_full) > 0.06) {
+    throw new Error(`latest row ${latest.date} fails the percent_full check`);
+  }
+  // A body cut at a line end ends on an older date: never use data older than the snapshot.
+  if (latest.date < SNAP.statewideLatest.date) throw new Error(`latest date ${latest.date} is older than the snapshot`);
+  const md = latest.date.slice(5);
+  const sameDay = list
+    .filter((r) => r.date < latest.date && r.date.slice(5) === md)
+    .map((r) => ({ date: r.date, percent_full: r.percent_full }));
+  return { first: list[0], latest, sameDay };
+}
+
+function parseRecent(text: string): ResRow[] {
+  const { idx, rows } = table(text, ['full_name', 'short_name', 'timestamp', 'percent_full']);
+  const list: ResRow[] = rows.map((r) => {
+    const raw = (r[idx.percent_full] ?? '').trim();
+    return {
+      full_name: (r[idx.full_name] ?? '').trim(),
+      short_name: (r[idx.short_name] ?? '').trim(),
+      percent_full: raw === '' ? null : toNum(raw, 'percent_full'),
+      timestamp: (r[idx.timestamp] ?? '').trim().slice(0, 10),
+    };
+  });
+  if (list.length === 0) throw new Error('0 reservoir rows');
+  // A body cut at a line end drops rows: require at least 90% of the snapshot row count.
+  if (list.length < Math.floor(0.9 * SNAP.reservoirs.length)) throw new Error(`only ${list.length} reservoir rows`);
+  // TWDB sorts the file by short_name, so a cut that drops even one row drops the last name.
+  const lastSnapName = SNAP.reservoirs.map((r) => r.short_name).sort().pop();
+  if (lastSnapName && !list.some((r) => r.short_name === lastSnapName)) throw new Error(`last reservoir ${lastSnapName} is missing`);
+  for (const r of list) {
+    if (!r.full_name) throw new Error('empty full_name');
+    if (!isIsoDate(r.timestamp)) throw new Error(`bad timestamp for ${r.full_name}`);
+  }
+  return list;
+}
+
+let statewide: Statewide;
+let statewideFromSnapshot = false;
+try {
+  statewide = parseStatewide(await fetchText(URL_STATEWIDE));
+} catch (err) {
+  console.warn(`[texas-lake-levels] statewide.csv not used, snapshot used: ${String(err)}`);
+  statewide = { first: SNAP.statewideFirst, latest: SNAP.statewideLatest, sameDay: SNAP.statewideSameDay };
+  statewideFromSnapshot = true;
+}
+let reservoirs: ResRow[];
+let recentFromSnapshot = false;
+try {
+  reservoirs = parseRecent(await fetchText(URL_RECENT));
+} catch (err) {
+  console.warn(`[texas-lake-levels] recent-conditions.csv not used, snapshot used: ${String(err)}`);
+  reservoirs = SNAP.reservoirs;
+  recentFromSnapshot = true;
+}
+
+// ---- dates and the 7-day rule ----------------------------------------------------------------
+const buildDay = new Date().toISOString().slice(0, 10);
+function ageDays(iso: string): number {
+  return Math.round((Date.parse(`${buildDay}T00:00:00Z`) - Date.parse(`${iso}T00:00:00Z`)) / DAY_MS);
+}
+function isStale(iso: string): boolean {
+  return ageDays(iso) > STALE_DAYS;
+}
+function longDate(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+}
+function monthDay(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' });
+}
+const snapDay = SNAP.fetchedAt.slice(0, 10);
+
+// ---- the statewide answer and the rank -------------------------------------------------------
+const NF = new Intl.NumberFormat('en-US');
+function pct(v: number | null): string {
+  return v == null ? 'not published' : `${(Math.round(v * 10) / 10).toFixed(1)}%`;
+}
+function af(v: number): string {
+  return `${NF.format(Math.round(v))} acre-feet`;
+}
+const L = statewide.latest;
+const swDate = L.date;
+const swStale = isStale(swDate);
+const swLabel = swStale
+  ? `the latest TWDB reading of ${swDate}, ${ageDays(swDate)} days before this page was built`
+  : `the current TWDB reading, dated ${swDate}`;
+const prior = statewide.sameDay;
+const lower = prior.filter((r) => r.percent_full < L.percent_full).length;
+const equal = prior.filter((r) => r.percent_full === L.percent_full).length;
+const higher = prior.length - lower - equal;
+const firstSameYear = prior.length ? prior[0].date.slice(0, 4) : null;
+const md = monthDay(swDate);
+const rankText = prior.length === 0
+  ? `The file has no earlier ${md} value, so this page shows no rank for this date.`
+  : `Against the same calendar day in earlier years of the file, ${pct(L.percent_full)} is higher than ${lower} of ${prior.length} earlier ${md} ${prior.length === 1 ? 'value' : 'values'}${equal ? `, equal to ${equal},` : ''} and lower than ${higher}. The earliest ${md} value in the file is from ${firstSameYear}.`;
+const F = statewide.first;
+
+// ---- the table -------------------------------------------------------------------------------
+const rows = reservoirs
+  .map((r) => ({ ...r }))
+  .sort((a, b) => {
+    if (a.percent_full == null && b.percent_full == null) return a.full_name.localeCompare(b.full_name);
+    if (a.percent_full == null) return 1;
+    if (b.percent_full == null) return -1;
+    return b.percent_full - a.percent_full || a.full_name.localeCompare(b.full_name);
+  });
+const notPublished = rows.filter((r) => r.percent_full == null);
+const listsElephantButte = rows.some((r) => r.full_name.startsWith('Elephant Butte'));
+const resDates = rows.map((r) => r.timestamp).sort();
+const resMin = resDates[0];
+const resMax = resDates[resDates.length - 1];
+const resDateText = resMin === resMax ? resMin : `${resMin} to ${resMax}`;
+const staleRows = rows.filter((r) => isStale(r.timestamp)).length;
+const resLabel = staleRows === 0
+  ? `Every reading in the table is dated ${resDateText}, within ${STALE_DAYS} days of this build.`
+  : `Readings in the table are dated ${resDateText}. ${staleRows} of ${rows.length} are more than ${STALE_DAYS} days older than this build and are marked as the latest TWDB reading, not as current.`;
+
+function sourceText(fromSnap: boolean, file: string): string {
+  return fromSnap
+    ? `the committed snapshot of ${file}, fetched ${snapDay}, because the file did not load or did not parse during this build`
+    : `${file} as fetched from TWDB during this build on ${buildDay}`;
+}
+
+const title = 'Texas lake levels: statewide storage and each reservoir';
+const description =
+  'Texas statewide reservoir storage as percent full from TWDB, its rank against the same date in earlier years, and every reservoir in the TWDB file.';
+
+// ---- JSON-LD. Every date below is printed on the page. --------------------------------------
+const crumbs = {
+  ...breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Texas lake levels', path: PATH }]),
+  '@id': `${absUrl(PATH)}#breadcrumb`,
+};
+const person = { ...authorLd(), '@id': `${absUrl(PATH)}#author` };
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  '@id': `${absUrl(PATH)}#article`,
+  headline: 'Texas lake levels',
+  description,
+  mainEntityOfPage: absUrl(PATH),
+  dateModified: swDate,
+  author: { '@type': 'Person', '@id': `${absUrl(PATH)}#author`, name: AUTHOR.name },
+  publisher: { '@type': 'Organization', name: SITE.name, url: absUrl('/') },
+};
+const datasetLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  '@id': `${absUrl(PATH)}#dataset`,
+  name: 'Texas reservoir storage, percent full, from the Texas Water Development Board',
+  description:
+    'Statewide Texas reservoir storage as percent of conservation capacity, its rank against the same calendar day in earlier years of the TWDB file, and percent full for each reservoir in the TWDB recent-conditions file.',
+  url: absUrl(PATH),
+  creator: { '@type': 'GovernmentOrganization', name: 'Texas Water Development Board', url: TWDB_STATEWIDE_PAGE },
+  spatialCoverage: { '@type': 'Place', name: 'Texas' },
+  temporalCoverage: `${F.date}/${swDate}`,
+  variableMeasured: [
+    { '@type': 'PropertyValue', name: 'statewide percent full', unitText: 'percent' },
+    { '@type': 'PropertyValue', name: 'statewide conservation storage', unitText: 'acre-feet' },
+    { '@type': 'PropertyValue', name: 'statewide conservation capacity', unitText: 'acre-feet' },
+    { '@type': 'PropertyValue', name: 'reservoir percent full', unitText: 'percent' },
+  ],
+  isBasedOn: [URL_STATEWIDE, URL_RECENT],
+  dateModified: swDate,
+  isAccessibleForFree: true,
+};
+const ld = [crumbs, person, articleLd, datasetLd];
+---
+<BaseLayout title={title} description={description} path={PATH} jsonLd={ld}>
+  <article class="container">
+
+    <section class="hero" style="padding-bottom:0;">
+      <p class="section-k">Texas reservoirs</p>
+      <h1>Texas lake levels</h1>
+      <p class="lead">How full Texas reservoirs are as a whole, how that compares with the same date in earlier years, and every reservoir in the Texas Water Development Board's recent conditions file.</p>
+      <p class="byline">By <a href={AUTHOR.url}>{AUTHOR.name}</a>, independent developer and sole operator of {SITE.name}. Statewide reading dated {swDate}.</p>
+    </section>
+
+    <section class="section">
+      <p class="section-k">The answer</p>
+      <h2 class="section-h">Statewide reservoir storage in Texas</h2>
+      <p class="qas" id="tx-statewide">The water supply reservoirs that TWDB monitors in Texas held <span class="big">{pct(L.percent_full)}</span> of their combined conservation capacity in {swLabel}. That is {af(L.conservation_storage)} of conservation storage against {af(L.conservation_capacity)} of conservation capacity, from <a href={TWDB_STATEWIDE_PAGE}>the TWDB statewide reservoir page</a>.</p>
+      <p class="qas" id="tx-rank">{rankText}</p>
+      <p class="ll-note" id="tx-source">Source used for the statewide figure: {sourceText(statewideFromSnapshot, 'statewide.csv')}. Source used for the table: {sourceText(recentFromSnapshot, 'recent-conditions.csv')}.</p>
+    </section>
+
+    <section class="section">
+      <p class="section-k">The table</p>
+      <h2 class="section-h">Every reservoir in the TWDB recent conditions file</h2>
+      <p>The table lists all {rows.length} reservoirs in the file. {resLabel} {notPublished.length === 0 ? 'Every row has a published percent full.' : `${notPublished.length} ${notPublished.length === 1 ? 'row has' : 'rows have'} no published percent full and ${notPublished.length === 1 ? 'shows' : 'show'} "not published", not zero.`}</p>
+
+      <div class="ll-tool">
+        <div>
+          <label for="ll-q">Filter by reservoir name</label>
+          <input id="ll-q" type="search" placeholder="reservoir name" autocomplete="off" />
+        </div>
+        <div>
+          <label for="ll-sort">Sort</label>
+          <select id="ll-sort">
+            <option value="pct-desc">percent full, highest first</option>
+            <option value="pct-asc">percent full, lowest first</option>
+            <option value="name">name</option>
+          </select>
+        </div>
+      </div>
+      <p class="ll-note" id="ll-count" aria-live="polite">{rows.length} of {rows.length} reservoirs shown, sorted by percent full, highest first</p>
+
+      <div class="ll-wrap">
+        <table>
+          <caption>Percent of conservation capacity for each reservoir, with the date of the TWDB reading.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Reservoir</th>
+              <th scope="col">Percent full</th>
+              <th scope="col">Reading date</th>
+            </tr>
+          </thead>
+          <tbody id="ll-body">
+            {rows.map((r) => (
+              <tr
+                data-name={`${r.full_name} ${r.short_name}`.toLowerCase()}
+                data-sort-name={r.full_name.toLowerCase()}
+                data-pct={r.percent_full == null ? '' : String(r.percent_full)}
+              >
+                <th scope="row">{r.full_name}</th>
+                <td class="n">{pct(r.percent_full)}</td>
+                <td class="n">{isStale(r.timestamp) && 'latest TWDB reading of '}<span class="nw">{r.timestamp}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="ll-note" id="ll-empty" hidden>No reservoir matches that filter.</p>
+      <p class="ll-note" id="ll-shared">Texas shares Amistad and Falcon with Mexico, Caddo and Toledo Bend with Louisiana, and Texoma with Oklahoma. {listsElephantButte
+        ? 'For these reservoirs TWDB bases percent full on the Texas share, not on the whole lake. The file also lists Elephant Butte Lake, which is in New Mexico. TWDB notes that it supplies part of the water for El Paso when water is available.'
+        : 'For these reservoirs TWDB bases percent full on the Texas share, not on the whole lake.'}</p>
+    </section>
+
+    <section class="section">
+      <p class="section-k">How we know</p>
+      <h2 class="section-h">Method and limits</h2>
+      <p>The figures on this page come from two TWDB files, <a href={URL_STATEWIDE}>statewide.csv</a> and <a href={URL_RECENT}>recent-conditions.csv</a>. The page reads them when it is built. If a file does not load within 45 seconds or does not parse, the page uses a saved copy and says so above.</p>
+      <p>TWDB defines percent full as 100 times conservation storage divided by conservation capacity. Conservation storage is reservoir storage minus dead pool capacity, and TWDB caps it at conservation capacity.</p>
+      <p>The rank compares percent full only, not storage volume, because conservation capacity in the file changes over the decades. The first row of the file, dated {F.date}, has a conservation capacity of {af(F.conservation_capacity)}. The latest row has {af(L.conservation_capacity)}.</p>
+      <p>This page shows percent full only. It does not compare lake elevations between reservoirs or between agencies.</p>
+      <p>TWDB calls its reservoir data best estimates and gives no warranty for them. A percent full is not a statement about boat ramps, safety or drought. Confirm with the lake operator before you travel.</p>
+
+      <div class="src-foot">
+        <span class="src-tag">TWDB</span>
+        <span class="stamp">Statewide reading dated {swDate}. Page built {buildDay}.</span>
+      </div>
+    </section>
+
+  </article>
+
+  <script is:inline>
+    // Progressive enhancement only. Every row is in the HTML with every figure; this script
+    // filters and re-orders the existing rows and never builds one.
+    (function () {
+      'use strict';
+      var MAX_ROWS = 500;
+      var body = document.getElementById('ll-body');
+      var qi = document.getElementById('ll-q');
+      var ss = document.getElementById('ll-sort');
+      var out = document.getElementById('ll-count');
+      var empty = document.getElementById('ll-empty');
+      if (!body || !qi || !ss || !out || !empty) return;
+      var all = Array.prototype.slice.call(body.querySelectorAll('tr'), 0, MAX_ROWS);
+      if (all.length === 0) return;
+      var LABEL = { 'pct-desc': 'percent full, highest first', 'pct-asc': 'percent full, lowest first', name: 'name' };
+
+      function num(el) {
+        var raw = el.getAttribute('data-pct');
+        if (raw === null || raw === '') return null;
+        var n = Number(raw);
+        return isFinite(n) ? n : null;
+      }
+      function nm(el) { return el.getAttribute('data-sort-name') || ''; }
+      function cmp(a, b, mode) {
+        if (mode === 'name') return nm(a).localeCompare(nm(b));
+        var x = num(a), y = num(b);
+        if (x === null && y === null) return nm(a).localeCompare(nm(b));
+        if (x === null) return 1;
+        if (y === null) return -1;
+        var d = mode === 'pct-asc' ? x - y : y - x;
+        return d !== 0 ? d : nm(a).localeCompare(nm(b));
+      }
+      function apply() {
+        var q = String(qi.value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        var mode = LABEL[ss.value] ? ss.value : 'pct-desc';
+        var shown = [];
+        for (var i = 0; i < all.length; i++) {
+          var hit = q === '' || (all[i].getAttribute('data-name') || '').indexOf(q) > -1;
+          all[i].hidden = !hit;
+          if (hit) shown.push(all[i]);
+        }
+        var sorted = all.slice().sort(function (a, b) { return cmp(a, b, mode); });
+        var frag = document.createDocumentFragment();
+        for (var j = 0; j < sorted.length; j++) frag.appendChild(sorted[j]);
+        body.appendChild(frag);
+        empty.hidden = shown.length > 0;
+        out.textContent = shown.length + ' of ' + all.length + ' reservoirs shown, sorted by ' + LABEL[mode];
+      }
+      qi.addEventListener('input', apply);
+      ss.addEventListener('change', apply);
+      // The browser can restore the form values on Back (bfcache or form restore): re-apply.
+      window.addEventListener('pageshow', apply);
+      apply();
+    })();
+  </script>
+
+  <style>
+    .section-h { font-size: 20px; font-weight: 700; letter-spacing: -.02em; margin-bottom: 10px; }
+    .section-k { font-size: 14px; font-weight: 600; color: var(--teal-deep); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+    .hero .section-k { margin-bottom: 10px; }
+    .byline { font-size: 14px; color: var(--t2); margin-top: 12px; }
+    article.container p { max-width: 68ch; font-size: 15px; line-height: 1.65; }
+    p.qas { color: var(--ink); font-weight: 500; }
+    p.qas .big { font-size: 22px; font-weight: 700; }
+
+    .ll-tool { display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end; margin: 1.25rem 0 .5rem; }
+    .ll-tool label { display: block; font-size: 14px; color: var(--t2); margin-bottom: .25rem; }
+    .ll-tool input, .ll-tool select { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: .5rem .65rem; color: var(--ink); font: inherit; font-size: 16px; max-width: 100%; }
+
+    .ll-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r); background: var(--card); max-width: 100%; }
+    .ll-wrap table { border-collapse: collapse; width: 100%; font-size: 15px; }
+    .ll-wrap caption { text-align: left; padding: .85rem; color: var(--t2); font-size: 14px; line-height: 1.5; }
+    .ll-wrap th, .ll-wrap td { padding: .55rem .7rem; border-bottom: 1px solid var(--border-soft); text-align: left; vertical-align: top; color: var(--ink); white-space: normal; }
+    .ll-wrap thead th { background: var(--card); border-bottom: 1px solid var(--border); font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: var(--t2); }
+    .ll-wrap tbody th[scope='row'] { font-size: 15px; font-weight: 600; text-transform: none; letter-spacing: 0; background: transparent; }
+    .ll-wrap td.n { font-variant-numeric: tabular-nums; }
+    .ll-wrap .nw { white-space: nowrap; }
+    @media (max-width: 380px) {
+      .ll-wrap th, .ll-wrap td { padding: .5rem .45rem; }
+      .ll-wrap thead th { letter-spacing: 0; }
+    }
+    @media (max-width: 420px) {
+      .ll-wrap td.n { font-size: 14px; padding-left: .35rem; padding-right: .35rem; }
+    }
+
+    .ll-note { color: var(--t2); font-size: 14px; margin-top: .75rem; }
+    .src-foot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 28px 0 48px; padding-top: 16px; border-top: 1px solid var(--border-soft); }
+    .src-foot .src-tag { font-size: 14px; font-weight: 600; color: var(--t2); padding: 3px 8px; background: var(--paper); border-radius: var(--r-sm); }
+    .src-foot .stamp { font-size: 14px; color: var(--t2); font-variant-numeric: tabular-nums; }
+  </style>
+</BaseLayout>
