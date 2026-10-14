@@ -1,9 +1,6 @@
 ---
-// One-line almanac peek for a lake page: the day-of-year sentence and a text link to the
-// paid almanac. Sits directly below the gauge and stat grid, never above the live reading.
-// 67.6% of clicks are mobile, and the full block below starts around screen two; this puts
-// the answer and a link on screen one. Renders nothing when the lake has no long record.
-import { leadSentence, PRICE_SINGLE } from '../lib/almanac';
+// Compact offer after the current-level summary. Never sell an uncovered lake.
+import { PRICE_SINGLE, LAKE_COUNT } from '../lib/almanac';
 import type { AlmanacContext } from '../lib/almanac';
 
 interface Props { slug: string; name: string; alm: AlmanacContext | null; }
@@ -12,19 +9,21 @@ const SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
 const href = SINGLE ? `${SINGLE}?client_reference_id=${slug}` : '/almanac/';
 ---
 
-{alm && (
-  <p class="alm-peek">
-    {leadSentence(alm)}
-    {' '}<a href={href} data-alm-cta="lake" data-lake={slug} data-alm-place="lake-top"
-      rel="nofollow">Full {name} almanac, ${PRICE_SINGLE} &rarr;</a>
-    {' '}<a class="alm-peek-more" href={slug === 'pine-flat-lake' ? '#pine-flat-sample' : `#alm-h-${slug}`}>{slug === 'pine-flat-lake' ? 'See Pine Flat sample' : 'what is in it'}</a>
-  </p>
-)}
+<aside class="alm-peek" aria-label="Lake Level Almanac" data-alm-place="lake-top">
+  <p>{alm
+    ? `${name} Almanac: get daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} once. No subscription.`
+    : `Plan visits to other lakes. Get daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} per lake. ${name} is not included.`}</p>
+  {alm ? <a class="alm-peek-buy" href={href} data-alm-cta="lake" data-lake={slug}
+    rel="nofollow">Get {name} Almanac — ${PRICE_SINGLE}</a>
+    : <a class="alm-peek-buy" href="/almanac/">See the {LAKE_COUNT} covered lakes — ${PRICE_SINGLE} each</a>}
+  {alm && <a class="alm-peek-more" href={slug === 'pine-flat-lake' ? '#pine-flat-sample' : `#alm-h-${slug}`}>{slug === 'pine-flat-lake' ? 'See Pine Flat sample' : 'See what is included'}</a>}
+</aside>
 
 <style>
-  .alm-peek { margin: 12px 0 0; padding: 3px 10px; border-left: 3px solid var(--teal);
-    font-size: 14px; line-height: 1.28; color: var(--t1); max-width: 70ch; }
-  .alm-peek a { font-weight: 600; }
-  .alm-peek a.alm-peek-more { font-weight: 500; font-size: 13px; color: var(--t2);
-    margin-left: 4px; white-space: nowrap; }
+  .alm-peek { margin: 14px 0; padding: 12px 14px; border-left: 3px solid var(--teal);
+    background: var(--card); font-size: 14px; line-height: 1.45; color: var(--t1); max-width: 70ch; }
+  .alm-peek p { margin: 0 0 10px; }
+  .alm-peek-buy { display: inline-block; padding: 11px 14px; border-radius: 6px;
+    background: var(--teal); color: #fff; font-weight: 600; text-decoration: none; }
+  .alm-peek-more { display: inline-block; padding: 10px 0; margin-left: 10px; font-size: 13px; }
 </style>

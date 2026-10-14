@@ -55,10 +55,8 @@ const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
         <p class="alm-home-k">Is that level normal?</p>
         <p class="alm-home-lead">{almFeature.sentence}</p>
         <p class="alm-home-sub">
-          Every tracker shows today&rsquo;s elevation. The Lake Level Almanac shows whether it is
-          normal, from {almanacData.deepestRecordYears} years of daily federal record across
-          {' '}{almanacData.lakeCount} reservoirs: day-of-year normals, month-by-month
-          climatology, and how often your own ramp or dock elevation has been above water.
+          Get daily normal ranges, a threshold explorer and CSV records for {almFeature.name}.
+          ${almanacData.priceSingleUsd} once. Instant download. No subscription.
         </p>
         <p class="alm-home-cta" data-alm-place="home">
           <a class="alm-home-btn" href={ALMANAC_SINGLE ? `${ALMANAC_SINGLE}?client_reference_id=${almFeature.slug}` : '/almanac'} rel="nofollow" data-lake={almFeature.slug}>
