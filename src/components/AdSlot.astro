@@ -15,9 +15,8 @@ const reserved = /^\d{6,20}$/.test(id);
 <div class="ad-slot" data-ad-client={client} data-ad-slot-id={reserved ? id : undefined} hidden={!reserved} style={reserved ? 'min-height:280px' : undefined}>
   {reserved && <p class="ad-label">Advertisement</p>}
 </div>
-<script is:inline src="/ads-loader.js" defer></script>
 <style>
-.ad-slot{margin:32px 0;text-align:center;overflow:hidden}
+.ad-slot{margin:160px 0;text-align:center;overflow:hidden}
 .ad-slot[hidden]{display:none}
 .ad-slot .ad-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin:0 0 6px}
 </style>

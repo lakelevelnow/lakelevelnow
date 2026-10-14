@@ -12,7 +12,6 @@
   if (w.__llnAds) return;
   w.__llnAds = 1;
   var slots = [].slice.call(d.querySelectorAll('.ad-slot[data-ad-client]'));
-  if (!slots.length) return;
   var TRACE = 'https://lakelevelnow.lipmichal.workers.dev/cdn-cgi/trace';
   var REGION = ('AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE ' +
     'IS LI NO GB CH AX GF GP MQ RE YT MF GG JE IM GI').split(' ');
@@ -25,7 +24,8 @@
   }
   function load(cc) {
     if (!cc || cc === 'XX' || cc === 'T1' || REGION.indexOf(cc) >= 0) return collapse();
-    var client = slots[0].getAttribute('data-ad-client');
+    var account = d.querySelector('meta[name="google-adsense-account"]');
+    var client = account && account.getAttribute('content');
     if (!/^ca-pub-\d{10,20}$/.test(client || '')) return collapse();
     w.adsbygoogle = w.adsbygoogle || [];
     var n = navigator;

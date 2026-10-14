@@ -16,6 +16,9 @@ interface Props {
 }
 const { title, description, path, ogImage, noindex, jsonLd = [] } = Astro.props;
 const ld = [organizationLd(), websiteLd(), ...jsonLd];
+const adPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
+  adPath.startsWith('/lake/') || adPath === '/california-lake-levels' || adPath === '/texas-lake-levels');
 ---
 
 <!DOCTYPE html>
@@ -24,6 +27,7 @@ const ld = [organizationLd(), websiteLd(), ...jsonLd];
     {/* AdSense site ownership check. A meta tag only: it loads nothing and sets no cookie,
         so it is safe for every region. The ad script itself is geo-gated in /ads-loader.js. */}
     <meta name="google-adsense-account" content="ca-pub-2241192243363112" />
+    {hasAds && <script is:inline defer src="/ads-loader.js"></script>}
     <script is:inline defer src="/ga4.js" data-site="lakelevelnow" data-measurement-id="G-LYY6FMNH6R"></script>
     <BaseHead
       title={title}
