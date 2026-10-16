@@ -4,6 +4,7 @@ import { SITE } from '../consts';
 import { LAKES, freshLakes, byState, getReading, status, fmtNum, stateName } from '../lib/lakes';
 import { authorLd, breadcrumbLd } from '../lib/seo';
 import almanacData from '../data/almanac.json';
+import SupportLine from '../components/SupportLine.astro';
 
 // Hand-tuned 2026-10-08 for "lake levels" / "current lake levels" (1,922 impressions, pos 18).
 // The count is the lakes that have a live percent-full reading today, never the registry size.
@@ -96,6 +97,8 @@ const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
         })}
       </div>
     </section>
+
+    <SupportLine variant="result" />
 
     {movers.length > 0 && (
       <section class="section">

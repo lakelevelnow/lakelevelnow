@@ -9,10 +9,11 @@ interface Props {
   path?: string;
   ogImage?: string;
   noindex?: boolean;
+  robots?: string;
   jsonLd?: Record<string, any>[];
 }
 
-const { title, description, path = '/', ogImage, noindex = false, jsonLd = [] } = Astro.props;
+const { title, description, path = '/', ogImage, noindex = false, robots, jsonLd = [] } = Astro.props;
 const meta = buildMeta({ title, description, path, ogImage, noindex });
 ---
 
@@ -34,7 +35,7 @@ const meta = buildMeta({ title, description, path, ogImage, noindex });
 <title>{meta.fullTitle}</title>
 <meta name="description" content={meta.description} />
 <link rel="canonical" href={meta.canonical} />
-{noindex ? <meta name="robots" content="noindex, nofollow" /> : <meta name="robots" content="index, follow, max-image-preview:large" />}
+{robots ? <meta name="robots" content={robots} /> : noindex ? <meta name="robots" content="noindex, nofollow" /> : <meta name="robots" content="index, follow, max-image-preview:large" />}
 
 <!-- OpenGraph -->
 <meta property="og:type" content="website" />

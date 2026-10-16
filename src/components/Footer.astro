@@ -8,6 +8,9 @@ const more = LAKES.slice(6, 14);
 const year = new Date().getFullYear();
 const ZOVO = 'https://zovo.one';
 const GH = 'https://github.com/theluckystrike';
+// No tip ask on the support page itself (it has its own) or on the post-purchase page.
+const fpath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const showTip = fpath !== '/support' && !fpath.startsWith('/almanac/thanks');
 ---
 <footer class="site-footer">
   <div class="container">
@@ -22,6 +25,7 @@ const GH = 'https://github.com/theluckystrike';
         <a href="/disclosure">Disclosure</a>
         <a href="/disclosure#privacy">Privacy</a>
         <a href="/advertise/">Advertise</a>
+        <a href="/support/">Support</a>
         <a href={GH} rel="nofollow noopener">GitHub</a>
         <a href={ZOVO} rel="nofollow noopener">zovo.one</a>
         <a href={`mailto:${SITE.contactEmail}`}>Contact</a>
@@ -34,7 +38,14 @@ const GH = 'https://github.com/theluckystrike';
       lake operator before you go on the water. Not affiliated with any government agency.
       Lake pages may carry ads (not shown to visitors in the EEA, UK or Switzerland). See <a href="/disclosure" style="color:inherit;text-decoration:underline;">the disclosure page</a>.
     </p>
-    <SupportLine variant="footer" />
+    {showTip && <SupportLine variant="footer" />}
+    <script is:inline>
+      document.addEventListener('click', function (e) {
+        var a = e.target && e.target.closest ? e.target.closest('[data-support-cta] a[data-rail]') : null;
+        if (!a || typeof gtag !== 'function') return;
+        gtag('event', 'support_click', { cta_position: a.closest('[data-support-cta]').getAttribute('data-support-cta'), rail: a.getAttribute('data-rail') });
+      });
+    </script>
     <div class="copy">© {SITE.name} {year} · A <a href={ZOVO} rel="nofollow noopener" style="color:rgba(255,255,255,.4);text-decoration:underline;">zovo.one</a> site, built by one developer.</div>
   </div>
 

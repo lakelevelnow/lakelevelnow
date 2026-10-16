@@ -1,26 +1,52 @@
 ---
-// Pay-what-you-want support line (footer + end of each lake FAQ). Renders nothing until
-// support.url in src/data/monetization.json holds the Stripe Payment Link or Gumroad product URL, so a missing
-// link never shows a dead button.
+// Voluntary tip asks (Buy Me a Coffee + PayPal). Replaces the old Gumroad "Chip in $5" line.
+// variant "result": a small card right after the live reading (lake pages + homepage).
+// variant "footer": the shared footer block on every page, with a "Why I ask" link to /support/.
+// The paid almanac stays the primary offer: the result card uses ghost buttons so it never
+// outranks the almanac button. Click events go to gtag via the one handler in Footer.astro.
 import cfg from '../data/monetization.json';
-interface Props { variant?: 'footer' | 'inline' }
-const { variant = 'inline' } = Astro.props;
-const raw = cfg.support.url || '';
-const ok = /^https:\/\/buy\.stripe\.com\/[A-Za-z0-9]+$/.test(raw) || /^https:\/\/theluckystrike\.gumroad\.com\/l\/[a-z0-9-]+$/.test(raw);
-// Gumroad records a source only when utm_source, utm_medium and utm_campaign are all present.
-const url = !ok ? '' : raw.includes('gumroad.com') ? `${raw}?utm_source=lakelevelnow&utm_medium=${variant}&utm_campaign=support` : raw;
+interface Props { variant?: 'result' | 'footer'; feed?: string | null }
+const { variant = 'result', feed = null } = Astro.props;
+const BMC = cfg.support.bmc;
+const PAYPAL = cfg.support.paypal;
+const gageLine = feed ? `It re-checks this ${feed} gage daily.` : 'It re-checks public USGS, CDEC and USBR gages daily.';
 ---
-{url && (
-  <div class={`support-line ${variant}`}>
-    <p>LakeLevelNow is free, ad-light and built by one person. If it saved you a wasted drive to a dry ramp, you can chip in. <span class="sig">Michael</span></p>
-    <a class="btn support-btn" href={url} rel="noopener" data-support-cta={variant}>Chip in $5</a>
+{variant === 'result' ? (
+  <aside class="tip-card" data-support-cta="result" aria-label="Support LakeLevelNow">
+    <p class="tip-h">Did this help?</p>
+    <p class="tip-b">I built LakeLevelNow on my own. {gageLine} If it saved you a drive to a dry ramp, a $3 coffee helps keep it going.</p>
+    <div class="tip-row">
+      <a class="btn ghost tip-btn" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>Buy me a coffee</a>
+      <a class="btn ghost tip-btn" href={`${PAYPAL}/3USD`} target="_blank" rel="noopener" data-rail="paypal">Tip with PayPal</a>
+    </div>
+  </aside>
+) : (
+  <div class="tip-foot" data-support-cta="footer">
+    <p class="tip-fh">Made by one person, free to use.</p>
+    <p class="tip-fb">I started LakeLevelNow in June 2026 and have spent almost 4 months adding 44 lakes. I pay for the domain and the hours myself. If it helps you plan a day on the water, a small tip keeps it accurate. The site stays free either way. <span class="sig">Michael</span></p>
+    <div class="tip-row">
+      <a class="btn tip-btn" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>Buy me a coffee</a>
+      <a class="btn tip-btn tip-alt" href={PAYPAL} target="_blank" rel="noopener" data-rail="paypal">Tip with PayPal</a>
+      <a class="tip-why" href="/support/">Why I ask</a>
+    </div>
   </div>
 )}
 <style>
-.support-line{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:20px;max-width:660px}
-.support-line p{margin:0;font-size:14px;line-height:1.6;flex:1 1 320px}
-.support-line.inline p{color:var(--t2)}
-.support-line.footer p{color:rgba(255,255,255,.72)}
-.support-line .sig{white-space:nowrap;font-style:italic}
-.support-line .sig::before{content:"- "}
+.tip-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin:18px 0;max-width:660px}
+.tip-h{margin:0;font-size:15px;font-weight:600;color:var(--t1)}
+.tip-b{margin:4px 0 0;font-size:14px;line-height:1.55;color:var(--t2)}
+.tip-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;margin-top:12px}
+.tip-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 18px;text-decoration:none}
+.tip-btn:hover{text-decoration:none}
+.tip-foot{margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);max-width:640px}
+.tip-fh{margin:0;font-size:14px;font-weight:600;color:#fff}
+.tip-fb{margin:6px 0 0;font-size:13px;line-height:1.6;color:rgba(255,255,255,.72)}
+.tip-fb .sig{white-space:nowrap;font-style:italic}
+.tip-fb .sig::before{content:"- "}
+.tip-alt{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4)}
+.tip-alt:hover{background:rgba(255,255,255,.08)}
+.tip-foot .tip-btn:focus-visible{outline-color:#34b8a0}
+.tip-why{color:rgba(255,255,255,.72);font-size:13px;text-decoration:underline;padding:12px 4px}
+.tip-why:hover{color:#fff}
+@media (max-width:420px){.tip-btn{flex:1 1 100%}}
 </style>

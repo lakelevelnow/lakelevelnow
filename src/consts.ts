@@ -43,7 +43,7 @@ export const AFFILIATES = {
 export const AFFILIATE_REPLACE_ME = Object.values(AFFILIATES).some((v) => v === 'REPLACE_ME');
 
 // Display ads, support link and the per-lake sponsor slot. Owner switches live in
-// src/data/monetization.json (AdSense unit IDs, the pay-what-you-want Stripe link).
+// src/data/monetization.json (AdSense unit IDs, the tip rails: Buy Me a Coffee + PayPal).
 export const SPONSOR_PRICE_USD = 49;
 // Sponsor enquiries go to the inbox the /about page already advertises and that is read
 // (Porkbun-hosted mailbox, forwarded to the owner). hello@lakelevelnow.com is a Porkbun

@@ -20,7 +20,7 @@ export default defineConfig({
     sitemap({
       // /almanac/thanks/ is a post-purchase page whose URL carries a live Stripe session
       // id. It must never be indexed; it also carries noindex, and this is the second lock.
-      filter: (page) => !page.includes('/404') && !page.includes('/almanac/thanks'),
+      filter: (page) => !page.includes('/404') && !page.includes('/almanac/thanks') && !page.includes('/support/'),
       changefreq: 'weekly',
       priority: 0.7,
     }),

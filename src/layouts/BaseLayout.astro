@@ -12,9 +12,10 @@ interface Props {
   path?: string;
   ogImage?: string;
   noindex?: boolean;
+  robots?: string;
   jsonLd?: Record<string, any>[];
 }
-const { title, description, path, ogImage, noindex, jsonLd = [] } = Astro.props;
+const { title, description, path, ogImage, noindex, robots, jsonLd = [] } = Astro.props;
 const ld = [organizationLd(), websiteLd(), ...jsonLd];
 const adPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
@@ -35,6 +36,7 @@ const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
       path={path}
       ogImage={ogImage}
       noindex={noindex}
+      robots={robots}
       jsonLd={ld}
     />
     {/* Almanac funnel beacon. Fire-and-forget GETs to the fulfilment Worker; it never

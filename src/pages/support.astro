@@ -1,0 +1,48 @@
+---
+// /support/: why the site asks for tips. Thin by design, so it is noindex,follow and kept
+// out of the sitemap (astro.config.mjs). Linked from the footer block ("Why I ask") and the
+// footer link list.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import cfg from '../data/monetization.json';
+const BMC = cfg.support.bmc;
+const PAYPAL = cfg.support.paypal;
+const title = 'Support LakeLevelNow';
+const description = 'Who builds LakeLevelNow, what it costs to run, and how to leave a small tip.';
+---
+<BaseLayout title={title} description={description} path="/support" robots="noindex,follow">
+  <div class="container">
+    <article class="prose" data-support-cta="support_page">
+      <h1>Why I ask for tips</h1>
+      <p>I'm Michael, an independent developer. I build and run LakeLevelNow on my own.</p>
+      <p>I started it in June 2026. In almost 4 months I added 44 lakes and a daily job that pulls fresh readings from public USGS, CDEC, USBR and TWDB data.</p>
+      <p>What it costs: the domain each year, and my hours to keep the gage feeds working and check the numbers. Hosting on GitHub Pages is free, and so is the government data.</p>
+      <p>Where a tip goes: the domain renewal first, then time to keep the readings accurate and add the lakes people ask for.</p>
+      <p>Lake pages may show ads, and I sell an optional paid almanac. A tip is separate from both.</p>
+      <div class="sp-row">
+        <a class="btn sp-btn" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>Buy me a coffee</a>
+        <a class="btn ghost sp-btn" href={PAYPAL} target="_blank" rel="noopener" data-rail="paypal">Tip with PayPal</a>
+      </div>
+      <p class="sp-k">Or pick an amount on PayPal:</p>
+      <div class="sp-row">
+        <a class="btn ghost sp-btn sp-amt" href={`${PAYPAL}/3USD`} target="_blank" rel="noopener" data-rail="paypal">$3</a>
+        <a class="btn ghost sp-btn sp-amt" href={`${PAYPAL}/5USD`} target="_blank" rel="noopener" data-rail="paypal">$5</a>
+        <a class="btn ghost sp-btn sp-amt" href={`${PAYPAL}/10USD`} target="_blank" rel="noopener" data-rail="paypal">$10</a>
+      </div>
+      <p class="sp-micro">Card or PayPal. No account needed for card.</p>
+      <p>PayPal shows my legal name, Michał Lip.</p>
+      <p>This is a tip. You get nothing extra, and you owe nothing.</p>
+      <p>The site stays free either way.</p>
+      <p>- Michael</p>
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .sp-row { display: flex; flex-wrap: wrap; gap: 10px 12px; margin-top: 20px; }
+  .sp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 18px; text-decoration: none; }
+  .sp-btn:hover { text-decoration: none; }
+  .sp-amt { min-width: 64px; }
+  .sp-k { margin-top: 22px; font-size: 14px; }
+  article.prose .sp-micro { font-size: 13px; color: var(--t2); margin-top: 10px; }
+  @media (max-width: 420px) { .sp-btn:not(.sp-amt) { flex: 1 1 100%; } }
+</style>
