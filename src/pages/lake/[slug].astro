@@ -21,6 +21,14 @@ const reading = getReading(slug);
 const live = !!(reading && reading.fresh);
 const stName = stateName(lake.state);
 const asOfFmt = reading?.as_of ? new Date(reading.as_of).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+// Tip card headline: the visitor's result, with the reading's own date (fresh = within 7 days,
+// so the page never claims "today" for an older reading).
+const tipDate = reading?.as_of ? new Date(reading.as_of).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+const tipHeadline = live
+  ? (reading!.pct_full != null
+      ? `${lake.name} is ${reading!.pct_full}% full as of ${tipDate}.`
+      : (reading!.level_ft != null ? `${lake.name} is at ${fmtNum(reading!.level_ft, 1)} ft as of ${tipDate}.` : null))
+  : null;
 const levelPhrase = reading?.pct_full != null ? `${reading.pct_full}% full` : (reading?.level_ft != null ? `at ${fmtNum(reading.level_ft,1)} ft` : 'current water level');
 
 // Title + description carry the LIVE number. Search Console (90 days to 2026-07-27) showed
@@ -184,7 +192,7 @@ const feedNoun = feedLabel(reading?.feed) === 'CDEC' ? 'CDEC gage reading'
 
     {/* Tip ask at the value moment: after the reading and after the almanac context, so the
         paid offer keeps its place directly under the gauge. Only when a live reading exists. */}
-    {live && <SupportLine variant="result" feed={feedLabel(reading!.feed)} />}
+    {live && <SupportLine variant="result" headline={tipHeadline} />}
 
     {isPowell && band && elev != null && (
       <section class="section">

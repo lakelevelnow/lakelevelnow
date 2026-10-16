@@ -13,24 +13,41 @@ const description = 'Who builds LakeLevelNow, what it costs to run, and how to l
   <div class="container">
     <article class="prose" data-support-cta="support_page">
       <h1>Why I ask for tips</h1>
-      <p>I'm Michael, an independent developer. I build and run LakeLevelNow on my own.</p>
-      <p>I started it in June 2026. In almost 4 months I added 44 lakes and a daily job that pulls fresh readings from public USGS, CDEC, USBR and TWDB data.</p>
-      <p>What it costs: the domain each year, and my hours to keep the gage feeds working and check the numbers. Hosting on GitHub Pages is free, and so is the government data.</p>
-      <p>Where a tip goes: the domain renewal first, then time to keep the readings accurate and add the lakes people ask for.</p>
-      <p>Lake pages may show ads, and I sell an optional paid almanac. A tip is separate from both.</p>
-      <div class="sp-row">
-        <a class="btn sp-btn" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>Buy me a coffee</a>
-        <a class="btn ghost sp-btn" href={PAYPAL} target="_blank" rel="noopener" data-rail="paypal">Tip with PayPal</a>
+      <div class="sp-who">
+        <picture><source srcset="/kit/michael-128.webp" type="image/webp" /><img class="sp-face" src="/kit/michael-128.jpg" width="64" height="64" alt="Michael Lip" /></picture>
+        <p>Hi, I'm Michael. I build and run LakeLevelNow on my own.</p>
       </div>
-      <p class="sp-k">Or pick an amount on PayPal:</p>
+      <p>I started it in June 2026. Since then I added 44 lakes and a daily job that pulls fresh readings from public USGS, CDEC, USBR and TWDB data. About 300 people a month find it on Google.</p>
+      <h2>What it costs me each year</h2>
+      <table class="sp-cost">
+        <tbody>
+          <tr><th scope="row">Domain (lakelevelnow.com, .com renewal at <a href="https://porkbun.com/products/domains" rel="nofollow noopener" target="_blank">Porkbun</a>)</th><td>$11.08</td></tr>
+          <tr><th scope="row">Hosting (GitHub Pages)</th><td>$0</td></tr>
+          <tr><th scope="row">Gage data (USGS, CDEC, USBR, TWDB)</th><td>$0</td></tr>
+          <tr><th scope="row">Total in cash</th><td>$11.08</td></tr>
+        </tbody>
+      </table>
+      <p>The rest is my time: keeping the gage feeds working when an agency changes its format, and checking the numbers.</p>
+      <h2>What tips pay for</h2>
+      <ul>
+        <li>The domain renewal, first.</li>
+        <li>Time to fix a feed when it breaks, so readings stay current.</li>
+        <li>New lakes that people ask for.</li>
+      </ul>
+      <p>Tips unlock nothing. Everyone gets the same tool. Lake pages may show ads, and I sell an optional paid almanac. A tip is separate from both.</p>
+      <p class="sp-k">Pick an amount on PayPal:</p>
       <div class="sp-row">
-        <a class="btn ghost sp-btn sp-amt" href={`${PAYPAL}/3USD`} target="_blank" rel="noopener" data-rail="paypal">$3</a>
+        <a class="btn sp-btn sp-amt" href={`${PAYPAL}/3USD`} target="_blank" rel="noopener" data-rail="paypal">$3</a>
         <a class="btn ghost sp-btn sp-amt" href={`${PAYPAL}/5USD`} target="_blank" rel="noopener" data-rail="paypal">$5</a>
         <a class="btn ghost sp-btn sp-amt" href={`${PAYPAL}/10USD`} target="_blank" rel="noopener" data-rail="paypal">$10</a>
       </div>
-      <p class="sp-micro">Card or PayPal. No account needed for card.</p>
+      <div class="sp-row">
+        <a class="btn ghost sp-btn" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>Buy me a coffee (card, any amount)</a>
+      </div>
+      <p class="sp-micro">Prefer monthly? On Buy Me a Coffee you can tick "Make this monthly". You can cancel at any time.</p>
       <p>PayPal shows my legal name, Michał Lip.</p>
-      <p>This is a tip. You get nothing extra, and you owe nothing.</p>
+      <p>This is a tip, not a purchase. You get nothing extra, and you owe nothing.</p>
+      <p>The tip card on lake pages counts your visits so it can thank returning visitors. The use count on this site stays in your browser. I never see it.</p>
       <p>The site stays free either way.</p>
       <p>- Michael</p>
     </article>
@@ -42,6 +59,13 @@ const description = 'Who builds LakeLevelNow, what it costs to run, and how to l
   .sp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 18px; text-decoration: none; }
   .sp-btn:hover { text-decoration: none; }
   .sp-amt { min-width: 64px; }
+  .sp-who { display: flex; align-items: center; gap: 14px; margin: 8px 0 16px; }
+  .sp-who p { margin: 0; }
+  .sp-face { display: block; width: 64px; height: 64px; border-radius: 50%; object-fit: cover; flex: none; }
+  .sp-cost { border-collapse: collapse; width: 100%; max-width: 520px; font-size: 14px; margin: 8px 0 14px; }
+  .sp-cost th, .sp-cost td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); font-weight: 400; color: var(--t2); }
+  .sp-cost td { text-align: right; white-space: nowrap; color: var(--t1); font-variant-numeric: tabular-nums; }
+  .sp-cost tr:last-child th, .sp-cost tr:last-child td { font-weight: 600; color: var(--t1); }
   .sp-k { margin-top: 22px; font-size: 14px; }
   article.prose .sp-micro { font-size: 13px; color: var(--t2); margin-top: 10px; }
   @media (max-width: 420px) { .sp-btn:not(.sp-amt) { flex: 1 1 100%; } }
