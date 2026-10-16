@@ -160,8 +160,27 @@ let _usbr = null;
 async function usbrSeries() {
   if (_usbr) return _usbr;
   const txt = await httpGet('https://www.usbr.gov/lc/region/g4000/riverops/webreports/hourlyweb.json');
-  _usbr = JSON.parse(txt)?.Series || [];
+  _usbr = parseUsbr(txt)?.Series || [];
   return _usbr;
+}
+// USBR sometimes splices a .NET exception ("Collection was modified ...") into the
+// middle of the JSON. Keep every complete series before the break instead of failing.
+function parseUsbr(txt) {
+  try {
+    return JSON.parse(txt);
+  } catch (e) {
+    let end = txt.length;
+    for (let i = 0; i < 400; i++) {
+      end = txt.lastIndexOf(']}', end - 1);
+      if (end < 0) break;
+      try {
+        const out = JSON.parse(txt.slice(0, end + 2) + ']}');
+        console.warn(`USBR JSON malformed (${e.message}); salvaged ${out.Series?.length || 0} series`);
+        return out;
+      } catch {}
+    }
+    throw e;
+  }
 }
 const ELEV_DT = 'reservoir ws elevation, end of period primary reading';
 const STO_DT = 'storage, end of period reading';
