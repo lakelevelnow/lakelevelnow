@@ -98,7 +98,7 @@ const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
       </div>
     </section>
 
-    {fresh.length > 0 && <SupportLine variant="result" headline={`${fresh.length} lakes have a current reading above.`} />}
+    {fresh.length > 0 && <SupportLine variant="result" headline={`Current readings for ${fresh.length} lakes, in one place.`} />}
 
     {movers.length > 0 && (
       <section class="section">

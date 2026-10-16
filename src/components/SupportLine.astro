@@ -19,12 +19,17 @@ const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
 ---
 {variant === 'result' ? (
   <aside class="tip-card" data-support-cta="result" data-sct-always aria-label="Support LakeLevelNow">
-    {headline && <p class="tip-h">{headline}</p>}
     <div class="tip-who">
       <picture><source srcset="/kit/michael-128.webp" type="image/webp" /><img class="tip-face" src="/kit/michael-128.jpg" width="32" height="32" loading="lazy" alt="Michael Lip" /></picture>
       <div>
-        <p class="tip-b" data-sct-variant="first">I'm Michael. I built and check this tracker alone. The domain is $11 a year; a $3 tip covers 3 months of it. Tips unlock nothing. The site stays free for everyone.</p>
-        <p class="tip-b" data-sct-variant="returning" hidden>I'm Michael. You've checked lake levels here <span data-sct-uses>3</span> times. I'm glad it's useful. A $3 tip covers the domain for 3 months. Tips unlock nothing.</p>
+        <div data-sct-variant="first">
+          {headline && <p class="tip-h">{headline}</p>}
+          <p class="tip-b">I'm Michael. I keep these lake readings up to date myself. The domain costs about $11 a year, so a $3 tip covers three months of it. Tips unlock nothing, and the site stays free for everyone.</p>
+        </div>
+        <div data-sct-variant="returning" hidden>
+          <p class="tip-h">Back for lake check number <span data-sct-uses>3</span>.</p>
+          <p class="tip-b">Glad these readings keep saving you a wasted trip to the ramp. If LakeLevelNow has earned a coffee, $3 keeps the domain paid for three months. Same free readings either way.</p>
+        </div>
       </div>
     </div>
     <div class="tip-row">
@@ -39,7 +44,7 @@ const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
       <picture><source srcset="/kit/michael-128.webp" type="image/webp" /><img class="tip-face" src="/kit/michael-128.jpg" width="40" height="40" loading="lazy" alt="Michael Lip" /></picture>
       <p class="tip-fh">LakeLevelNow is one person's side project.</p>
     </div>
-    <p class="tip-fb">I'm Michael. The domain costs me $11.08 a year; hosting and the gage data are free. About 300 people find this site on Google each month. If 5 of them tip $3, the domain is paid for the year. The site stays free either way.</p>
+    <p class="tip-fb">I'm Michael. The domain costs me about $11 a year, and hosting and the gage data are free. About 300 people find the site on Google each month, so if 5 of them tip $3, the domain is paid for the year. The site stays free either way.</p>
     <div class="tip-row">
       <a class="btn tip-btn" href={`${PAYPAL}/3USD`} target="_blank" rel="noopener" data-rail="paypal">Tip $3 with PayPal</a>
       <a class="btn tip-btn tip-alt" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><Fragment set:html={cup} /><span>Buy me a coffee <small>card, no account</small></span></a>
@@ -51,7 +56,8 @@ const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
 .tip-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin:18px 0;max-width:660px}
 .tip-card[hidden],.tip-card [hidden]{display:none}
 .tip-h{margin:0;font-size:15px;font-weight:600;color:var(--t1)}
-.tip-who{display:flex;align-items:flex-start;gap:10px;margin-top:6px}
+.tip-who{display:flex;align-items:flex-start;gap:10px}
+.tip-who .tip-b{margin-top:4px}
 .tip-face{display:block;border-radius:50%;flex:none;object-fit:cover}
 .tip-who .tip-face{width:32px;height:32px;margin-top:2px}
 .tip-b{margin:0;font-size:14px;line-height:1.55;color:var(--t2)}

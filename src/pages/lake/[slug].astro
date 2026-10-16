@@ -26,8 +26,8 @@ const asOfFmt = reading?.as_of ? new Date(reading.as_of).toLocaleDateString('en-
 const tipDate = reading?.as_of ? new Date(reading.as_of).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
 const tipHeadline = live
   ? (reading!.pct_full != null
-      ? `${lake.name} is ${reading!.pct_full}% full as of ${tipDate}.`
-      : (reading!.level_ft != null ? `${lake.name} is at ${fmtNum(reading!.level_ft, 1)} ft as of ${tipDate}.` : null))
+      ? `${lake.name} read ${reading!.pct_full}% full on ${tipDate}.`
+      : (reading!.level_ft != null ? `${lake.name} read ${fmtNum(reading!.level_ft, 1)} ft on ${tipDate}.` : null))
   : null;
 const levelPhrase = reading?.pct_full != null ? `${reading.pct_full}% full` : (reading?.level_ft != null ? `at ${fmtNum(reading.level_ft,1)} ft` : 'current water level');
 
