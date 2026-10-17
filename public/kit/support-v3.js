@@ -1,7 +1,7 @@
-/* support-v3.js v3.1 - tip card behaviour (no network, no cookies). 2026-10-17.
-   v3.1: price A/B test on 4 sites (AB_SITES). Each browser gets arm 'a3' (Tip $3) or 'b5' (Tip $5), 50/50, stored in localStorage.
-   Arm b5 rewrites ONLY the result card: paypal.me/najzzz/3USD -> 5USD, '$3' -> '$5', 'three months' -> 'five months' (true for $10-12/yr domains).
-   GA4 sees the arm in outbound linkUrl (3USD vs 5USD) and in support_click {arm}.
+/* support-v3.js v3.2 - tip card behaviour (no network, no cookies). 2026-10-17.
+   v3.2: price A/B test on 4 sites (AB_SITES). Each browser gets arm 'a5' ($5, the default copy) or 'b10' ($10), 50/50, stored in localStorage key 'arm2'.
+   Arm b10 rewrites ONLY the result card: paypal.me/najzzz/5USD -> 10USD and '$5' -> '$10'.
+   GA4 sees the arm in outbound linkUrl (5USD vs 10USD) and in support_click {arm}.
    Markup contract:
    <div data-support-cta="result" data-sct-site="SITE" hidden?>
      <div data-sct-variant="first">...first-use copy...</div>
@@ -20,16 +20,16 @@
   var host = location.hostname.replace(/^www\./, '');
   var arm = 'na';
   if (AB_SITES.indexOf(host) !== -1) {
-    arm = get('arm', '');
-    if (arm !== 'a3' && arm !== 'b5') { arm = Math.random() < 0.5 ? 'a3' : 'b5'; set('arm', arm); }
+    arm = get('arm2', '');
+    if (arm !== 'a5' && arm !== 'b10') { arm = Math.random() < 0.5 ? 'a5' : 'b10'; set('arm2', arm); }
     document.documentElement.setAttribute('data-sct-arm', arm);
   }
   function applyArm(card) {
-    if (arm !== 'b5' || card.getAttribute('data-sct-armed')) return;
+    if (arm !== 'b10' || card.getAttribute('data-sct-armed')) return;
     card.setAttribute('data-sct-armed', '1');
-    Array.prototype.forEach.call(card.querySelectorAll('a[href*="paypal.me/najzzz/3USD"]'), function (a) { a.setAttribute('href', a.getAttribute('href').replace('/3USD', '/5USD')); });
+    Array.prototype.forEach.call(card.querySelectorAll('a[href*="paypal.me/najzzz/5USD"]'), function (a) { a.setAttribute('href', a.getAttribute('href').replace('/5USD', '/10USD')); });
     var w = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, null), n;
-    while ((n = w.nextNode())) { n.nodeValue = n.nodeValue.replace(/\$3\b/g, '$5').replace(/three months/g, 'five months'); }
+    while ((n = w.nextNode())) { n.nodeValue = n.nodeValue.replace(/\$5\b/g, '$10'); }
   }
   function cards() { return Array.prototype.slice.call(document.querySelectorAll('[data-support-cta="result"]')); }
   function snoozed() { return Date.now() < Number(get('snooze', 0)); }

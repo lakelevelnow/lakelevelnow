@@ -1,15 +1,13 @@
 ---
-// Voluntary tip asks (PayPal $3 + Buy Me a Coffee), v3 2026-10-17.
+// Voluntary tip asks (PayPal $5 + Buy Me a Coffee), v4 copy 2026-10-17 (support-cta-work/v4/COPY-V4.md).
 // variant "result": a small card right after the live reading (lake pages + homepage).
 //   Always visible when rendered (data-sct-always); /kit/support-v3.js (loaded once in
 //   Footer.astro) counts uses in this browser only, swaps in the returning copy from the
-//   3rd use, and "Not now" hides the card for 30 days. gtag support_click is sent there too.
+//   3rd use, runs the $5/$10 price A/B on this card only, and "Not now" hides the card for
+//   30 days. gtag support_click is sent there too.
 // variant "footer": the shared footer block on every page, with a "Why I ask" link to /support/.
 // The paid almanac stays the primary offer: the result card uses ghost buttons so it never
-// outranks the almanac button.
-// Numbers: domain renewal $11.08/yr (Porkbun .com list price, fetched 2026-10-17);
-// ~300 people a month = 321 GSC clicks in 28 days, rounded down; 5 tips of $3 (~$2.40 net
-// after PayPal fees each) cover $11.08. Source: support-cta-work/v3/research/R4-our-audit.json.
+// outranks the almanac button. Cost math lives on /support/ only.
 import cfg from '../data/monetization.json';
 interface Props { variant?: 'result' | 'footer'; headline?: string | null }
 const { variant = 'result', headline = null } = Astro.props;
@@ -24,17 +22,17 @@ const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
       <div>
         <div data-sct-variant="first">
           {headline && <p class="tip-h">{headline}</p>}
-          <p class="tip-b">I'm Michael. I keep these lake readings up to date myself. The domain costs about $11 a year, so a $3 tip covers three months of it. Tips unlock nothing, and the site stays free for everyone.</p>
+          <p class="tip-b">I'm Michael, the one person keeping these lakes up to date. If this saved you a trip to a dry ramp, buy me a coffee. I read every note that comes with one.</p>
         </div>
         <div data-sct-variant="returning" hidden>
-          <p class="tip-h">Back for lake check number <span data-sct-uses>3</span>.</p>
-          <p class="tip-b">Glad these readings keep saving you a wasted trip to the ramp. If LakeLevelNow has earned a coffee, $3 keeps the domain paid for three months. Same free readings either way.</p>
+          <p class="tip-h">You're officially a regular.</p>
+          <p class="tip-b">This is visit <span data-sct-uses>3</span>. Regulars are the reason I keep LakeLevelNow running. If it's part of your routine now, a coffee says thanks better than anything.</p>
         </div>
       </div>
     </div>
     <div class="tip-row">
-      <a class="btn ghost tip-btn" href={`${PAYPAL}/3USD`} target="_blank" rel="noopener" data-rail="paypal">Tip $3 with PayPal</a>
-      <a class="tip-btn tip-sec" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><Fragment set:html={cup} /><span>Buy me a coffee <small>card, no account</small></span></a>
+      <a class="btn ghost tip-btn" href={`${PAYPAL}/5USD`} target="_blank" rel="noopener" data-rail="paypal"><span>Buy me a coffee · $5 <small>via PayPal</small></span></a>
+      <a class="tip-btn tip-sec" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><Fragment set:html={cup} /><span>Card, any amount or monthly</span></a>
       <button type="button" class="tip-not" data-sct-dismiss>Not now</button>
     </div>
   </aside>
@@ -42,12 +40,12 @@ const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
   <div class="tip-foot" data-support-cta="footer">
     <div class="tip-fwho">
       <picture><source srcset="/kit/michael-128.webp" type="image/webp" /><img class="tip-face" src="/kit/michael-128.jpg" width="40" height="40" loading="lazy" alt="Michael Lip" /></picture>
-      <p class="tip-fh">LakeLevelNow is one person's side project.</p>
+      <p class="tip-fh">Made by Michael, one person and a lot of coffee.</p>
     </div>
-    <p class="tip-fb">I'm Michael. The domain costs me about $11 a year, and hosting and the gage data are free. About 300 people find the site on Google each month, so if 5 of them tip $3, the domain is paid for the year. The site stays free either way.</p>
+    <p class="tip-fb">If LakeLevelNow has helped you, you can buy me a coffee. It honestly makes my day, and I read every note that comes with one.</p>
     <div class="tip-row">
-      <a class="btn tip-btn" href={`${PAYPAL}/3USD`} target="_blank" rel="noopener" data-rail="paypal">Tip $3 with PayPal</a>
-      <a class="btn tip-btn tip-alt" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><Fragment set:html={cup} /><span>Buy me a coffee <small>card, no account</small></span></a>
+      <a class="btn tip-btn" href={`${PAYPAL}/5USD`} target="_blank" rel="noopener" data-rail="paypal"><span>Buy me a coffee · $5 <small>via PayPal</small></span></a>
+      <a class="btn tip-btn tip-alt" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><Fragment set:html={cup} /><span>Card, any amount or monthly</span></a>
       <a class="tip-why" href="/support/">Why I ask</a>
     </div>
   </div>
