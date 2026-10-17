@@ -5,6 +5,7 @@ import AlmanacContext from '../../components/AlmanacContext.astro';
 import AlmanacPeek from '../../components/AlmanacPeek.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import SupportLine from '../../components/SupportLine.astro';
+import PluginCta from '../../components/PluginCta.astro';
 // import RecreationAffiliates from '../../components/RecreationAffiliates.astro'; // enable with the box below
 import { almanacContext, titleClause, descriptionClause } from '../../lib/almanac';
 import { SITE, AUTHOR, SPONSOR_PRICE_USD, SPONSOR_EMAIL } from '../../consts';
@@ -273,6 +274,12 @@ const feedNoun = feedLabel(reading?.feed) === 'CDEC' ? 'CDEC gage reading'
         )}
       </section>
     )}
+
+    {/* Golden-hour plugin CTA: trip-planning context on the shared lake-page template.
+        The visitor already has the level; this answers "when should I be there". Silent
+        until the tracked link is pasted into src/data/plugins.json (which mirrors the
+        shared plugins-links.json). See src/components/PluginCta.astro. */}
+    <PluginCta plugin="goldenHour" source="lakelevelnow-lake" placement="inline" />
 
     <section class="section">
       <h2 style="margin-bottom:14px;">About {lake.name}</h2>

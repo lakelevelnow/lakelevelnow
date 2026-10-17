@@ -1,0 +1,42 @@
+---
+// Plugin CTA strip: promotes a sibling plugin/paid guide from a shared template so one
+// edit reaches every page the placement renders on.
+//
+// It reuses the site's own self-hosted /kit/cta.js promo strip (CSP-safe: script-src
+// 'self'), the mechanism the kit ships for the network's paid guides. cta.js handles
+// the parts that must be per-visitor: it hides when the visitor already owns the tool
+// (window.MTLicense), hides on the target page, is dismissible for 30 days, appends
+// utm_* attribution, and opens in a new tab.
+//
+// The tool id, tracked link, promo copy and action label come from
+// src/data/plugins.json, which mirrors the lane entries in the shared
+// plugins-links.json. The block renders only when a real https destination is
+// configured, so the site never ships a dead or guessed link; until the link is
+// pasted in, the placement is silent.
+import plugins from '../data/plugins.json';
+
+interface Props {
+  plugin: 'goldenHour' | 'packingChecklist';
+  /** Attribution source for cta.js (utm_source/src). Name it per placement. */
+  source?: string;
+  placement?: 'inline' | 'footer' | 'sticky';
+}
+const { plugin, source = 'lakelevelnow', placement = 'inline' } = Astro.props;
+type Entry = { tool?: string; href?: string; text?: string; action?: string };
+const p = (plugins as Record<string, Entry>)[plugin];
+const ready =
+  !!p && !!p.tool && !!p.text && !!p.href && /^https:\/\//.test(p.href);
+---
+
+{ready && (
+  <script
+    is:inline
+    src="/kit/cta.js"
+    data-mt-cta
+    data-tool={p!.tool}
+    data-href={p!.href}
+    data-text={p!.text}
+    data-action={p!.action || 'Take a look'}
+    data-source={source}
+    data-placement={placement}></script>
+)}

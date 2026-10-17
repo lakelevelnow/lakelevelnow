@@ -1,0 +1,15 @@
+{
+  "_comment": "Plugin CTA destinations for this site. Mirrors the lane entries in the shared plugins-links.json (golden-hour, packing-checklist) so the render side has one typed source of truth. `href` is the tracked destination URL; while it is empty the PluginCta block stays silent and ships NO link. Paste the URL from plugins-links.json to turn a block on. Never commit a guessed or unverified link: the site's rule is no dead links.",
+  "goldenHour": {
+    "tool": "golden-hour",
+    "href": "https://toolroutine.com/plugins/golden-hour/",
+    "text": "Planning when to be on the water? Sunvane Golden Hour, a free plugin for ChatGPT and Claude, gives sunrise, sunset and golden-hour times for any city and date.",
+    "action": "See the plugin"
+  },
+  "packingChecklist": {
+    "tool": "packing-checklist",
+    "href": "https://toolroutine.com/plugins/packing-checklist/",
+    "text": "Packwise Checklist, a free plugin for ChatGPT and Claude, turns your trip into a printable packing list with a PDF.",
+    "action": "See the plugin"
+  }
+}
