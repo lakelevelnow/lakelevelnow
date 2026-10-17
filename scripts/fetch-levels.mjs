@@ -53,7 +53,7 @@ const ageDays = (iso) => (iso ? (now - new Date(iso).getTime()) / 86400000 : Inf
 const todayISO = () => new Date(now).toISOString();
 
 // ---- bounded, retried HTTP (NASA rule 2) -------------------------------------
-async function httpGet(url) {
+async function httpGet(url, accept = 'application/json,text/plain,*/*') {
   let lastErr;
   for (let attempt = 0; attempt <= RETRIES; attempt++) {
     if (attempt > 0) await sleep(400 * 2 ** attempt); // 0.8s, 1.6s, 3.2s
@@ -63,7 +63,7 @@ async function httpGet(url) {
       const res = await fetch(url, {
         redirect: 'follow',
         signal: ac.signal,
-        headers: { 'User-Agent': UA, Accept: 'application/json,text/plain,*/*' },
+        headers: { 'User-Agent': UA, Accept: accept },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.text();
@@ -156,11 +156,15 @@ async function fetchCDEC(station, capacity) {
 }
 
 // USBR Lower Colorado JSON carries Mead/Mohave/Havasu in one request. Cache it.
+// The promise is cached too, so when www.usbr.gov times out the three lakes share ONE
+// bounded retry cycle instead of paying it three times.
 let _usbr = null;
-async function usbrSeries() {
-  if (_usbr) return _usbr;
-  const txt = await httpGet('https://www.usbr.gov/lc/region/g4000/riverops/webreports/hourlyweb.json');
-  _usbr = parseUsbr(txt)?.Series || [];
+function usbrSeries() {
+  if (!_usbr) {
+    _usbr = httpGet('https://www.usbr.gov/lc/region/g4000/riverops/webreports/hourlyweb.json').then(
+      (txt) => parseUsbr(txt)?.Series || [],
+    );
+  }
   return _usbr;
 }
 // USBR sometimes splices a .NET exception ("Collection was modified ...") into the
@@ -215,6 +219,76 @@ async function fetchUSBR(siteName, capacity) {
     msl: !!elev,
     param_label: elev ? 'reservoir elevation' : 'reservoir storage',
   };
+}
+
+// ---- RISE fallback (Reclamation's official data API) ----------------------------
+// www.usbr.gov/.../hourlyweb.json can time out for days (from CI and locally), which
+// left Mead/Mohave/Havasu on "Connecting". RISE (data.usbr.gov) publishes the same
+// Reclamation daily elevation + storage for these dams. Deterministic bindings (rule 1):
+// catalog items found via /rise/api/location/{3514,3513,3515} -> catalog-record -> items.
+const RISE_ITEMS = {
+  'Lake Mead': { elev: 6123, sto: 6124 }, // Hoover Dam
+  'Lake Mohave': { elev: 6133, sto: 6134 }, // Davis Dam
+  'Lake Havasu': { elev: 6128, sto: 6129 }, // Parker Dam
+};
+// Bound the query by date: an unfiltered order=DESC sorts the item's whole history
+// (33k rows for Mead) and took 30-50 s; the dateTime[after] window answers in ~1.3 s.
+async function riseResults(itemId) {
+  const after = ymd(daysAgo(SERIES_DAYS + 10));
+  const url = `https://data.usbr.gov/rise/api/result?itemId=${itemId}&dateTime%5Bafter%5D=${after}&itemsPerPage=100`;
+  const d = JSON.parse(await httpGet(url, 'application/vnd.api+json'));
+  return (d?.data || [])
+    .map((r) => ({ t: r?.attributes?.dateTime, v: Number(r?.attributes?.result) }))
+    .filter((p) => p.t && p.v !== null && Number.isFinite(p.v))
+    .sort((a, b) => new Date(a.t) - new Date(b.t));
+}
+async function fetchRISE(siteName, capacity) {
+  const ids = RISE_ITEMS[siteName];
+  if (!ids) return null;
+  const [elevS, stoS] = await Promise.all([
+    riseResults(ids.elev).catch(() => []),
+    ids.sto ? riseResults(ids.sto).catch(() => []) : [],
+  ]);
+  const src = elevS.length ? elevS : stoS;
+  if (!src.length) return null;
+  const last = src[src.length - 1];
+  const storage_af = stoS.length ? stoS[stoS.length - 1].v : null;
+  const pct = capacity && storage_af ? Math.max(0, Math.min(100, Math.round((storage_af / capacity) * 100))) : null;
+  return {
+    level_ft: elevS.length ? last.v : null,
+    storage_af,
+    pct_full: pct,
+    as_of: last.t,
+    series: downsampleDaily(src, SERIES_DAYS),
+    delta_24h: delta24(src),
+    msl: elevS.length > 0,
+    param_label: elevS.length ? 'reservoir elevation' : 'reservoir storage',
+  };
+}
+// USBR hourly first; RISE when it fails, lacks the lake, or is older than FRESH_DAYS.
+// Both are Reclamation data, so the lake keeps feed 'usbr' and its source label.
+async function fetchUSBRWithFallback(siteName, capacity) {
+  let primary = null;
+  let primaryErr = null;
+  try {
+    primary = await fetchUSBR(siteName, capacity);
+  } catch (e) {
+    primaryErr = e;
+  }
+  if (primary && ageDays(primary.as_of) <= FRESH_DAYS) return primary;
+  const why = primaryErr ? `failed: ${primaryErr.message || primaryErr.name}` : primary ? 'stale' : 'no series';
+  let fallback = null;
+  try {
+    fallback = await fetchRISE(siteName, capacity);
+  } catch (e) {
+    if (!primary && primaryErr) throw new Error(`USBR ${primaryErr.message}; RISE ${e.message}`);
+  }
+  if (fallback && (!primary || ageDays(fallback.as_of) < ageDays(primary.as_of))) {
+    process.stdout.write(`[USBR hourly ${why}; RISE fallback] `);
+    return fallback;
+  }
+  if (primaryErr && !primary) throw primaryErr;
+  return primary;
 }
 
 // ---- TWDB percent full (Texas) -------------------------------------------------
@@ -332,7 +406,7 @@ for (const lk of seed) {
     try {
       if (src.feed === 'cdec') newReading = await fetchCDEC(src.site, lk.capacity_af);
       else if (src.feed === 'usgs') newReading = await fetchUSGS(src.site);
-      else if (src.feed === 'usbr') newReading = await fetchUSBR(src.site, lk.capacity_af);
+      else if (src.feed === 'usbr') newReading = await fetchUSBRWithFallback(src.site, lk.capacity_af);
     } catch (e) {
       err = e.message;
     }
