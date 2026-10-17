@@ -13,6 +13,7 @@ interface Props { variant?: 'result' | 'footer'; headline?: string | null }
 const { variant = 'result', headline = null } = Astro.props;
 const BMC = cfg.support.bmc;
 const PAYPAL = cfg.support.paypal;
+const GH = 'https://github.com/sponsors/theluckystrike';
 const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>';
 ---
 {variant === 'result' ? (
@@ -33,6 +34,7 @@ const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
     <div class="tip-row">
       <a class="btn ghost tip-btn" href={`${PAYPAL}/5USD`} target="_blank" rel="noopener" data-rail="paypal"><span>Buy me a coffee · $5 <small>via PayPal</small></span></a>
       <a class="tip-btn tip-sec" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><Fragment set:html={cup} /><span>Card, any amount or monthly</span></a>
+      <a class="tip-gh" href={GH} target="_blank" rel="noopener" data-rail="github">Sponsor on GitHub <small>monthly or one-time</small></a>
       <button type="button" class="tip-not" data-sct-dismiss>Not now</button>
     </div>
   </aside>
@@ -46,6 +48,7 @@ const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
     <div class="tip-row">
       <a class="btn tip-btn" href={`${PAYPAL}/5USD`} target="_blank" rel="noopener" data-rail="paypal"><span>Buy me a coffee · $5 <small>via PayPal</small></span></a>
       <a class="btn tip-btn tip-alt" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><Fragment set:html={cup} /><span>Card, any amount or monthly</span></a>
+      <a class="tip-gh tip-fgh" href={GH} target="_blank" rel="noopener" data-rail="github">Sponsor on GitHub <small>monthly or one-time</small></a>
       <a class="tip-why" href="/support/">Why I ask</a>
     </div>
   </div>
@@ -65,6 +68,11 @@ const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
 .tip-btn small{font-size:12px;font-weight:400;opacity:.8;margin-left:4px}
 .tip-sec{color:var(--teal);font-size:14px;font-weight:600;padding:10px 8px;border-radius:var(--r-sm)}
 .tip-sec:hover{background:var(--teal-bg)}
+.tip-gh{display:inline-flex;align-items:center;min-height:44px;padding:10px 8px;font-size:13px;color:var(--t2);text-decoration:underline}
+.tip-gh small{font-size:12px;margin-left:4px;opacity:.8}
+.tip-gh:hover{color:var(--t1)}
+.tip-fgh{color:rgba(255,255,255,.72)}
+.tip-fgh:hover{color:#fff}
 .tip-not{background:none;border:0;min-height:44px;padding:10px 8px;font:inherit;font-size:13px;color:var(--t3);text-decoration:underline;cursor:pointer}
 .tip-not:hover{color:var(--t2)}
 .tip-foot{margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);max-width:640px}

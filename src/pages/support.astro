@@ -6,6 +6,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import cfg from '../data/monetization.json';
 const BMC = cfg.support.bmc;
 const PAYPAL = cfg.support.paypal;
+const GH = 'https://github.com/sponsors/theluckystrike';
 const title = 'Support LakeLevelNow';
 const description = 'Who builds LakeLevelNow, what it costs to run, and how to leave a small tip.';
 ---
@@ -44,6 +45,7 @@ const description = 'Who builds LakeLevelNow, what it costs to run, and how to l
       </div>
       <div class="sp-row">
         <a class="btn ghost sp-btn" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>Card, any amount or monthly</a>
+        <a class="sp-gh" href={GH} target="_blank" rel="noopener" data-rail="github">Sponsor on GitHub <small>monthly or one-time</small></a>
       </div>
       <p class="sp-micro">Prefer monthly? On Buy Me a Coffee you can tick "Make this monthly". You can cancel at any time.</p>
       <p>PayPal shows my legal name, Michał Lip.</p>
@@ -60,6 +62,8 @@ const description = 'Who builds LakeLevelNow, what it costs to run, and how to l
   .sp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 18px; text-decoration: none; }
   .sp-btn:hover { text-decoration: none; }
   .sp-amt { min-width: 64px; }
+  .sp-gh { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 8px; font-size: 14px; color: var(--t2); text-decoration: underline; }
+  .sp-gh small { font-size: 12px; margin-left: 4px; }
   .sp-who { display: flex; align-items: center; gap: 14px; margin: 8px 0 16px; }
   .sp-who p { margin: 0; }
   .sp-face { display: block; width: 64px; height: 64px; border-radius: 50%; object-fit: cover; flex: none; }
