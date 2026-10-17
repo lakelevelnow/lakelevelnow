@@ -334,6 +334,48 @@ function computeStats(series, FIRST_FILL_CUTOFF) {
   };
 }
 
+// RISE fallback (2026-10-17): www.usbr.gov stopped answering from CI, so the Reclamation
+// hydrodata CSV fails. Reclamation's RISE API serves the same daily elevation record
+// (Mead item 6123 since 1935, Powell item 508 since 1963). Pages are newest first; sort after.
+const RISE_ITEMS = { mead: 6123, powell: 508 };
+async function riseGet(url, timeoutMs) {
+  let lastErr;
+  for (let attempt = 0; attempt <= RETRIES; attempt++) {
+    if (attempt > 0) await sleep(500 * 2 ** attempt);
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { redirect: 'follow', signal: ac.signal, headers: { 'User-Agent': UA, Accept: 'application/vnd.api+json' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (e) {
+      lastErr = e;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastErr || new Error('fetch failed');
+}
+async function riseSeries(lake) {
+  const id = RISE_ITEMS[lake.slug];
+  if (!id) return [];
+  const byDate = new Map();
+  for (let page = 1; page <= 6; page += 1) {
+    const j = await riseGet(`https://data.usbr.gov/rise/api/result?itemId=${id}&itemsPerPage=10000&page=${page}`, 120000);
+    const rows = (j && j.data) || [];
+    for (const r of rows) {
+      const a = (r && r.attributes) || {};
+      const d = String(a.dateTime || '').slice(0, 10);
+      const v = Number(a.result);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(d) && Number.isFinite(v) && v > 0) byDate.set(d, v);
+    }
+    if (rows.length < 10000) break;
+  }
+  const out = [...byDate.entries()].map(([d, v]) => ({ d, v }));
+  out.sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
+  return out.slice(-MAX_ROWS);
+}
+
 async function oneLake(lake) {
   const feed = FEEDS[lake.feed];
   if (!feed) {
@@ -343,14 +385,23 @@ async function oneLake(lake) {
   const SOURCE = feed.srcOf(lake);
   const OUT = path.join(ROOT, 'src', 'data', lake.out);
   let txt;
+  let series = [];
+  let sourceUsed = SOURCE;
   try {
     txt = await httpGet(SOURCE, feed.timeoutMs);
+    series = feed.parse(txt);
   } catch (e) {
-    console.error(`${lake.name} history: fetch failed (${e && e.message ? e.message : e}); keeping the previous file.`);
-    return;
+    console.error(`${lake.name} history: fetch failed (${e && e.message ? e.message : e}).`);
   }
-
-  const series = feed.parse(txt);
+  if (series.length < feed.minRows && RISE_ITEMS[lake.slug]) {
+    try {
+      const rs = await riseSeries(lake);
+      console.error(`${lake.name} history: RISE fallback returned ${rs.length} rows.`);
+      if (rs.length > series.length) { series = rs; sourceUsed = `https://data.usbr.gov/rise/api/result?itemId=${RISE_ITEMS[lake.slug]}`; }
+    } catch (e) {
+      console.error(`${lake.name} history: RISE fallback failed (${e && e.message ? e.message : e}).`);
+    }
+  }
   if (series.length < feed.minRows) {
     console.error(`${lake.name} history: only ${series.length} usable rows (< ${feed.minRows}); keeping the previous file.`);
     return;
@@ -395,7 +446,7 @@ async function oneLake(lake) {
   const payload = {
     lake: lake.name,
     slug: lake.slug,
-    source: SOURCE,
+    source: sourceUsed,
     catalog: lake.catalog,
     as_of: new Date().toISOString(),
     stats,
