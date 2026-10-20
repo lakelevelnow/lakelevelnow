@@ -1,0 +1,34 @@
+---
+// One in-content sponsor slot on a lake page (owner apply #3, 2026-10-20). Renders only
+// for lakes listed in src/data/sponsors.json. Placed below the gauge and the trend chart,
+// so it is never in the first phone screen, and far above the first AdSense unit.
+// Label rule (FTC native-ad guide): "Advertisement" above the block, readable on phones.
+// Link rule (Google): a paid link carries rel="sponsored". The house ad links to our own
+// /advertise/ page, so it is not a paid link and carries no rel.
+import data from '../data/sponsors.json';
+
+interface Props { slug: string }
+const { slug } = Astro.props;
+type Sponsor = { name: string; line: string; url: string } | null;
+type Slot = { lakeName: string; priceMonthUsd: number; sponsor: Sponsor };
+const slot = (data.slots as Record<string, Slot>)[slug] ?? null;
+const sponsor = slot?.sponsor && /^https:\/\//.test(slot.sponsor.url) ? slot.sponsor : null;
+---
+{slot && (
+  <aside class="spon-slot" aria-label="Advertisement" data-spon-slot={slug}>
+    <p class="spon-label">Advertisement</p>
+    {sponsor ? (
+      <p class="spon-body"><span class="em-strong">{sponsor.name}</span>. {sponsor.line} <a href={sponsor.url} rel="sponsored noopener" target="_blank" data-spon={slug} data-spon-kind="paid">Visit {sponsor.name}</a></p>
+    ) : (
+      <p class="spon-body"><span class="em-strong">Your marina or rental here</span> — reach people checking {slot.lakeName} before a trip. ${slot.priceMonthUsd}/month. <a href="/advertise/" data-spon={slug} data-spon-kind="house">Advertise here</a></p>
+    )}
+  </aside>
+)}
+
+<style>
+  .spon-slot { background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+    padding: 12px 16px 14px; margin: 24px 0; max-width: 760px; }
+  .spon-label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--t2); margin: 0 0 6px; font-weight: 600; }
+  .spon-body { font-size: 15px; color: var(--t1); margin: 0; line-height: 1.5; }
+  .spon-body a { font-weight: 600; white-space: nowrap; }
+</style>

@@ -6,9 +6,12 @@ import AlmanacPeek from '../../components/AlmanacPeek.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import SupportLine from '../../components/SupportLine.astro';
 import PluginCta from '../../components/PluginCta.astro';
+import StatusStrip from '../../components/StatusStrip.astro';
+import SponsorSlot from '../../components/SponsorSlot.astro';
 // import RecreationAffiliates from '../../components/RecreationAffiliates.astro'; // enable with the box below
-import { almanacContext, titleClause, descriptionClause } from '../../lib/almanac';
-import { SITE, AUTHOR, SPONSOR_PRICE_USD, SPONSOR_EMAIL } from '../../consts';
+import { almanacContext, descriptionClause } from '../../lib/almanac';
+import { SITE, AUTHOR, SPONSOR_EMAIL } from '../../consts';
+import sponsorData from '../../data/sponsors.json';
 import { LAKES, getReading, launchRead, status, fmtNum, stateName, POWELL_BAND, changeOverSeries, liveBandBelowFullPct, feedLabel, POWELL_HISTORY, compareToMark, fmtRecordDate} from '../../lib/lakes';
 import { lakeLd, authorLd, breadcrumbLd, speakableLd } from '../../lib/seo';
 
@@ -63,19 +66,27 @@ const titleName = TITLE_NAME[slug] || lake.name;
 // further down and the number at the top of the page cannot drift apart on a site that
 // rebuilds every day. See src/lib/almanac.ts.
 //
-// A title clause is spent, not free: Google truncates, and "62nd percentile" is not worth
-// the characters. So the title gets a clause only at the tails, where the statement reads
-// as a headline; the description gets one always, replacing boilerplate that said nothing.
+// The description always gets the clause, replacing boilerplate that said nothing. The
+// title no longer does: it is capped at 60 characters (see below).
 const alm = almanacContext(slug, live ? reading!.level_ft : null, live ? reading!.as_of : null);
-const titleCtx = alm ? titleClause(alm) : '';
 const descCtx = alm ? descriptionClause(alm) : '';
 
-const titleBase = liveFigure ? `${titleName} water level today: ${liveFigure}` : '';
-// The context clause is dropped when it would push the title past 60 characters
-// (before the " | LakeLevelNow" suffix), so the figure is never the part Google cuts.
-const title = liveFigure
-  ? ((titleBase + titleCtx).length <= 60 ? titleBase + titleCtx : titleBase)
-  : `${lake.name} water level`;
+// 2026-10-20 (owner apply #5): the WHOLE title, brand included, is at most 60 characters.
+// The live titles were 64-71 characters, so mobile Google cut the very figure that wins
+// the click. Candidates run from richest to shortest and the first that fits wins; each
+// keeps the lake name, "Water Level" and the live percent (feet where no percent exists).
+// The almanac tail clause (titleClause) no longer fits in 60; it stays in the description.
+const BRAND = ` | ${SITE.name}`;
+const liveValue = livePct != null ? `${livePct}% Full` : (liveFt != null ? `${fmtNum(liveFt, 1)} ft` : null);
+const titleCandidates = liveValue
+  ? [
+      livePct != null && liveFt != null ? `${titleName} Water Level Today: ${liveValue}, ${fmtNum(liveFt, 1)} ft${BRAND}` : '',
+      `${titleName} Water Level Today: ${liveValue}${BRAND}`,
+      `${titleName} Water Level: ${liveValue}${BRAND}`,
+      `${titleName} Water Level ${liveValue.replace(' Full', '')}${BRAND}`,
+    ].filter(Boolean)
+  : [];
+const title = titleCandidates.find((t) => t.length <= 60) || titleCandidates[titleCandidates.length - 1] || `${lake.name} water level`;
 // feet_from_full comes straight off the validated reading; the fuller feetBelowFull
 // fallback is computed further down and is not needed (or available) this early.
 const metaFeetFromFull = live ? (reading!.feet_from_full ?? null) : null;
@@ -120,6 +131,8 @@ const ld = [
   breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Lakes', path: '/lakes' }, { name: lake.name, path: `/lake/${slug}` }]),
 ];
 
+// Lakes with their own sponsor slot (src/data/sponsors.json) drop the generic invitation.
+const hasSponsorSlot = Object.prototype.hasOwnProperty.call(sponsorData.slots, slug);
 const related = LAKES.filter((l) => l.state === lake.state && l.slug !== slug).slice(0, 4);
 const toneHex = (t: string) => t === 'red' ? '#bb5a37' : t === 'amber' ? '#b07d1a' : '#0b7d6a';
 
@@ -168,13 +181,14 @@ const feedNoun = feedLabel(reading?.feed) === 'CDEC' ? 'CDEC gage reading'
 
     <div style="padding-top:16px;">
       <h1>{lake.name} water level</h1>
+      {/* The answer in the first phone screen: % full, feet, trend and (where published)
+          ramps, from the same reading as the title and the gauge. */}
+      {live && <StatusStrip lake={lake} reading={reading!} slug={slug} />}
       <p style="font-size:14px;color:var(--t2);margin-top:8px;">{lake.river} · {stName} · operated by {lake.operator}</p>
       <p style="font-size:13px;color:var(--t2);margin-top:6px;">By <a href="/about/">{AUTHOR.name}</a>, independent developer behind <a href="https://zovo.one" rel="noopener">zovo.one</a>. Readings pulled live from the same {feedLabel(reading?.feed) || 'USGS'} feed the operator reports to.</p>
     </div>
 
     {qas && <p class="qas" data-keyword={`${lake.name} water level`} style="font-size:15px;color:var(--t1);margin-top:14px;max-width:660px;font-weight:500;">{qas}</p>}
-
-    <AlmanacPeek slug={slug} name={lake.name} alm={alm} />
 
     {live ? (
       <LakeGauge lake={lake} reading={reading!} />
@@ -184,6 +198,16 @@ const feedNoun = feedLabel(reading?.feed) === 'CDEC' ? 'CDEC gage reading'
         <a href={feedLabel(reading?.feed) === 'CDEC' && lake.cdec_id ? `https://cdec.water.ca.gov/dynamicapp/staMeta?station_id=${lake.cdec_id}` : feedLabel(reading?.feed) === 'USBR' ? 'https://www.usbr.gov/lc/region/g4000/riverops/webreports/hourlyweb.json' : (lake.usgs_site ? `https://waterdata.usgs.gov/monitoring-location/${lake.usgs_site}/` : '#')}>operator's page</a>.</p>
       </div>
     )}
+
+    {/* The $19 Almanac offer sits below the gauge and its trend chart (2026-10-20, owner
+        apply #5). Above them it pushed the ramp read and the trend out of the first phone
+        screen; the visitor now gets the reading before the offer. */}
+    <AlmanacPeek slug={slug} name={lake.name} alm={alm} />
+
+    {/* Sponsor slot (owner apply #3): only lakes listed in src/data/sponsors.json (Lake Mead
+        today). Below the gauge and chart, never in the first screen, and well above the
+        lakeMid AdSense unit (which itself keeps a 160px margin). */}
+    <SponsorSlot slug={slug} />
 
     {/* Directly under the gauge, on purpose. The visitor came for one number and it is
         immediately above this; the one question the number leaves open is whether it is
@@ -295,13 +319,13 @@ const feedNoun = feedLabel(reading?.feed) === 'CDEC' ? 'CDEC gage reading'
 
     <AdSlot slot="lakeMid" />
 
-    <div class="affil">
+    {!hasSponsorSlot && <div class="affil">
       {/* Recreation affiliates: ready, not live. Uncomment after FishingBooker / Boatsetter
           approve and the tracked links are in AFFILIATES (src/consts.ts).
       <RecreationAffiliates name={lake.name} fbUrl={(lake as any).fb_url ?? null} />
       */}
-      <p>Run a marina, guide service or boat rental at {lake.name}? Sponsor this page: one local business per lake, ${SPONSOR_PRICE_USD} a month, cancel any time. <a href="/advertise/">How it works</a> or email <a href={`mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent(`Sponsor ${lake.name} on LakeLevelNow`)}`}>{SPONSOR_EMAIL}</a>.</p>
-    </div>
+      <p>Run a marina, guide service or boat rental at {lake.name}? Sponsor this page: one local business per lake, cancel any time. <a href="/advertise/">How it works</a> or email <a href={`mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent(`Sponsor ${lake.name} on LakeLevelNow`)}`}>{SPONSOR_EMAIL}</a>.</p>
+    </div>}
 
     <section class="section">
       <h2 style="margin-bottom:8px;">Where these numbers come from</h2>

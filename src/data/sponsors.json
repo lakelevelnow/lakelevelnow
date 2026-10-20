@@ -1,0 +1,25 @@
+{
+  "_comment": "Owner switch for lake sponsor slots (owner apply #3, 2026-10-20). One slot per listed lake. While 'sponsor' is null the slot shows the house ad that links to /advertise/. To sell it, set sponsor to {\"name\": \"...\", \"line\": \"one sentence, max 90 characters\", \"url\": \"https://...\"}; the link gets rel=\"sponsored noopener\" and the label stays \"Advertisement\". Traffic numbers are the GA4 figures quoted on /advertise/; update them with their period, never round them up.",
+  "slots": {
+    "lake-mead": {
+      "lakeName": "Lake Mead",
+      "priceMonthUsd": 25,
+      "priceFoundingYearUsd": 199,
+      "mailSubject": "Lake Mead sponsor slot",
+      "sponsor": null
+    }
+  },
+  "traffic": {
+    "lake-mead": {
+      "source": "Google Analytics 4, /lake/lake-mead/ and /lake/lake-mead/chart/",
+      "periodDays": 28,
+      "periodEnd": "2026-10-17",
+      "pageViewsAll": 550,
+      "pageViewsPerMonth": 590,
+      "pageViewsSlotPage": 392,
+      "pageViewsChartPage": 158,
+      "mobilePct": 42,
+      "usSearchClicksPct": 98
+    }
+  }
+}
