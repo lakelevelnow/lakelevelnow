@@ -80,9 +80,9 @@ const BRAND = ` | ${SITE.name}`;
 const liveValue = livePct != null ? `${livePct}% Full` : (liveFt != null ? `${fmtNum(liveFt, 1)} ft` : null);
 const titleCandidates = liveValue
   ? [
-      livePct != null && liveFt != null ? `${titleName} Water Level Today: ${liveValue}, ${fmtNum(liveFt, 1)} ft${BRAND}` : '',
-      `${titleName} Water Level Today: ${liveValue}${BRAND}`,
-      `${titleName} Water Level: ${liveValue}${BRAND}`,
+      livePct != null && liveFt != null ? `${titleName} Water Level Today, ${liveValue}, ${fmtNum(liveFt, 1)} ft${BRAND}` : '',
+      `${titleName} Water Level Today, ${liveValue}${BRAND}`,
+      `${titleName} Water Level, ${liveValue}${BRAND}`,
       `${titleName} Water Level ${liveValue.replace(' Full', '')}${BRAND}`,
     ].filter(Boolean)
   : [];
@@ -324,7 +324,7 @@ const feedNoun = feedLabel(reading?.feed) === 'CDEC' ? 'CDEC gage reading'
           approve and the tracked links are in AFFILIATES (src/consts.ts).
       <RecreationAffiliates name={lake.name} fbUrl={(lake as any).fb_url ?? null} />
       */}
-      <p>Run a marina, guide service or boat rental at {lake.name}? Sponsor this page: one local business per lake, cancel any time. <a href="/advertise/">How it works</a> or email <a href={`mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent(`Sponsor ${lake.name} on LakeLevelNow`)}`}>{SPONSOR_EMAIL}</a>.</p>
+      <p>Run a marina, guide service or boat rental at {lake.name}? Sponsor this page. We take one local business per lake, and you can cancel any time. <a href="/advertise/">How it works</a> or email <a href={`mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent(`Sponsor ${lake.name} on LakeLevelNow`)}`}>{SPONSOR_EMAIL}</a>.</p>
     </div>}
 
     <section class="section">

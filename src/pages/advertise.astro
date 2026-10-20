@@ -16,7 +16,7 @@ const yearSaving = slot.priceMonthUsd * 12 - slot.priceFoundingYearUsd;
 const mailHref = `mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent(slot.mailSubject)}`;
 const otherHref = `mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent('Sponsor slot on another lake')}`;
 
-const title = `Sponsor the ${slot.lakeName} page: $${slot.priceMonthUsd} a month | ${SITE.name}`;
+const title = `Sponsor the ${slot.lakeName} page for $${slot.priceMonthUsd} a month | ${SITE.name}`;
 const description = `One sponsor slot on the ${slot.lakeName} water level page. About ${t.pageViewsPerMonth} views a month on the ${slot.lakeName} pages, ${t.mobilePct}% on phones. $${slot.priceMonthUsd} a month, or $${slot.priceFoundingYearUsd} for a founding year.`;
 const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path: '/advertise' }])];
 ---
@@ -32,7 +32,7 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
       </div>
 
       <h2>The numbers</h2>
-      <p>These are the real figures for the 28 days to {periodEnd}, from Google Analytics. This is a small, specific audience. The price is set for that.</p>
+      <p>These are the real figures for the 28 days to {periodEnd}, from Google Analytics. It is a small, specific audience. The price is set for that.</p>
       <div class="def-table">
         <div class="row"><div class="k">Page views, {slot.lakeName} pages</div><div class="vv">{t.pageViewsAll} in 28 days (about {t.pageViewsPerMonth} a month)</div></div>
         <div class="row"><div class="k">Of those, on the level page with the slot</div><div class="vv">{t.pageViewsSlotPage} (about {slotPerMonth} a month); the other {t.pageViewsChartPage} were on the chart page</div></div>
@@ -64,7 +64,7 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
 
       <h2>How the slot is labelled</h2>
       <ul>
-        <li>The word "Advertisement" is above the slot, readable on phones. This follows the US Federal Trade Commission guide for native advertising: the label goes in front of or above the ad, and "Advertisement" is a clear word for it.</li>
+        <li>The word "Advertisement" is above the slot, readable on phones. This follows the US Federal Trade Commission guide for native advertising. The label goes in front of or above the ad, and "Advertisement" is a clear word for it.</li>
         <li>Your link carries <code>rel="sponsored"</code>. Google asks sites to mark paid links this way.</li>
         <li>Sponsors never see, change or influence the data. The level, percent full and ramp read come from public USBR, USGS, CDEC and TWDB feeds and show the same way on every page. See the <a href="/disclosure">disclosure page</a>.</li>
       </ul>

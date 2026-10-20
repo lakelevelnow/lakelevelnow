@@ -20,7 +20,7 @@ const sponsor = slot?.sponsor && /^https:\/\//.test(slot.sponsor.url) ? slot.spo
     {sponsor ? (
       <p class="spon-body"><span class="em-strong">{sponsor.name}</span>. {sponsor.line} <a href={sponsor.url} rel="sponsored noopener" target="_blank" data-spon={slug} data-spon-kind="paid">Visit {sponsor.name}</a></p>
     ) : (
-      <p class="spon-body"><span class="em-strong">Your marina or rental here</span> — reach people checking {slot.lakeName} before a trip. ${slot.priceMonthUsd}/month. <a href="/advertise/" data-spon={slug} data-spon-kind="house">Advertise here</a></p>
+      <p class="spon-body"><span class="em-strong">Your marina or rental here</span>. Reach people checking {slot.lakeName} before a trip. ${slot.priceMonthUsd}/month. <a href="/advertise/" data-spon={slug} data-spon-kind="house">Advertise here</a></p>
     )}
   </aside>
 )}

@@ -13,11 +13,11 @@ const href = SINGLE ? `${SINGLE}?client_reference_id=${slug}` : '/almanac/';
 
 <aside class="alm-peek" aria-label="Lake Level Almanac" data-alm-place="lake-below-chart">
   <p>{alm
-    ? `${name} Almanac: get daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} once. No subscription.`
+    ? `The ${name} Almanac has daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} once. No subscription.`
     : `Plan visits to other lakes. Get daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} per lake. ${name} is not included.`}</p>
   {alm ? <a class="alm-peek-buy" href={href} data-alm-cta="lake" data-lake={slug}
-    rel="nofollow">Get {name} Almanac — ${PRICE_SINGLE}</a>
-    : <a class="alm-peek-buy" href="/almanac/">See the {LAKE_COUNT} covered lakes — ${PRICE_SINGLE} each</a>}
+    rel="nofollow">Get {name} Almanac for ${PRICE_SINGLE}</a>
+    : <a class="alm-peek-buy" href="/almanac/">See the {LAKE_COUNT} covered lakes at ${PRICE_SINGLE} each</a>}
   {alm && <a class="alm-peek-more" href={slug === 'pine-flat-lake' ? '#pine-flat-sample' : `#alm-h-${slug}`}>{slug === 'pine-flat-lake' ? 'See Pine Flat sample' : 'See what is included'}</a>}
 </aside>
 

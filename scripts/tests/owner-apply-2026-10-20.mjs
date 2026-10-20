@@ -23,7 +23,7 @@ for (const slug of slugs) {
   const s = html.indexOf('class="status-strip"');
   assert.ok(h1 > 0 && s > h1 && s - html.indexOf('</h1>', h1) < 120, `${slug}: strip is not right under the H1`);
   // Title, strip and JSON-LD carry the same percent.
-  const pctTitle = (/: ([\d.]+)% Full|Water Level ([\d.]+)%/.exec(title) || []).slice(1).find(Boolean);
+  const pctTitle = (/, ([\d.]+)% Full|Water Level ([\d.]+)%/.exec(title) || []).slice(1).find(Boolean);
   if (pctTitle) {
     assert.ok(strip[0].includes(`>${pctTitle}%<`), `${slug}: strip % differs from title ${pctTitle}`);
     assert.ok(new RegExp(`"value":${pctTitle}[,}]`).test(html), `${slug}: JSON-LD % differs from title ${pctTitle}`);
@@ -51,7 +51,7 @@ for (const slug of slugs) {
 const mead = read(path.join(lakeDir, 'lake-mead', 'index.html'));
 const slot = mead.indexOf('<aside class="spon-slot"');
 assert.ok(/<aside class="spon-slot"[^>]*>\s*<p class="spon-label"[^>]*>Advertisement<\/p>/.test(mead), 'label "Advertisement" first in the slot');
-assert.ok(mead.includes('Your marina or rental here</span> — reach people checking Lake Mead before a trip. $25/month.'), 'house ad copy');
+assert.ok(mead.includes('Your marina or rental here</span>. Reach people checking Lake Mead before a trip. $25/month.'), 'house ad copy');
 assert.ok(/href="\/advertise\/" data-spon="lake-mead"/.test(mead), 'house ad links to /advertise/');
 assert.ok(slot > mead.indexOf('class="chartcard"') && mead.indexOf('class="chartcard"') > 0, 'slot below the chart');
 const firstAd = mead.indexOf('class="ad-slot"');
