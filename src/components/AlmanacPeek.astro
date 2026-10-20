@@ -1,5 +1,7 @@
 ---
-// Compact offer after the current-level summary. Never sell an uncovered lake.
+// Compact offer below the gauge and trend chart (moved from the top 2026-10-20; the GA4
+// place is "lake-below-chart" so clicks before and after the move stay apart). Never sell
+// an uncovered lake.
 import { PRICE_SINGLE, LAKE_COUNT } from '../lib/almanac';
 import type { AlmanacContext } from '../lib/almanac';
 
@@ -9,7 +11,7 @@ const SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
 const href = SINGLE ? `${SINGLE}?client_reference_id=${slug}` : '/almanac/';
 ---
 
-<aside class="alm-peek" aria-label="Lake Level Almanac" data-alm-place="lake-top">
+<aside class="alm-peek" aria-label="Lake Level Almanac" data-alm-place="lake-below-chart">
   <p>{alm
     ? `${name} Almanac: get daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} once. No subscription.`
     : `Plan visits to other lakes. Get daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} per lake. ${name} is not included.`}</p>
