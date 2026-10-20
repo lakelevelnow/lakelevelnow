@@ -1,48 +1,94 @@
 ---
+// /advertise/ — the self-serve page for the Lake Mead sponsor slot (owner apply #3,
+// 2026-10-20). Every number comes from src/data/sponsors.json, which records its GA4
+// period, so the page never shows a figure without a date. No payment link here yet:
+// the owner adds a Stripe link later; until then the button opens an email.
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE, SPONSOR_PRICE_USD, SPONSOR_EMAIL } from '../consts';
-import { LAKES, freshLakes } from '../lib/lakes';
+import { SITE, SPONSOR_EMAIL } from '../consts';
 import { breadcrumbLd } from '../lib/seo';
+import data from '../data/sponsors.json';
 
-const title = `Sponsor a lake page: one local business per lake, $${SPONSOR_PRICE_USD} a month`;
-const description = `Put your marina, guide service or boat rental on the ${SITE.name} page for your lake. One sponsor per lake, $${SPONSOR_PRICE_USD} a month, cancel any time.`;
+const slot = data.slots['lake-mead'];
+const t = data.traffic['lake-mead'];
+const periodEnd = new Date(`${t.periodEnd}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const slotPerMonth = Math.round((t.pageViewsSlotPage * 30) / t.periodDays);
+const yearSaving = slot.priceMonthUsd * 12 - slot.priceFoundingYearUsd;
+const mailHref = `mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent(slot.mailSubject)}`;
+const otherHref = `mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent('Sponsor slot on another lake')}`;
+
+const title = `Sponsor the ${slot.lakeName} page: $${slot.priceMonthUsd} a month | ${SITE.name}`;
+const description = `One sponsor slot on the ${slot.lakeName} water level page. About ${t.pageViewsPerMonth} views a month on the ${slot.lakeName} pages, ${t.mobilePct}% on phones. $${slot.priceMonthUsd} a month, or $${slot.priceFoundingYearUsd} for a founding year.`;
 const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path: '/advertise' }])];
-const liveCount = freshLakes().length;
-const sample = LAKES.find((l) => l.slug === 'pine-flat-lake') || LAKES[0];
-const mail = (subject: string) => `mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent(subject)}`;
 ---
 <BaseLayout title={title} description={description} path="/advertise" jsonLd={ld}>
   <div class="container">
     <article class="prose">
-      <h1>Sponsor a lake page</h1>
-      <p>People open a {SITE.name} lake page for one reason: they are deciding whether to drive out to that lake. If you run a marina, a guide service or a boat rental there, that is the moment to be on the page.</p>
+      <h1>Sponsor the {slot.lakeName} page</h1>
+      <p>People open the <a href="/lake/lake-mead/">{slot.lakeName} water level page</a> before a trip. They check the level, the trend and whether they can launch. If you run a marina, a boat rental, a guide service or a place to stay at {slot.lakeName}, this is the moment to be on the page.</p>
+
+      <div class="adv-cta">
+        <a class="btn" href={mailHref}>Email to book the {slot.lakeName} slot</a>
+        <p>${slot.priceMonthUsd} a month, or ${slot.priceFoundingYearUsd} for a founding year.</p>
+      </div>
+
+      <h2>The numbers</h2>
+      <p>These are the real figures for the 28 days to {periodEnd}, from Google Analytics. This is a small, specific audience. The price is set for that.</p>
+      <div class="def-table">
+        <div class="row"><div class="k">Page views, {slot.lakeName} pages</div><div class="vv">{t.pageViewsAll} in 28 days (about {t.pageViewsPerMonth} a month)</div></div>
+        <div class="row"><div class="k">Of those, on the level page with the slot</div><div class="vv">{t.pageViewsSlotPage} (about {slotPerMonth} a month); the other {t.pageViewsChartPage} were on the chart page</div></div>
+        <div class="row"><div class="k">Views on phones</div><div class="vv">{t.mobilePct}%</div></div>
+        <div class="row"><div class="k">Google search clicks from the USA</div><div class="vv">{t.usSearchClicksPct}% (whole site, Search Console)</div></div>
+      </div>
 
       <h2>What you get</h2>
       <ul>
-        <li>One short line on the page for your lake: your business name, one sentence you write, and a link to your site or booking page.</li>
-        <li>It sits in the box below the live gauge and the lake facts, so it is seen after the visitor has the reading they came for.</li>
-        <li>You are the only sponsor on that lake. No other marina or guide on the same page.</li>
-        <li>It is labelled as sponsored, and the link carries <code>rel="sponsored"</code>, as search engines require.</li>
+        <li>The only sponsor slot on the {slot.lakeName} level page. One business only.</li>
+        <li>Your business name, one line of text that you write, and one link to your website or booking page.</li>
+        <li>The slot is below the live level and the trend chart, on phones and on computers. The visitor sees it after they get the reading they came for.</li>
+        <li>Each month, I send you the page views of the page and the clicks on your link.</li>
+        <li>You can stop at the end of any month. No setup fee, no contract.</li>
       </ul>
 
       <h2>Price</h2>
-      <p><span class="em-strong">${SPONSOR_PRICE_USD} a month per lake</span>, billed monthly. Cancel any time and the line comes down at the end of the month you paid for. There is no setup fee and no contract.</p>
+      <div class="def-table">
+        <div class="row"><div class="k">Monthly</div><div class="vv">${slot.priceMonthUsd} a month</div></div>
+        <div class="row"><div class="k">Founding sponsor</div><div class="vv">${slot.priceFoundingYearUsd} for 12 months, paid at the start (you save ${yearSaving}). The price does not change for those 12 months.</div></div>
+      </div>
 
       <h2>What it looks like</h2>
-      <div class="affil" style="margin-top:12px;">
-        <p><span class="em-strong">Sponsored:</span> Example Marina, {sample.name}. Slips, fuel and pontoon rentals, open daily. <a href="/advertise/" rel="sponsored">Book a slip</a></p>
-      </div>
-      <p style="font-size:13px;color:var(--t2);">Sample only. Your line replaces the sponsor invitation that sits in this box on your lake's page today.</p>
+      <aside class="spon-demo" aria-label="Sample sponsor slot">
+        <p class="spon-demo-label">Advertisement</p>
+        <p class="spon-demo-body"><span class="em-strong">Example Marina</span>. Boat and pontoon rentals at {slot.lakeName}, open daily. <span class="spon-demo-link">Visit Example Marina</span></p>
+      </aside>
+      <p class="adv-note">Sample only. Until the slot is sold, it shows an invitation to advertise.</p>
 
-      <h2>Which lakes</h2>
-      <p>Any of the {LAKES.length} lake pages. {liveCount} of them have a live gauge right now; the others show reference data and a link to the operator. If your lake is not listed, email anyway.</p>
+      <h2>How the slot is labelled</h2>
+      <ul>
+        <li>The word "Advertisement" is above the slot, readable on phones. This follows the US Federal Trade Commission guide for native advertising: the label goes in front of or above the ad, and "Advertisement" is a clear word for it.</li>
+        <li>Your link carries <code>rel="sponsored"</code>. Google asks sites to mark paid links this way.</li>
+        <li>Sponsors never see, change or influence the data. The level, percent full and ramp read come from public USBR, USGS, CDEC and TWDB feeds and show the same way on every page. See the <a href="/disclosure">disclosure page</a>.</li>
+      </ul>
 
-      <h2>What a sponsor cannot do</h2>
-      <p>Sponsors never see, change or influence the data. The level, percent full and ramp read come from public USGS, CDEC, USBR and TWDB feeds and are shown the same way on every page. See the <a href="/disclosure">disclosure page</a>.</p>
+      <h2>Other lakes</h2>
+      <p>The other lake pages have fewer visitors than {slot.lakeName}. If you want a slot on another lake, <a href={otherHref}>email me</a>. I send you that page's real page views and a price before you pay anything.</p>
 
       <h2>How to start</h2>
-      <p>Email <a href={mail('Sponsor a lake page on LakeLevelNow')}>{SPONSOR_EMAIL}</a> with the lake, your business name, the one sentence you want shown and the link. I reply with a payment link, and the line goes live within two days of payment.</p>
+      <p>Email <a href={mailHref}>{SPONSOR_EMAIL}</a> with your business name, the one line you want shown and the link. I reply with a payment link. The slot goes live within two days of payment.</p>
+      <div class="adv-cta">
+        <a class="btn" href={mailHref}>Email to book the {slot.lakeName} slot</a>
+      </div>
       <p>Michael, {SITE.name}</p>
     </article>
   </div>
 </BaseLayout>
+
+<style>
+  .adv-cta { margin: 18px 0 8px; }
+  .adv-cta .btn { display: inline-block; }
+  .adv-cta p { margin: 8px 0 0; font-size: 14px; }
+  .spon-demo { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 16px 14px; margin: 12px 0 8px; }
+  .spon-demo-label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--t2); margin: 0 0 6px; font-weight: 600; }
+  .spon-demo-body { font-size: 15px; color: var(--t1); margin: 0; }
+  .spon-demo-link { color: var(--teal); font-weight: 600; }
+  .adv-note { font-size: 13px; color: var(--t2); }
+</style>

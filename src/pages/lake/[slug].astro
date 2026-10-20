@@ -7,9 +7,11 @@ import AdSlot from '../../components/AdSlot.astro';
 import SupportLine from '../../components/SupportLine.astro';
 import PluginCta from '../../components/PluginCta.astro';
 import StatusStrip from '../../components/StatusStrip.astro';
+import SponsorSlot from '../../components/SponsorSlot.astro';
 // import RecreationAffiliates from '../../components/RecreationAffiliates.astro'; // enable with the box below
 import { almanacContext, descriptionClause } from '../../lib/almanac';
-import { SITE, AUTHOR, SPONSOR_PRICE_USD, SPONSOR_EMAIL } from '../../consts';
+import { SITE, AUTHOR, SPONSOR_EMAIL } from '../../consts';
+import sponsorData from '../../data/sponsors.json';
 import { LAKES, getReading, launchRead, status, fmtNum, stateName, POWELL_BAND, changeOverSeries, liveBandBelowFullPct, feedLabel, POWELL_HISTORY, compareToMark, fmtRecordDate} from '../../lib/lakes';
 import { lakeLd, authorLd, breadcrumbLd, speakableLd } from '../../lib/seo';
 
@@ -129,6 +131,8 @@ const ld = [
   breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Lakes', path: '/lakes' }, { name: lake.name, path: `/lake/${slug}` }]),
 ];
 
+// Lakes with their own sponsor slot (src/data/sponsors.json) drop the generic invitation.
+const hasSponsorSlot = Object.prototype.hasOwnProperty.call(sponsorData.slots, slug);
 const related = LAKES.filter((l) => l.state === lake.state && l.slug !== slug).slice(0, 4);
 const toneHex = (t: string) => t === 'red' ? '#bb5a37' : t === 'amber' ? '#b07d1a' : '#0b7d6a';
 
@@ -199,6 +203,11 @@ const feedNoun = feedLabel(reading?.feed) === 'CDEC' ? 'CDEC gage reading'
         apply #5). Above them it pushed the ramp read and the trend out of the first phone
         screen; the visitor now gets the reading before the offer. */}
     <AlmanacPeek slug={slug} name={lake.name} alm={alm} />
+
+    {/* Sponsor slot (owner apply #3): only lakes listed in src/data/sponsors.json (Lake Mead
+        today). Below the gauge and chart, never in the first screen, and well above the
+        lakeMid AdSense unit (which itself keeps a 160px margin). */}
+    <SponsorSlot slug={slug} />
 
     {/* Directly under the gauge, on purpose. The visitor came for one number and it is
         immediately above this; the one question the number leaves open is whether it is
@@ -310,13 +319,13 @@ const feedNoun = feedLabel(reading?.feed) === 'CDEC' ? 'CDEC gage reading'
 
     <AdSlot slot="lakeMid" />
 
-    <div class="affil">
+    {!hasSponsorSlot && <div class="affil">
       {/* Recreation affiliates: ready, not live. Uncomment after FishingBooker / Boatsetter
           approve and the tracked links are in AFFILIATES (src/consts.ts).
       <RecreationAffiliates name={lake.name} fbUrl={(lake as any).fb_url ?? null} />
       */}
-      <p>Run a marina, guide service or boat rental at {lake.name}? Sponsor this page: one local business per lake, ${SPONSOR_PRICE_USD} a month, cancel any time. <a href="/advertise/">How it works</a> or email <a href={`mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent(`Sponsor ${lake.name} on LakeLevelNow`)}`}>{SPONSOR_EMAIL}</a>.</p>
-    </div>
+      <p>Run a marina, guide service or boat rental at {lake.name}? Sponsor this page: one local business per lake, cancel any time. <a href="/advertise/">How it works</a> or email <a href={`mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent(`Sponsor ${lake.name} on LakeLevelNow`)}`}>{SPONSOR_EMAIL}</a>.</p>
+    </div>}
 
     <section class="section">
       <h2 style="margin-bottom:8px;">Where these numbers come from</h2>

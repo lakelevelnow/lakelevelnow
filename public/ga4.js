@@ -113,6 +113,14 @@
   document.addEventListener('click', function (ev) {
     var anchor = ev.target && ev.target.closest ? ev.target.closest('a') : null;
     if (!anchor || anchor.getAttribute('aria-disabled') === 'true') return;
+    // Lake sponsor slot (house ad or a paid sponsor): count the click so each sponsor can
+    // get its monthly click number. Slug and kind only, never the destination URL.
+    var spon = anchor.getAttribute('data-spon');
+    if (lake && /^[a-z0-9-]{1,40}$/.test(spon || '')) {
+      event('select_content', { content_type: 'sponsor_slot', content_id: spon,
+        placement: anchor.getAttribute('data-spon-kind') === 'paid' ? 'sponsor' : 'house_ad' });
+      return;
+    }
     var product = productFor(anchor);
     if (product) {
       var checkout = payload(product, anchor);

@@ -43,8 +43,11 @@ export const AFFILIATES = {
 export const AFFILIATE_REPLACE_ME = Object.values(AFFILIATES).some((v) => v === 'REPLACE_ME');
 
 // Display ads, support link and the per-lake sponsor slot. Owner switches live in
-// src/data/monetization.json (AdSense unit IDs, the tip rails: Buy Me a Coffee + PayPal).
-export const SPONSOR_PRICE_USD = 49;
+// src/data/monetization.json (AdSense unit IDs, the tip rails: Buy Me a Coffee + PayPal)
+// and src/data/sponsors.json (which lakes have a sponsor slot, its price, the sponsor).
+// 2026-10-20 (owner apply #3): the flat $49-a-month price for every lake is gone. Only
+// Lake Mead has a priced slot ($25 a month, $199 founding year); every other lake page
+// has far fewer views, so its price is quoted by email with that page's real numbers.
 // Sponsor enquiries go to the inbox the /about page already advertises and that is read
 // (Porkbun-hosted mailbox, forwarded to the owner). hello@lakelevelnow.com is a Porkbun
 // forward whose delivery has not been verified, so money conversations do not use it.
