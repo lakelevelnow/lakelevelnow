@@ -1,5 +1,6 @@
 {
   "name": "lakelevelnow",
+  "repository": {"type": "git", "url": "theluckystrike/lakelevelnow.git"},
   "version": "0.1.0",
   "private": true,
   "type": "module",
