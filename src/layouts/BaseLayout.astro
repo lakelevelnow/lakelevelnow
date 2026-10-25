@@ -13,9 +13,11 @@ interface Props {
   ogImage?: string;
   noindex?: boolean;
   robots?: string;
+  // false: use the title as given, without " | LakeLevelNow" (dated lake titles, adsense-1025).
+  brand?: boolean;
   jsonLd?: Record<string, any>[];
 }
-const { title, description, path, ogImage, noindex, robots, jsonLd = [] } = Astro.props;
+const { title, description, path, ogImage, noindex, robots, brand = true, jsonLd = [] } = Astro.props;
 const ld = [organizationLd(), websiteLd(), ...jsonLd];
 const adPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
@@ -37,6 +39,7 @@ const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
       ogImage={ogImage}
       noindex={noindex}
       robots={robots}
+      brand={brand}
       jsonLd={ld}
     />
     {/* Almanac funnel beacon. Fire-and-forget GETs to the fulfilment Worker; it never

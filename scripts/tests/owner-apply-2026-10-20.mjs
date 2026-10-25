@@ -23,7 +23,7 @@ for (const slug of slugs) {
   const s = html.indexOf('class="status-strip"');
   assert.ok(h1 > 0 && s > h1 && s - html.indexOf('</h1>', h1) < 120, `${slug}: strip is not right under the H1`);
   // Title, strip and JSON-LD carry the same percent.
-  const pctTitle = (/, ([\d.]+)% Full|Water Level ([\d.]+)%/.exec(title) || []).slice(1).find(Boolean);
+  const pctTitle = (/, ([\d.]+)% Full|\): ([\d.]+)% Full|Water Level ([\d.]+)%/.exec(title) || []).slice(1).find(Boolean);
   if (pctTitle) {
     assert.ok(strip[0].includes(`>${pctTitle}%<`), `${slug}: strip % differs from title ${pctTitle}`);
     assert.ok(new RegExp(`"value":${pctTitle}[,}]`).test(html), `${slug}: JSON-LD % differs from title ${pctTitle}`);

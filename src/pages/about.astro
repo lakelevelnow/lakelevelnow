@@ -53,21 +53,21 @@ const EMAIL = 'support@zovo.one';
     <section class="hero" style="padding-top:56px;">
       <div class="eyebrow">The person behind the tools</div>
       <h1 style="max-width:620px;">About LakeLevelNow</h1>
-      <p class="lead" style="max-width:600px;">I'm an independent developer and I build small, fast utility sites. LakeLevelNow is one of them. Check how full a lake is, see a 30-day trend, and get a straight answer on whether you can launch a boat, pulled straight from USGS and CDEC gages. No account, no pop-ups, no essay before the gauge loads.</p>
+      <p class="lead" style="max-width:600px;">I'm Michael, an independent developer, and I run LakeLevelNow on my own. I build small, fast utility sites (they live on <a href="https://zovo.one" rel="noopener">zovo.one</a>), and I started this one because the lake-level pages I used before a trip were stale tables or a single reservoir's page. Check how full a lake is, see a 30-day trend, and get a straight answer on whether you can launch a boat, pulled straight from USGS, CDEC, Bureau of Reclamation and TWDB data. No account, no pop-ups, no essay before the gauge loads.</p>
     </section>
 
     <div class="about-stats">
       <div class="tagline">Solo. Full-time. Coffee-powered.</div>
       <div class="s"><div class="n">{LAKES.length}</div><div class="t">lakes in the registry</div></div>
-      <div class="s"><div class="n">2</div><div class="t">live data feeds (USGS + CDEC)</div></div>
+      <div class="s"><div class="n">{liveCount}</div><div class="t">lakes with a live reading today</div></div>
       <div class="s"><div class="n">0</div><div class="t">sign-ups required</div></div>
-      <div class="s"><div class="n">0</div><div class="t">ads or pop-ups</div></div>
+      <div class="s"><div class="n">4</div><div class="t">public data sources (USGS, CDEC, USBR, TWDB)</div></div>
     </div>
 
     <section class="section about-prose">
       <div class="section-k">What I build</div>
       <h2 class="section-h">One job per site, done fast</h2>
-      <p>Most lake-level sites are scraped tables that haven't been updated since the last flood season, or a single hobbyist page for one reservoir. I went the other way. Every lake pulls its own live gage (<b>USGS</b> for most, <b>CDEC</b> for California reservoirs) so the number you see is the same one the operator reports, stamped with exactly when it was taken.</p>
+      <p>Most lake-level sites are scraped tables that haven't been updated since the last flood season, or a single hobbyist page for one reservoir. I went the other way. Every lake pulls its own live gage (<b>USGS</b> for most, <b>CDEC</b> for California reservoirs, the <b>Bureau of Reclamation</b> for Mead, Mohave and Havasu, with <b>TWDB</b> percent full for Texas) so the number you see is the same one the operator reports, stamped with exactly when it was taken.</p>
       <p>The <b>"can I launch?"</b> read turns a raw elevation into the thing you actually wanted to know: will the ramp be in the water this weekend. It's a level-based guide, not a guarantee. Always confirm the ramp with the operator before you go.</p>
       <p>I build the whole site on my own and work on it full time. That's the only reason the data stays fresh and a request for a new lake actually gets read the same day.</p>
     </section>
@@ -75,7 +75,7 @@ const EMAIL = 'support@zovo.one';
     <section class="section about-prose">
       <div class="section-k">The honest part</div>
       <h2 class="section-h">What's live, and what isn't</h2>
-      <p>Not every lake has a real-time gage. Some I wired up and the feed went dark; those show <b>"feed connecting"</b> and reference data, never a made-up number. A reading only counts as live if it's within seven days; anything older gets flagged "may be delayed" rather than passed off as current.</p>
+      <p>Not every lake has a real-time gage. Some I wired up and the feed went dark; those show <b>"feed connecting"</b> and reference data, never a made-up number, and they stay out of search results until a gage reports. A reading only counts as live if it's within seven days; anything older gets flagged "may be delayed" rather than passed off as current.</p>
       <p>So I'd rather hear what's wrong than guess at it. Wrong gage, mislabeled lake, a reservoir you'd like added: send it over. Small fixes usually ship the same week, and the bigger ideas go on a list I actually work through.</p>
     </section>
 

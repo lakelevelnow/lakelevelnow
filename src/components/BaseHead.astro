@@ -10,11 +10,12 @@ interface Props {
   ogImage?: string;
   noindex?: boolean;
   robots?: string;
+  brand?: boolean;
   jsonLd?: Record<string, any>[];
 }
 
-const { title, description, path = '/', ogImage, noindex = false, robots, jsonLd = [] } = Astro.props;
-const meta = buildMeta({ title, description, path, ogImage, noindex });
+const { title, description, path = '/', ogImage, noindex = false, robots, brand = true, jsonLd = [] } = Astro.props;
+const meta = buildMeta({ title, description, path, ogImage, noindex, brand });
 ---
 
 <meta charset="utf-8" />

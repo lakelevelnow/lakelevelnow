@@ -17,12 +17,13 @@ export interface SeoInput {
   path?: string;
   ogImage?: string;
   noindex?: boolean;
+  brand?: boolean;
 }
 
-export function buildMeta({ title, description, path = '/', ogImage, noindex }: SeoInput) {
+export function buildMeta({ title, description, path = '/', ogImage, noindex, brand = true }: SeoInput) {
   const canonical = absUrl(path);
   const image = ogImage ? absUrl(ogImage) : absUrl(SITE.defaultOgImage);
-  const fullTitle = title.includes(SITE.name) ? title : `${title} | ${SITE.name}`;
+  const fullTitle = !brand || title.includes(SITE.name) ? title : `${title} | ${SITE.name}`;
   return { fullTitle, description, canonical, image, noindex };
 }
 

@@ -1,0 +1,41 @@
+---
+// /privacy/: the full privacy policy (adsense-1025, checklist item 1). The disclosure page
+// keeps its short ads and analytics sections; this page is the one the footer links as
+// "Privacy". It names Google AdSense, the third-party cookie use and both Google links
+// the AdSense program policies ask for.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+import { breadcrumbLd } from '../lib/seo';
+const title = 'Privacy policy: ads, cookies and analytics';
+const description = `What ${SITE.name} collects, how Google AdSense and Google Analytics use cookies, how ads are limited by region, and how to opt out of personalized ads.`;
+const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Privacy', path: '/privacy' }])];
+const EMAIL = 'support@zovo.one';
+---
+<BaseLayout title={title} description={description} path="/privacy" jsonLd={ld}>
+  <div class="container">
+    <article class="prose">
+      <h1>Privacy policy</h1>
+      <p>Updated 25 October 2026. {SITE.name} (lakelevelnow.com) is run by Michael, an independent developer who also runs <a href="https://zovo.one" rel="noopener">zovo.one</a>. This page says what the site collects and what third parties collect when you visit. There are no accounts, no sign-up forms and no comment boxes, so we never ask for your name or email address on the site.</p>
+
+      <h2 id="ads">Advertising (Google AdSense)</h2>
+      <p>Lake pages and the main overview pages can show ads served by Google AdSense. Third-party vendors, including Google, use cookies to serve ads based on a user's prior visits to this website or other websites. Google's use of advertising cookies enables it and its partners to serve ads to you based on your visit to this site and/or other sites on the Internet.</p>
+      <p>You may opt out of personalized advertising by visiting Google's <a href="https://adssettings.google.com" rel="noopener">Ads Settings</a> (adssettings.google.com). You can read how Google uses cookies in advertising at <a href="https://policies.google.com/technologies/ads" rel="noopener">policies.google.com/technologies/ads</a>, and how Google uses data from sites that use its services at <a href="https://policies.google.com/technologies/partner-sites" rel="noopener">policies.google.com/technologies/partner-sites</a>. You can also opt out of other vendors' advertising cookies at <a href="https://www.aboutads.info/choices/" rel="noopener">aboutads.info/choices</a>.</p>
+      <p>The ad code loads only for visitors outside the European Economic Area, the United Kingdom and Switzerland. Before it loads, the page asks a small endpoint on our own Cloudflare Worker which country the request comes from. The answer is used for that page view only and is not stored. If the country is in that region, unknown, or the lookup fails, no ad code loads. If your browser sends Global Privacy Control or Do Not Track, we ask Google for non-personalized ads. Ads never load on the 404 page, the checkout pages or the support page.</p>
+
+      <h2 id="analytics">Analytics (Google Analytics 4)</h2>
+      <p>We use Google Analytics 4 to count visits and page views, views of the Almanac offer, sample views and checkout clicks. Google Analytics sets first-party cookies to tell browsers and sessions apart. Our events send public page paths and product identifiers. They do not send email addresses, payment details or anything typed into a tool. Query strings and fragments are excluded. Google signals and advertising personalization are disabled for analytics. Analytics does not load when your browser sends Do Not Track or Global Privacy Control.</p>
+
+      <h2 id="counter">Almanac counter and payments</h2>
+      <p>A first-party counter on our own Cloudflare Worker records the event name, the lake slug and the placement of an Almanac offer when you view or click it. It stores no cookie and no personal data. If you buy the Almanac, Stripe processes the payment on its own site under its own privacy policy. Our Worker uses the Stripe checkout session only to hand you the download; it does not store your email address, IP address or browser details. Tips go through Buy Me a Coffee or PayPal under their own policies.</p>
+
+      <h2 id="logs">Hosting logs</h2>
+      <p>The site is hosted on GitHub Pages. Like any web host, GitHub may log IP addresses and request details for security and operations. We do not receive or keep those logs.</p>
+
+      <h2 id="children">Children</h2>
+      <p>The site is a general-audience reference for lake levels. It is not directed to children under 13, and we do not knowingly collect information from them.</p>
+
+      <h2 id="contact">Questions and requests</h2>
+      <p>To ask about this policy, or to ask what data relates to you and have it deleted, email <a href={`mailto:${EMAIL}`}>{EMAIL}</a>. See also the <a href="/disclosure/">disclosure page</a> and the <a href="/contact/">contact page</a>.</p>
+    </article>
+  </div>
+</BaseLayout>

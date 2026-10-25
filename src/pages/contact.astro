@@ -1,0 +1,32 @@
+---
+// /contact/: how to reach the person who runs the site (adsense-1025, checklist item 2).
+// support@zovo.one is the inbox the About page and sponsor slots already use and that is read.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+import { breadcrumbLd } from '../lib/seo';
+const title = 'Contact LakeLevelNow: data fixes, new lakes, sponsors';
+const description = `Email the developer behind ${SITE.name}: report a wrong reading, ask for a new lake or reservoir, ask about a sponsor slot, or ask a privacy question.`;
+const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Contact', path: '/contact' }])];
+const EMAIL = 'support@zovo.one';
+const mail = (subject: string) => `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}`;
+---
+<BaseLayout title={title} description={description} path="/contact" jsonLd={ld}>
+  <div class="container">
+    <article class="prose">
+      <h1>Contact</h1>
+      <p>{SITE.name} is run by one person, Michael, an independent developer (<a href="https://zovo.one" rel="noopener">zovo.one</a>, <a href="https://github.com/theluckystrike" rel="noopener">GitHub: theluckystrike</a>). Every message goes to the same inbox, <a href={`mailto:${EMAIL}`}>{EMAIL}</a>, and a person reads it. Most replies go out within two working days.</p>
+
+      <h2>Report a wrong or old reading</h2>
+      <p>Give the lake name, the figure you see on the page, and the figure or source you think is right (for example the operator's own page). Every reading comes from a public gage, so a wrong number usually means a wrong station or a late feed, and it is fixed at the source. <a href={mail('Reading check: ')}>Email a reading report</a>.</p>
+
+      <h2>Ask for a new lake or reservoir</h2>
+      <p>Name the lake and the state. If you know the USGS site number or the CDEC station code, add it; a lake goes live only when a public gage reports its level. <a href={mail('New lake request: ')}>Email a lake request</a>.</p>
+
+      <h2>Sponsor a lake page</h2>
+      <p>One local business per lake (a marina, a guide, a boat rental) can sponsor that lake's page. The <a href="/advertise/">advertise page</a> has the details. <a href={mail('Sponsor a lake page')}>Email about a sponsor slot</a>.</p>
+
+      <h2>Privacy and purchases</h2>
+      <p>For a question about cookies, ads or analytics, read the <a href="/privacy/">privacy policy</a>. For an Almanac purchase or a refund, include the email address you used at checkout. <a href={mail('Almanac purchase')}>Email about a purchase</a>.</p>
+    </article>
+  </div>
+</BaseLayout>

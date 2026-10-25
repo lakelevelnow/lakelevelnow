@@ -1,0 +1,174 @@
+---
+// LakeFacts: the facts that make each lake page its own page (adsense-1025, checklist item 4).
+// The lake pages share one template, so without this block two lakes differ mostly in the
+// name and a few numbers. Every sentence here is computed from the lake's own reading and
+// registry entry: level against full pool, storage against capacity, the trend inside the
+// series the feed returned (net change, weekly rate, high and low with dates, last 7 days),
+// the CDEC average for the date where CDEC publishes one, the rank among the state's live
+// lakes, the exact station the reading came from, and the recreation read. A fact with no
+// data is left out. Nothing is typed by hand.
+import type { LakeEntry, Reading } from '../lib/lakes';
+import { LAKES, getReading, fmtNum, feedLabel, status } from '../lib/lakes';
+import sources from '../data/sources.json';
+import caRes from '../data/ca-reservoirs.json';
+
+interface Props { lake: LakeEntry; reading: Reading; slug: string; stName: string }
+const { lake, reading, slug, stName } = Astro.props;
+
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// Series timestamps differ by feed ("2026-10-24T23:45:00.000-05:00", "2026-10-24 00:00").
+// Use the calendar date the feed wrote, never a timezone-shifted one.
+const ymd = (t: string | undefined) => {
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(t || '');
+  return m ? { y: +m[1], mo: +m[2], d: +m[3], day: Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000 } : null;
+};
+const fmtDay = (t: string | undefined) => { const p = ymd(t); return p ? `${MON[p.mo - 1]} ${p.d}` : ''; };
+const fmtDayYear = (t: string | undefined) => { const p = ymd(t); return p ? `${MON[p.mo - 1]} ${p.d}, ${p.y}` : ''; };
+const ft = (n: number) => `${fmtNum(n, 1)} ft`;
+const moved = (d: number) => Math.abs(d) < 0.05 ? 'held level' : d > 0 ? `rose ${ft(d)}` : `fell ${ft(Math.abs(d))}`;
+
+const asOf = fmtDayYear(reading.as_of);
+const level = reading.level_ft;
+const full = lake.full_pool_ft;
+const below = reading.feet_from_full ?? (level != null && full != null ? Math.round((full - level) * 100) / 100 : null);
+
+// 1. Level against full pool and storage against capacity.
+const levelParts: string[] = [];
+if (level != null && full != null && below != null) {
+  levelParts.push(Math.abs(below) < 0.05
+    ? `On ${asOf} the surface sat at ${ft(level)}, right at the full-pool mark of ${fmtNum(full, 0)} ft.`
+    : below > 0
+      ? `On ${asOf} the surface sat at ${ft(level)}, ${ft(below)} below the full-pool mark of ${fmtNum(full, 0)} ft.`
+      : `On ${asOf} the surface sat at ${ft(level)}, ${ft(Math.abs(below))} above the full-pool mark of ${fmtNum(full, 0)} ft, so part of the flood-control pool is in use.`);
+} else if (level != null) {
+  levelParts.push(`On ${asOf} the gage read ${ft(level)}.`);
+}
+if (reading.storage_af != null && lake.capacity_af != null && lake.capacity_af > 0) {
+  // Rounded: the capacity figure is not precise to the acre-foot.
+  const room = Math.round((lake.capacity_af - reading.storage_af) / 1000) * 1000;
+  levelParts.push(`It held ${fmtNum(reading.storage_af, 0)} acre-feet of its ${fmtNum(lake.capacity_af, 0)} acre-foot capacity${reading.pct_full != null ? ` (${reading.pct_full}% full)` : ''}${room > 0 ? `, so it needs about ${fmtNum(room, 0)} acre-feet more to fill` : ''}.`);
+} else if (reading.pct_full != null) {
+  levelParts.push(reading.pct_source === 'twdb'
+    ? `The Texas Water Development Board rates its conservation storage at ${reading.pct_full}% full.`
+    : `That is ${reading.pct_full}% of capacity.`);
+}
+// CDEC average for the date (California only, and only when the CDEC report is recent).
+const src = (sources as Record<string, any>)[slug];
+const caSt = src?.feed === 'cdec' ? (caRes as any).stations?.[src.site] : null;
+const caFresh = caSt?.as_of && ymd(caSt.as_of) && ymd(reading.as_of) && Math.abs(ymd(caSt.as_of)!.day - ymd(reading.as_of)!.day) <= 10;
+if (caFresh && caSt.cdec_pct_average != null) {
+  const pa = caSt.cdec_pct_average;
+  levelParts.push(`CDEC put its storage at ${pa}% of the historical average for ${fmtDay(caSt.as_of)}, ${pa >= 100 ? 'at or above a normal year for the date' : pa >= 80 ? 'a little below a normal year for the date' : 'well below a normal year for the date'}.`);
+}
+// Rank among this state's lakes with a fresh percent-full reading.
+if (reading.fresh && reading.pct_full != null) {
+  const peers = LAKES.filter((l) => l.state === lake.state)
+    .map((l) => ({ slug: l.slug, r: getReading(l.slug) }))
+    .filter((x) => x.r && x.r.fresh && x.r.pct_full != null)
+    .sort((a, b) => b.r!.pct_full! - a.r!.pct_full!);
+  const pos = peers.findIndex((x) => x.slug === slug) + 1;
+  if (peers.length >= 3 && pos > 0) {
+    levelParts.push(`Of the ${peers.length} ${stName} lakes on this site with a live percent-full reading, it ranks ${pos} of ${peers.length}${pos === 1 ? ', the fullest' : pos === peers.length ? ', the lowest' : ''}.`);
+  }
+}
+
+// 2. Trend inside the series the feed returned.
+const series = (reading.series || []).filter((p) => Number.isFinite(p.v) && !p.storage);
+const trendParts: string[] = [];
+let weekRate: number | null = null;
+const first = series[0];
+const last = series[series.length - 1];
+const d0 = ymd(first?.t);
+const d1 = ymd(last?.t);
+const span = d0 && d1 ? d1.day - d0.day : 0;
+if (series.length >= 3 && span >= 2) {
+  const net = Math.round((last.v - first.v) * 100) / 100;
+  const perWeek = Math.round((net / span) * 7 * 100) / 100;
+  let hi = series[0], lo = series[0];
+  for (const p of series) { if (p.v > hi.v) hi = p; if (p.v < lo.v) lo = p; }
+  weekRate = span >= 14 ? perWeek : null;
+  trendParts.push(`Between ${fmtDay(first.t)} and ${fmtDay(last.t)} (${span} days) the level ${moved(net)}${Math.abs(net) < 0.05 ? '' : Math.abs(perWeek) < 0.05 ? ', less than 0.1 ft a week' : `, about ${ft(Math.abs(perWeek))} a week`}.`);
+  if (hi.v - lo.v >= 0.1) trendParts.push(`The high in that window was ${ft(hi.v)} on ${fmtDay(hi.t)} and the low was ${ft(lo.v)} on ${fmtDay(lo.t)}.`);
+  // Last 7 days, when the window holds more than a week.
+  if (span > 9) {
+    const wkStart = series.find((p) => ymd(p.t) && d1!.day - ymd(p.t)!.day <= 7);
+    if (wkStart && wkStart !== last) {
+      const wk = Math.round((last.v - wkStart.v) * 100) / 100;
+      const earlier = Math.round((wkStart.v - first.v) * 100) / 100;
+      const turn = (wk > 0.05 && earlier < -0.05) ? ' That reverses the earlier decline.'
+        : (wk < -0.05 && earlier > 0.05) ? ' That reverses the earlier rise.' : '';
+      trendParts.push(`In the last 7 days it ${moved(wk)}.${turn}`);
+    }
+  }
+}
+if (reading.delta_24h != null) trendParts.push(`The last 24 hours ${Math.abs(reading.delta_24h) < 0.05 ? 'changed it by less than 0.1 ft' : `moved it ${reading.delta_24h > 0 ? 'up' : 'down'} ${fmtNum(Math.abs(reading.delta_24h), 2)} ft`}.`);
+
+// 3. Data source: the exact station.
+const feed = feedLabel(reading.feed);
+const site = src?.site as string | undefined;
+const sourceText = feed === 'CDEC'
+  ? `California Data Exchange Center (CDEC) station ${site} (California Department of Water Resources)`
+  : feed === 'USBR'
+    ? `the Bureau of Reclamation Lower Colorado hourly reservoir report (${site})`
+    : `USGS monitoring location ${site || lake.usgs_site || ''}${src?.param === '62614' ? ' (lake surface elevation above NGVD 1929, parameter 62614)' : src?.param === '00062' ? ' (reservoir elevation, parameter 00062)' : ''}`;
+const sourceHref = feed === 'CDEC' && site ? `https://cdec.water.ca.gov/dynamicapp/staMeta?station_id=${site}`
+  : feed === 'USBR' ? 'https://www.usbr.gov/lc/region/g4000/riverops/webreports/hourlyweb.json'
+    : (site || lake.usgs_site) ? `https://waterdata.usgs.gov/monitoring-location/${site || lake.usgs_site}/` : null;
+const pctNote = reading.pct_full == null ? ''
+  : reading.pct_source === 'twdb' ? ' Percent full is the Texas Water Development Board daily storage estimate for the same lake.'
+    : feed === 'CDEC' ? ' Percent full is CDEC storage divided by the capacity CDEC lists for the dam.'
+      : feed === 'USBR' ? ' Percent full is Reclamation storage divided by the reservoir capacity.' : '';
+
+// 4. Recreation status from the level: where the reading sits against the lines the
+// launch read uses (60% / 35% full, or 3 ft / 12 ft below full pool), and, when the level
+// moves at least 0.2 ft a week, where the 30-day pace would put it in four weeks.
+const stale = !reading.fresh;
+const st = status(stale ? null : reading.pct_full, stale ? null : below);
+const recParts: string[] = [];
+if (stale) {
+  recParts.push('There is no current reading, so there is no level-based launch read. Check the operator before you go.');
+} else {
+  recParts.push(`Status: ${st.label}.`);
+  const pct = reading.pct_full;
+  if (pct != null) {
+    recParts.push(pct >= 60
+      ? `At ${pct}% full it is ${fmtNum(pct - 60, 1)} points above 60%, the line above which most ramps stay in the water, so a normal ramp day is likely. Ramps still close on their own schedules, so check yours with ${lake.operator}.`
+      : pct >= 35
+        ? `At ${pct}% full it is ${fmtNum(60 - pct, 1)} points under 60%, the line above which most ramps stay in the water. Expect some ramps to be short of water and check the one you plan to use with ${lake.operator}.`
+        : `At ${pct}% full it is ${fmtNum(35 - pct, 1)} points under 35%, where many ramps end above the waterline and stumps, sandbars and rock shelves show. Call ${lake.operator} before you tow a boat there.`);
+  } else if (below != null) {
+    recParts.push(below <= 3
+      ? `Within ${ft(Math.max(below, 0))} of full pool, ramps built for normal pool should reach the water. Check your ramp with ${lake.operator} all the same.`
+      : below <= 12
+        ? `At ${ft(below)} below full pool, the shallowest ramps can be out of the water. Check the one you plan to use with ${lake.operator}.`
+        : `At ${ft(below)} below full pool, expect closed ramps and exposed hazards. Call ${lake.operator} before you tow a boat there.`);
+  }
+  if (weekRate != null && level != null && Math.abs(weekRate) >= 0.2) {
+    recParts.push(`If the 30-day pace of ${ft(Math.abs(weekRate))} a week ${weekRate > 0 ? 'up' : 'down'} held, the surface would be near ${ft(level + weekRate * 4)} in four weeks. Releases and rain change that quickly.`);
+  }
+}
+---
+<section class="section lake-facts">
+  <h2 style="margin-bottom:10px;">{lake.name} today: level, trend, source and access</h2>
+  {stale && <p style="font-size:14px;color:var(--t2);max-width:660px;">The newest reading below is more than seven days old; the feed may be delayed.</p>}
+  {levelParts.length > 0 && (
+    <>
+      <h3 style="font-size:16px;margin-top:12px;">Level against full pool</h3>
+      <p style="font-size:15px;color:var(--t1);max-width:660px;">{levelParts.join(' ')}</p>
+    </>
+  )}
+  {trendParts.length > 0 && (
+    <>
+      <h3 style="font-size:16px;margin-top:12px;">Trend</h3>
+      <p style="font-size:15px;color:var(--t1);max-width:660px;">{trendParts.join(' ')}</p>
+    </>
+  )}
+  <h3 style="font-size:16px;margin-top:12px;">Data source</h3>
+  <p style="font-size:15px;color:var(--t1);max-width:660px;">
+    The elevation comes from {sourceHref ? <a href={sourceHref} rel="noopener">{sourceText}</a> : sourceText}, last reported {asOf}.{pctNote} Feet from full pool, the trend and the figures above are computed from that reading and the published full-pool elevation; none is typed by hand. {lake.operator} runs the dam on the {lake.river}.
+  </p>
+  <h3 style="font-size:16px;margin-top:12px;">Recreation status</h3>
+  <p style="font-size:15px;color:var(--t1);max-width:660px;">
+    {recParts.join(' ')}
+  </p>
+</section>

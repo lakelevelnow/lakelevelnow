@@ -8,6 +8,7 @@ import SupportLine from '../../components/SupportLine.astro';
 import PluginCta from '../../components/PluginCta.astro';
 import StatusStrip from '../../components/StatusStrip.astro';
 import SponsorSlot from '../../components/SponsorSlot.astro';
+import LakeFacts from '../../components/LakeFacts.astro';
 // import RecreationAffiliates from '../../components/RecreationAffiliates.astro'; // enable with the box below
 import { almanacContext, descriptionClause } from '../../lib/almanac';
 import { SITE, AUTHOR, SPONSOR_EMAIL } from '../../consts';
@@ -86,7 +87,31 @@ const titleCandidates = liveValue
       `${titleName} Water Level ${liveValue.replace(' Full', '')}${BRAND}`,
     ].filter(Boolean)
   : [];
-const title = titleCandidates.find((t) => t.length <= 60) || titleCandidates[titleCandidates.length - 1] || `${lake.name} water level`;
+const titleDefault = titleCandidates.find((t) => t.length <= 60) || titleCandidates[titleCandidates.length - 1] || `${lake.name} water level`;
+// 2026-10-25 (adsense-1025 click-rate test): eight lakes ranking 6-11 with a CTR under the
+// expected value get a dated title, "<Lake> Water Level Today (Oct 2026): 27.6% Full". The
+// month and year come from the build date (the site rebuilds every day), never a typed
+// value. The brand is dropped on these titles only, so the date and the figure fit in 60
+// characters. Before/after values and the rollback are in
+// /Users/mike/adsense-2026-10-25/units/lakelevelnow.com/titles.json.
+const DATED_TITLE: Record<string, string> = {
+  'medina-lake': 'Medina Lake', 'lake-buchanan': 'Lake Buchanan', 'canyon-lake': 'Canyon Lake TX',
+  'lake-fork': 'Lake Fork', 'lake-whitney': 'Lake Whitney', 'nolin-river-lake': 'Nolin Lake',
+  'folsom-lake': 'Folsom Lake', 'lake-cachuma': 'Cachuma Lake',
+};
+const buildMonth = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'America/Chicago' });
+const datedName = DATED_TITLE[slug];
+const datedCandidates = datedName && liveValue
+  ? [
+      livePct != null && liveFt != null ? `${datedName} Water Level Today (${buildMonth}): ${liveValue}, ${fmtNum(liveFt, 1)} ft` : '',
+      livePct != null ? `${datedName} Water Level Today (${buildMonth}): ${liveValue}` : '',
+      livePct == null && liveFt != null ? `${datedName} Water Level Today (${buildMonth}): ${fmtNum(liveFt, 1)} ft Elevation` : '',
+      `${datedName} Water Level Today (${buildMonth}): ${liveValue}`,
+      `${datedName} Water Level (${buildMonth}): ${liveValue}`,
+    ].filter(Boolean)
+  : [];
+const datedTitle = datedCandidates.find((t) => t.length <= 60) || null;
+const title = datedTitle || titleDefault;
 // feet_from_full comes straight off the validated reading; the fuller feetBelowFull
 // fallback is computed further down and is not needed (or available) this early.
 const metaFeetFromFull = live ? (reading!.feet_from_full ?? null) : null;
@@ -96,11 +121,40 @@ const belowFullPhrase = metaFeetFromFull != null
 const descLead = livePct != null && liveFt != null
   ? `${lake.name} is ${livePct}% full (${pctSourceLabel}) at ${fmtNum(liveFt, 1)} ft on ${asOfFmt}${belowFullPhrase}.`
   : `${lake.name} is ${liveFigure}${belowFullPhrase} as of ${asOfFmt}.`;
-const description = liveFigure
+const descriptionDefault = liveFigure
   ? (descCtx
       ? `${descLead}${descCtx} Live gage and 30-day trend.`
       : `${descLead} Live ${feedLabel(reading!.feed) || 'USGS'} gage reading, 30-day trend, and a plain-English boat-launch read.`)
   : `${lake.name} water level and percent full: live USGS/CDEC gauge, 30-day trend, and a plain-English boat-launch read.`;
+// Dated-title pages get a 140-155 character description: the reading, then what the page
+// adds (trend, history, ramp outlook). The richest lead + tail pair that fits wins.
+let description = descriptionDefault;
+if (datedTitle) {
+  const asOfShort = new Date(reading!.as_of).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const belowTxt = metaFeetFromFull == null ? '' : Math.abs(metaFeetFromFull) < 0.05 ? ', at full pool' : `, ${fmtNum(Math.abs(metaFeetFromFull), 1)} ft ${metaFeetFromFull > 0 ? 'below' : 'above'} full pool`;
+  const leads = livePct != null && liveFt != null
+    ? [`${lake.name} is ${livePct}% full (${pctSourceLabel}) at ${fmtNum(liveFt, 1)} ft on ${asOfShort}${belowTxt}.`,
+       `${lake.name} is ${livePct}% full at ${fmtNum(liveFt, 1)} ft on ${asOfShort}${belowTxt}.`,
+       `${lake.name} is ${livePct}% full on ${asOfShort}${belowTxt}.`]
+    : livePct != null
+      ? [`${lake.name} is ${livePct}% full (${pctSourceLabel}) on ${asOfShort}.`, `${lake.name} is ${livePct}% full on ${asOfShort}.`]
+      : [`${lake.name} reads ${fmtNum(liveFt, 1)} ft on ${asOfShort}${belowTxt}.`, `${lake.name} reads ${fmtNum(liveFt, 1)} ft on ${asOfShort}.`];
+  const tails = [
+    alm ? ' See the 30-day trend, how today compares with past years and the boat-ramp outlook.' : '',
+    ' See the 30-day trend, its high and low, the gage source and the boat-ramp outlook.',
+    ' See the 30-day trend, the gage source and the boat-ramp outlook.',
+    ' See the 30-day trend and the boat-ramp outlook.',
+    ' Trend, source and ramp outlook.',
+  ].filter(Boolean);
+  const pairs = leads.flatMap((l) => tails.map((t) => l + t)).filter((d) => d.length <= 155);
+  const inRange = pairs.filter((d) => d.length >= 140).sort((a, b) => b.length - a.length);
+  description = inRange[0] || pairs.sort((a, b) => b.length - a.length)[0] || descriptionDefault;
+}
+// Lakes with no reading at all (no feed bound in sources.json, or a feed that never
+// returned a value) are reference-only pages: noindex,follow, no ad loader, and out of the
+// sitemap (astro.config.mjs uses the same test). A lake whose feed is only late keeps its
+// last reading and stays indexed.
+const noData = !reading || (reading.level_ft == null && reading.pct_full == null);
 
 // Quotable Authority Sentence (GEO): declarative, specific, sourced, <25 words.
 let qas = '';
@@ -156,21 +210,8 @@ const change30d = changeOverSeries(reading?.series);
 const elevM = elev != null ? Math.round(elev * 0.3048 * 10000) / 10000 : null;
 const calcFull = fullPool; // exposed to the inline calculator script
 
-// Per-feed source attribution for the "Where these numbers come from" section.
-// The prior hard-coded "USGS gage reading" was misleading on CDEC and USBR
-// lakes (Mead, Shasta, Oroville, etc.).
-const feedHref = feedLabel(reading?.feed) === 'CDEC' && lake.cdec_id
-  ? `https://cdec.water.ca.gov/dynamicapp/staMeta?station_id=${lake.cdec_id}`
-  : feedLabel(reading?.feed) === 'USBR'
-    ? 'https://www.usbr.gov/lc/region/g4000/riverops/webreports/hourlyweb.json'
-    : lake.usgs_site
-      ? `https://waterdata.usgs.gov/monitoring-location/${lake.usgs_site}/`
-      : 'https://waterdata.usgs.gov/nwis/';
-const feedNoun = feedLabel(reading?.feed) === 'CDEC' ? 'CDEC gage reading'
-  : feedLabel(reading?.feed) === 'USBR' ? 'USBR reservoir reading'
-    : 'USGS gage reading';
 ---
-<BaseLayout title={title} description={description} path={`/lake/${slug}`} jsonLd={ld}>
+<BaseLayout title={title} description={description} path={`/lake/${slug}`} jsonLd={ld} brand={!datedTitle} noindex={noData} robots={noData ? 'noindex,follow' : undefined}>
   <div class="container">
 
     <div class="crumbs" style="padding-top:20px;">
@@ -215,6 +256,10 @@ const feedNoun = feedLabel(reading?.feed) === 'CDEC' ? 'CDEC gage reading'
         with no long record, so all 44 pages are safe to wrap. */}
     <AlmanacContext slug={slug} level={live ? reading!.level_ft : null} asOf={live ? reading!.as_of : null} />
 
+    {/* Unique, data-derived facts for this lake (adsense-1025): level vs full pool, trend,
+        exact source station, recreation status. Only where a reading exists. */}
+    {!noData && <LakeFacts lake={lake} reading={reading!} slug={slug} stName={stName} />}
+
     {/* Tip ask at the value moment: after the reading and after the almanac context, so the
         paid offer keeps its place directly under the gauge. Only when a live reading exists. */}
     {live && <SupportLine variant="result" headline={tipHeadline} />}
@@ -256,14 +301,13 @@ const feedNoun = feedLabel(reading?.feed) === 'CDEC' ? 'CDEC gage reading'
 
     {elev != null && (
       <section class="section">
-        <h2 style="margin-bottom:8px;">How the level compares lately</h2>
-        {(change30d != null || reading?.delta_24h != null || elevM != null) && (
+        {/* The 30-day and 24-hour change moved to the LakeFacts "Trend" paragraph (adsense-1025),
+            which states the real span of each feed's series. This section keeps the metric
+            figure and the elevation calculator. */}
+        <h2 style="margin-bottom:8px;">Check an elevation against full pool</h2>
+        {elevM != null && (
           <p style="font-size:15px;color:var(--t1);max-width:660px;">
-            {change30d != null && (
-              <>Over the roughly 30-day series the gage {change30d === 0 ? 'held flat' : change30d > 0 ? `rose ${fmtNum(change30d,1)} ft` : `fell ${fmtNum(Math.abs(change30d),1)} ft`}</>
-            )}{reading?.delta_24h != null && (
-              <>{change30d != null ? '; ' : ''}the last 24 hours moved it {reading.delta_24h === 0 ? 'not at all' : reading.delta_24h > 0 ? `up ${fmtNum(reading.delta_24h,1)} ft` : `down ${fmtNum(Math.abs(reading.delta_24h),1)} ft`}</>
-            )}. {elevM != null && (<>For readers outside the U.S., the surface is about <span class="em-strong">{fmtNum(elevM,1)} m</span> above sea level.</>)}
+            For readers outside the U.S., the surface of {lake.name} is about <span class="em-strong">{fmtNum(elevM,1)} m</span> above sea level{fullPool != null ? <>, and full pool is about {fmtNum(Math.round(fullPool * 0.3048 * 10) / 10, 1)} m</> : null}.
           </p>
         )}
         {calcFull != null && (
@@ -327,12 +371,8 @@ const feedNoun = feedLabel(reading?.feed) === 'CDEC' ? 'CDEC gage reading'
       <p>Run a marina, guide service or boat rental at {lake.name}? Sponsor this page. We take one local business per lake, and you can cancel any time. <a href="/advertise/">How it works</a> or email <a href={`mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent(`Sponsor ${lake.name} on LakeLevelNow`)}`}>{SPONSOR_EMAIL}</a>.</p>
     </div>}
 
-    <section class="section">
-      <h2 style="margin-bottom:8px;">Where these numbers come from</h2>
-      <p style="font-size:15px;color:var(--t1);max-width:660px;">
-        Every figure on this page is recomputed in code from a public government feed, never typed by hand. The live elevation is a <a href={feedHref}>{feedNoun}</a>; feet below full pool, the operating-band gaps, the ~30-day change, and the meter conversion are all derived from that one validated reading and the published reference elevations. The reading is timestamped in the gauge above, and {SITE.name} pulls the same feed the operator reports to.
-      </p>
-    </section>
+    {/* "Where these numbers come from" was the same paragraph on every lake page; the exact
+        station and method now sit in the LakeFacts "Data source" paragraph (adsense-1025). */}
 
     <section class="section">
       <h2 style="margin-bottom:4px;">Questions about {lake.name}</h2>
