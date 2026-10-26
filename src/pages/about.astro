@@ -61,13 +61,13 @@ const EMAIL = 'support@zovo.one';
       <div class="s"><div class="n">{LAKES.length}</div><div class="t">lakes in the registry</div></div>
       <div class="s"><div class="n">{liveCount}</div><div class="t">lakes with a live reading today</div></div>
       <div class="s"><div class="n">0</div><div class="t">sign-ups required</div></div>
-      <div class="s"><div class="n">4</div><div class="t">public data sources (USGS, CDEC, USBR, TWDB)</div></div>
+      <div class="s"><div class="n">5</div><div class="t">public data sources (USGS, CDEC, USBR, TWDB, USACE)</div></div>
     </div>
 
     <section class="section about-prose">
       <div class="section-k">What I build</div>
       <h2 class="section-h">One job per site, done fast</h2>
-      <p>Most lake-level sites are scraped tables that haven't been updated since the last flood season, or a single hobbyist page for one reservoir. I went the other way. Every lake pulls its own live gage (<b>USGS</b> for most, <b>CDEC</b> for California reservoirs, the <b>Bureau of Reclamation</b> for Mead, Mohave and Havasu, with <b>TWDB</b> percent full for Texas) so the number you see is the same one the operator reports, stamped with exactly when it was taken.</p>
+      <p>Most lake-level sites are scraped tables that haven't been updated since the last flood season, or a single hobbyist page for one reservoir. I went the other way. Every lake pulls its own live gage (<b>USGS</b> for most, <b>CDEC</b> for California reservoirs, the <b>Bureau of Reclamation</b> for Mead, Mohave and Havasu, the <b>Texas Water Development Board</b> for Texas lakes without a USGS gage and TWDB percent full for the rest, and the <b>U.S. Army Corps of Engineers</b> CWMS data service for Corps, TVA and Alabama Power pools such as Texoma, Kentucky Lake and Smith Lake) so the number you see is the same one the operator reports, stamped with exactly when it was taken.</p>
       <p>The <b>"can I launch?"</b> read turns a raw elevation into the thing you actually wanted to know: will the ramp be in the water this weekend. It's a level-based guide, not a guarantee. Always confirm the ramp with the operator before you go.</p>
       <p>I build the whole site on my own and work on it full time. That's the only reason the data stays fresh and a request for a new lake actually gets read the same day.</p>
     </section>
@@ -75,7 +75,7 @@ const EMAIL = 'support@zovo.one';
     <section class="section about-prose">
       <div class="section-k">The honest part</div>
       <h2 class="section-h">What's live, and what isn't</h2>
-      <p>Not every lake has a real-time gage. Some I wired up and the feed went dark; those show <b>"feed connecting"</b> and reference data, never a made-up number, and they stay out of search results until a gage reports. A reading only counts as live if it's within seven days; anything older gets flagged "may be delayed" rather than passed off as current.</p>
+      <p>Not every lake has a public real-time gage. A lake with no feed shows reference data only, never a made-up number, and stays out of search results until a gage reports. A reading only counts as live if it's within seven days. When an agency feed goes quiet, the page keeps the last reading with its date and says it is not today's, rather than passing it off as current.</p>
       <p>So I'd rather hear what's wrong than guess at it. Wrong gage, mislabeled lake, a reservoir you'd like added: send it over. Small fixes usually ship the same week, and the bigger ideas go on a list I actually work through.</p>
     </section>
 

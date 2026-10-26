@@ -31,12 +31,16 @@ export function buildMeta({ title, description, path = '/', ogImage, noindex, br
 // primary public feed — the GEO differentiator vs unverified competitor claims.
 const SOURCE_USGS = { '@type': 'CreativeWork', name: 'USGS Water Services', url: 'https://waterservices.usgs.gov/' };
 const SOURCE_CDEC = { '@type': 'CreativeWork', name: 'California Data Exchange (CDEC)', url: 'https://cdec.water.ca.gov/' };
+const SOURCE_TWDB = { '@type': 'CreativeWork', name: 'Texas Water Development Board, Water Data for Texas', url: 'https://www.waterdatafortexas.org/reservoirs/statewide' };
+const SOURCE_CWMS = { '@type': 'CreativeWork', name: 'U.S. Army Corps of Engineers CWMS Data API', url: 'https://cwms-data.usace.army.mil/cwms-data/' };
 const SOURCE_USBR = { '@type': 'CreativeWork', name: 'U.S. Bureau of Reclamation Lower Colorado River Operations', url: 'https://www.usbr.gov/lc/region/g4000/riverops/webreports/hourlyweb.json' };
 export function sourceFor(feed?: string | null) {
   const f = (feed || '').toLowerCase();
   if (f === 'cdec') return SOURCE_CDEC;
   if (f === 'usbr') return SOURCE_USBR;
   if (f === 'usgs') return SOURCE_USGS;
+  if (f === 'twdb') return SOURCE_TWDB;
+  if (f === 'cwms') return SOURCE_CWMS;
   return null;
 }
 

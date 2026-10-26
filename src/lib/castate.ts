@@ -63,7 +63,7 @@ export interface StateRow {
   asOfLabel: string;
   /** False when almanacContext fell back to the stored snapshot. */
   live: boolean;
-  feed: 'CDEC' | 'USGS' | 'USBR' | null;
+  feed: 'CDEC' | 'USGS' | 'USBR' | 'TWDB' | 'USACE' | null;
   /** Null for elevation-only gages with no published storage. Never inferred. */
   pctFull: number | null;
   fullPoolFt: number | null;
@@ -316,7 +316,7 @@ export function stateSummary(rows: StateRow[], stateCode: string): StateSummary 
   // Feed labels are a closed set; widen to string only after the nulls are gone, so the
   // summary never prints an empty chip for a lake whose feed the registry does not name.
   const feeds: string[] = [...new Set(
-    rows.map((r) => r.feed).filter((f): f is 'CDEC' | 'USGS' | 'USBR' => f != null),
+    rows.map((r) => r.feed).filter((f): f is 'CDEC' | 'USGS' | 'USBR' | 'TWDB' | 'USACE' => f != null),
   )].sort();
 
   let observations = 0;

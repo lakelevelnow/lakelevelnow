@@ -28,5 +28,24 @@
   "medina-lake":        { "feed": "usgs", "site": "08179500", "param": "62614" },
   "lake-somerville":    { "feed": "usgs", "site": "08109900", "param": "62614" },
   "nolin-river-lake":   { "feed": "usgs", "site": "03310900", "param": "62614" },
-  "lake-allatoona":     { "feed": "usgs", "site": "02393500", "param": "62614" }
+  "lake-allatoona":     { "feed": "usgs", "site": "02393500", "param": "62614" },
+
+  "_comment_w2": "adsense-w2 2026-10-26: 17 lakes bound. Each binding returned a reading dated 2026-10-25 or 2026-10-26 by curl on 2026-10-26. twdb site = TWDB reservoir name (waterdatafortexas.org/reservoirs/individual/<site>-30day.csv). cwms = USACE CWMS Data API: office + exact time-series id. High Rock Lake has no public gov feed found (USGS, CWMS SAW) and stays registry-only.",
+  "lake-lanier":        { "feed": "usgs", "site": "02334400", "param": "00062" },
+  "kerr-lake":          { "feed": "usgs", "site": "02079490", "param": "62614" },
+  "lake-jordan-nc":     { "feed": "usgs", "site": "02098197", "param": "62614" },
+  "lake-amistad":       { "feed": "twdb", "site": "amistad" },
+  "falcon-lake":        { "feed": "twdb", "site": "falcon" },
+  "lake-georgetown":    { "feed": "twdb", "site": "georgetown" },
+  "lake-brownwood":     { "feed": "twdb", "site": "brownwood" },
+  "oh-ivie-lake":       { "feed": "twdb", "site": "o-h-ivie" },
+  "lake-lbj":           { "feed": "twdb", "site": "lyndon-b-johnson" },
+  "toledo-bend":        { "feed": "twdb", "site": "toledo-bend" },
+  "lake-texoma":        { "feed": "cwms", "office": "SWT", "site": "DENI.Elev.Inst.1Hour.0.Ccp-Rev", "desc": "Denison Dam pool, USACE Tulsa District" },
+  "lake-eufaula-ok":    { "feed": "cwms", "office": "SWT", "site": "EUFA.Elev.Inst.1Hour.0.Ccp-Rev", "desc": "Eufaula Dam pool, USACE Tulsa District" },
+  "lake-oologah":       { "feed": "cwms", "office": "SWT", "site": "OOLO.Elev.Inst.1Hour.0.Ccp-Rev", "desc": "Oologah Dam pool, USACE Tulsa District" },
+  "altus-lugert-lake":  { "feed": "cwms", "office": "SWT", "site": "ALTU.Elev.Inst.1Hour.0.Ccp-Rev", "desc": "Altus Dam pool, USACE Tulsa District" },
+  "wappapello-lake":    { "feed": "cwms", "office": "MVS", "site": "Wappapello Lk-St Francis.Elev.Inst.30Minutes.0.lrgsShef-rev", "desc": "Wappapello Lake pool, USACE St. Louis District" },
+  "kentucky-lake":      { "feed": "cwms", "office": "LRN", "site": "KYDK2-KENTUCKY.Elev-Pool.Inst.1Hour.0.tva-raw", "desc": "Kentucky Dam pool, TVA reading carried by USACE Nashville District" },
+  "lewis-smith-lake":   { "feed": "cwms", "office": "SAM", "site": "Smith.Elev.Inst.1Hour.0.Raw-APCO", "desc": "Smith Dam pool, Alabama Power reading carried by USACE Mobile District" }
 }

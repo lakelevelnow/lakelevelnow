@@ -4,16 +4,13 @@ import LakeGauge from '../../components/LakeGauge.astro';
 import AlmanacContext from '../../components/AlmanacContext.astro';
 import AlmanacPeek from '../../components/AlmanacPeek.astro';
 import AdSlot from '../../components/AdSlot.astro';
-import SupportLine from '../../components/SupportLine.astro';
-import PluginCta from '../../components/PluginCta.astro';
 import StatusStrip from '../../components/StatusStrip.astro';
 import SponsorSlot from '../../components/SponsorSlot.astro';
 import LakeFacts from '../../components/LakeFacts.astro';
 // import RecreationAffiliates from '../../components/RecreationAffiliates.astro'; // enable with the box below
 import { almanacContext, descriptionClause } from '../../lib/almanac';
-import { SITE, AUTHOR, SPONSOR_EMAIL } from '../../consts';
-import sponsorData from '../../data/sponsors.json';
-import { LAKES, getReading, launchRead, status, fmtNum, stateName, POWELL_BAND, changeOverSeries, liveBandBelowFullPct, feedLabel, POWELL_HISTORY, compareToMark, fmtRecordDate} from '../../lib/lakes';
+import { SITE, AUTHOR } from '../../consts';
+import { LAKES, getReading, launchRead, status, fmtNum, stateName, POWELL_BAND, changeOverSeries, liveBandBelowFullPct, feedLabel, POWELL_HISTORY, compareToMark, fmtRecordDate, lastReadingDate} from '../../lib/lakes';
 import { lakeLd, authorLd, breadcrumbLd, speakableLd } from '../../lib/seo';
 
 export function getStaticPaths() {
@@ -26,14 +23,6 @@ const reading = getReading(slug);
 const live = !!(reading && reading.fresh);
 const stName = stateName(lake.state);
 const asOfFmt = reading?.as_of ? new Date(reading.as_of).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-// Tip card headline: the visitor's result, with the reading's own date (fresh = within 7 days,
-// so the page never claims "today" for an older reading).
-const tipDate = reading?.as_of ? new Date(reading.as_of).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-const tipHeadline = live
-  ? (reading!.pct_full != null
-      ? `${lake.name} is ${reading!.pct_full}% full. Now you know before you drive.`
-      : (reading!.level_ft != null ? `${lake.name} read ${fmtNum(reading!.level_ft, 1)} ft on ${tipDate}. Now you know before you drive.` : null))
-  : null;
 const levelPhrase = reading?.pct_full != null ? `${reading.pct_full}% full` : (reading?.level_ft != null ? `at ${fmtNum(reading.level_ft,1)} ft` : 'current water level');
 
 // Title + description carry the LIVE number. Search Console (90 days to 2026-07-27) showed
@@ -160,7 +149,9 @@ const noData = !reading || (reading.level_ft == null && reading.pct_full == null
 let qas = '';
 if (live) {
   const feedName = feedLabel(reading!.feed) || 'USGS';
-  if (reading!.pct_full != null && reading!.pct_source === 'twdb' && reading!.level_ft != null) {
+  if (reading!.pct_full != null && reading!.feed === 'twdb' && reading!.level_ft != null) {
+    qas = `${lake.name} is ${reading!.pct_full}% full as of ${asOfFmt}, per the Texas Water Development Board, with the surface at ${fmtNum(reading!.level_ft,1)} ft${reading!.feet_from_full != null ? `, ${fmtNum(Math.abs(reading!.feet_from_full),1)} ft ${reading!.feet_from_full > 0 ? 'below' : 'above'} full pool` : ''}.`;
+  } else if (reading!.pct_full != null && reading!.pct_source === 'twdb' && reading!.level_ft != null) {
     qas = `${lake.name} is ${reading!.pct_full}% full as of ${asOfFmt}, per the Texas Water Development Board; the ${feedName} gage reads ${fmtNum(reading!.level_ft,1)} ft${reading!.feet_from_full != null ? `, ${fmtNum(Math.abs(reading!.feet_from_full),1)} ft ${reading!.feet_from_full > 0 ? 'below' : 'above'} full pool` : ''}.`;
   } else if (reading!.pct_full != null) {
     qas = `${lake.name} is ${reading!.pct_full}% full as of ${asOfFmt}, per ${feedName} data${reading!.feet_from_full != null ? `; ${fmtNum(Math.abs(reading!.feet_from_full),1)} ft ${reading!.feet_from_full > 0 ? 'below' : 'above'} full pool` : ''}.`;
@@ -172,9 +163,11 @@ if (live) {
 const faqs = [
   { q: `How full is ${lake.name} right now?`, a: live
       ? (reading!.pct_full != null ? `${lake.name} is about ${reading!.pct_full}% full as of ${asOfFmt}.` : `The most recent reading puts ${lake.name} at ${fmtNum(reading!.level_ft,1)} feet.`)
-      : `${lake.name}'s live gage is being connected to ${SITE.name}. Full-pool reference is ${lake.full_pool_ft!=null?fmtNum(lake.full_pool_ft,0)+' ft':'listed on the operator page'}; check the operator (${lake.operator}) for the current figure.` },
+      : reading && (reading.level_ft != null || reading.pct_full != null)
+        ? `The last reading, on ${lastReadingDate(reading.as_of)}, put ${lake.name} at ${reading.pct_full != null ? `${reading.pct_full}% full` : `${fmtNum(reading.level_ft,1)} ft`}. The feed has not reported since, so check the operator (${lake.operator}) for today's figure.`
+        : `${lake.name} has no public gage feed on ${SITE.name}. Full-pool reference is ${lake.full_pool_ft!=null?fmtNum(lake.full_pool_ft,0)+' ft':'listed on the operator page'}; check the operator (${lake.operator}) for the current figure.` },
   { q: `Can I launch a boat at ${lake.name}?`, a: `${launchRead(reading).text} Individual ramps open and close on their own schedules and on local hazards.` },
-  { q: `Where does ${lake.name}'s level come from?`, a: `${SITE.name} pulls it from the ${feedLabel(reading?.feed) || 'operator'} public water-data feed${feedLabel(reading?.feed) === 'CDEC' ? ' (California Data Exchange)' : feedLabel(reading?.feed) === 'USBR' ? ' (U.S. Bureau of Reclamation)' : ''}. The reading is timestamped in the gauge above.${reading?.pct_source === 'twdb' ? ' Percent full comes from the Texas Water Development Board, which converts the same elevation into storage each day.' : ''}` },
+  { q: `Where does ${lake.name}'s level come from?`, a: `${SITE.name} pulls it from the ${feedLabel(reading?.feed) || 'operator'} public water-data feed${feedLabel(reading?.feed) === 'CDEC' ? ' (California Data Exchange)' : feedLabel(reading?.feed) === 'USBR' ? ' (U.S. Bureau of Reclamation)' : feedLabel(reading?.feed) === 'TWDB' ? ' (Texas Water Development Board)' : feedLabel(reading?.feed) === 'USACE' ? ' (U.S. Army Corps of Engineers CWMS Data API)' : ''}. The reading is timestamped in the gauge above.${reading?.pct_source === 'twdb' && reading?.feed !== 'twdb' ? ' Percent full comes from the Texas Water Development Board, which converts the same elevation into storage each day.' : ''}` },
   { q: `Who operates ${lake.name}?`, a: `${lake.name}, on the ${lake.river}, is operated by ${lake.operator}. Reservoir releases, flood-control drawdowns, and water-supply decisions are theirs.` },
 ];
 
@@ -185,8 +178,6 @@ const ld = [
   breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Lakes', path: '/lakes' }, { name: lake.name, path: `/lake/${slug}` }]),
 ];
 
-// Lakes with their own sponsor slot (src/data/sponsors.json) drop the generic invitation.
-const hasSponsorSlot = Object.prototype.hasOwnProperty.call(sponsorData.slots, slug);
 const related = LAKES.filter((l) => l.state === lake.state && l.slug !== slug).slice(0, 4);
 const toneHex = (t: string) => t === 'red' ? '#bb5a37' : t === 'amber' ? '#b07d1a' : '#0b7d6a';
 
@@ -231,11 +222,22 @@ const calcFull = fullPool; // exposed to the inline calculator script
 
     {qas && <p class="qas" data-keyword={`${lake.name} water level`} style="font-size:15px;color:var(--t1);margin-top:14px;max-width:660px;font-weight:500;">{qas}</p>}
 
+    {/* adsense-w2 (2026-10-26): a late feed never empties the page. When the newest reading
+        is older than seven days (an upstream outage such as a CDEC timeout), the gauge still
+        shows the last-known value, labelled with its date. Only a lake with no reading at all
+        (noindex) gets the reference-only note. */}
     {live ? (
       <LakeGauge lake={lake} reading={reading!} />
+    ) : !noData ? (
+      <>
+        <div class="callout a" style="margin-top:18px;">
+          <p><span class="em-strong">Last reading: {reading!.pct_full != null ? `${reading!.pct_full}% full` : `${fmtNum(reading!.level_ft,1)} ft`} on {lastReadingDate(reading!.as_of)}.</span> The {feedLabel(reading!.feed) || 'gage'} feed has not reported a newer value, so treat this as the last-known level, not today's.</p>
+        </div>
+        <LakeGauge lake={lake} reading={reading!} />
+      </>
     ) : (
       <div class="callout a" style="margin-top:18px;">
-        <p><span class="em-strong">Live Level feed Connecting</span>: {lake.name}'s gage ({feedLabel(lake.feed) || 'the operator feed'}) is being wired. Reference data below; for the current figure, see the
+        <p><span class="em-strong">No live gage feed</span>: no public agency feed for {lake.name} reports to this site. Reference data below; for the current figure, see the
         <a href={feedLabel(reading?.feed) === 'CDEC' && lake.cdec_id ? `https://cdec.water.ca.gov/dynamicapp/staMeta?station_id=${lake.cdec_id}` : feedLabel(reading?.feed) === 'USBR' ? 'https://www.usbr.gov/lc/region/g4000/riverops/webreports/hourlyweb.json' : (lake.usgs_site ? `https://waterdata.usgs.gov/monitoring-location/${lake.usgs_site}/` : '#')}>operator's page</a>.</p>
       </div>
     )}
@@ -243,7 +245,9 @@ const calcFull = fullPool; // exposed to the inline calculator script
     {/* The $19 Almanac offer sits below the gauge and its trend chart (2026-10-20, owner
         apply #5). Above them it pushed the ramp read and the trend out of the first phone
         screen; the visitor now gets the reading before the offer. */}
-    <AlmanacPeek slug={slug} name={lake.name} alm={alm} />
+    {/* adsense-w2: the offer shows only on lakes the Almanac covers (it is about this lake).
+        The "not included, see other lakes" cross-sell on uncovered lakes is removed. */}
+    {alm && <AlmanacPeek slug={slug} name={lake.name} alm={alm} />}
 
     {/* Sponsor slot (owner apply #3): only lakes listed in src/data/sponsors.json (Lake Mead
         today). Below the gauge and chart, never in the first screen, and well above the
@@ -260,9 +264,8 @@ const calcFull = fullPool; // exposed to the inline calculator script
         exact source station, recreation status. Only where a reading exists. */}
     {!noData && <LakeFacts lake={lake} reading={reading!} slug={slug} stName={stName} />}
 
-    {/* Tip ask at the value moment: after the reading and after the almanac context, so the
-        paid offer keeps its place directly under the gauge. Only when a live reading exists. */}
-    {live && <SupportLine variant="result" headline={tipHeadline} />}
+    {/* adsense-w2: the tip card (SupportLine "result") is removed from lake pages. It was the
+        same self-promotion text on every lake page. /support/ keeps the ask. */}
 
     {isPowell && band && elev != null && (
       <section class="section">
@@ -343,11 +346,7 @@ const calcFull = fullPool; // exposed to the inline calculator script
       </section>
     )}
 
-    {/* Golden-hour plugin CTA: trip-planning context on the shared lake-page template.
-        The visitor already has the level; this answers "when should I be there". Silent
-        until the tracked link is pasted into src/data/plugins.json (which mirrors the
-        shared plugins-links.json). See src/components/PluginCta.astro. */}
-    <PluginCta plugin="goldenHour" source="lakelevelnow-lake" placement="inline" />
+    {/* adsense-w2: the off-topic plugin CTA (Sunvane Golden Hour) is removed from lake pages. */}
 
     <section class="section">
       <h2 style="margin-bottom:14px;">About {lake.name}</h2>
@@ -363,13 +362,8 @@ const calcFull = fullPool; // exposed to the inline calculator script
 
     <AdSlot slot="lakeMid" />
 
-    {!hasSponsorSlot && <div class="affil">
-      {/* Recreation affiliates: ready, not live. Uncomment after FishingBooker / Boatsetter
-          approve and the tracked links are in AFFILIATES (src/consts.ts).
-      <RecreationAffiliates name={lake.name} fbUrl={(lake as any).fb_url ?? null} />
-      */}
-      <p>Run a marina, guide service or boat rental at {lake.name}? Sponsor this page. We take one local business per lake, and you can cancel any time. <a href="/advertise/">How it works</a> or email <a href={`mailto:${SPONSOR_EMAIL}?subject=${encodeURIComponent(`Sponsor ${lake.name} on LakeLevelNow`)}`}>{SPONSOR_EMAIL}</a>.</p>
-    </div>}
+    {/* adsense-w2: the "Sponsor this page" invitation is removed from lake pages (same
+        self-promotion text on every page). /advertise/ stays in the footer. */}
 
     {/* "Where these numbers come from" was the same paragraph on every lake page; the exact
         station and method now sit in the LakeFacts "Data source" paragraph (adsense-1025). */}
@@ -387,7 +381,9 @@ const calcFull = fullPool; // exposed to the inline calculator script
         <div class="grid cols-4">
           {related.map((l) => {
             const r = getReading(l.slug); const hex = r?.fresh ? toneHex(status(r.pct_full).tone) : '#8a949a';
-            const val = r?.fresh ? (r.pct_full!=null?`${r.pct_full}%`:`${fmtNum(r.level_ft,1)}`) : 'n/a';
+            // adsense-w2: a late feed shows its last-known value (grey), not "n/a".
+            const has = !!r && (r.pct_full != null || r.level_ft != null);
+            const val = has ? (r!.pct_full!=null?`${r!.pct_full}%`:`${fmtNum(r!.level_ft,1)} ft`) : 'n/a';
             const bar = r?.fresh && r.pct_full!=null ? `${r.pct_full}%` : '0%';
             return <a class="lake-card" href={`/lake/${l.slug}`} style="padding:18px;"><div class="name" style="font-size:13px;">{l.name}</div><div class="val" style={`font-size:24px;margin-top:8px;color:${hex};`}>{val}</div><div class="bar" style="margin-top:12px;"><i style={`width:${bar};background:${hex}`}></i></div></a>;
           })}

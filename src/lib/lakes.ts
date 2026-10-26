@@ -48,13 +48,22 @@ export function getLake(slug: string): LakeEntry | undefined {
 // CDEC and USBR lake as 'USGS' in the QAS, FAQ, JSON-LD source chain, and
 // operator-page link. Single source of truth — call this everywhere a feed
 // identity is rendered or branched on. Returns null for unknown/missing feeds.
-export function feedLabel(feed?: string | null): 'CDEC' | 'USBR' | 'USGS' | null {
+export function feedLabel(feed?: string | null): 'CDEC' | 'USBR' | 'USGS' | 'TWDB' | 'USACE' | null {
   if (!feed) return null;
   const f = feed.toLowerCase();
   if (f === 'cdec') return 'CDEC';
   if (f === 'usbr') return 'USBR';
   if (f === 'usgs') return 'USGS';
+  if (f === 'twdb') return 'TWDB';
+  if (f === 'cwms') return 'USACE';
   return null;
+}
+
+// "Oct 18, 2026" from any feed's as_of ("2026-10-18", "2026-10-18T07:00:00Z", "2026-9-4").
+export function lastReadingDate(asOf?: string | null): string {
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(String(asOf || ''));
+  if (!m) return 'an earlier date';
+  return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
 export function getReading(slug: string): Reading | undefined {
@@ -104,7 +113,9 @@ export function status(pct: number | null, feetFromFull: number | null = null): 
 // "Can I launch?" interpretation from the level (the value-add the raw tables never give).
 // Heuristic against percent-full where available; else against feet-from-full.
 export function launchRead(r: Reading | undefined): { ok: boolean; text: string } {
-  if (!r || !r.fresh) return { ok: false, text: 'Live level feed connecting. Check the operator page before you go.' };
+  if (!r || (r.level_ft == null && r.pct_full == null)) return { ok: false, text: 'No public gage reading is available for this lake. Check the operator page before you go.' };
+  // adsense-w2: a late feed keeps its last reading on the page, labelled with its date.
+  if (!r.fresh) return { ok: false, text: `The last reading is from ${lastReadingDate(r.as_of)}, more than seven days ago, so there is no current ramp read. Check the operator page before you go.` };
   if (r.pct_full != null) {
     if (r.pct_full >= 60) return { ok: true, text: 'Lake is well within its normal pool; most boat ramps are usable. Confirm your specific ramp, which can close independently of lake level.' };
     if (r.pct_full >= 35) return { ok: true, text: 'Lake is lower than normal; some ramps may be out of the water. Check ramp status before launching.' };

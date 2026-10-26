@@ -4,6 +4,8 @@
 //   • CDEC  — California Data Exchange (cdec.water.ca.gov)
 //   • USGS  — USGS NWIS Instantaneous Values (waterservices.usgs.gov)
 //   • USBR  — Bureau of Reclamation Lower Colorado hourly JSON (usbr.gov)
+//   • TWDB  — Texas Water Development Board daily reservoir CSV (waterdatafortexas.org)
+//   • CWMS  — U.S. Army Corps of Engineers CWMS Data API (cwms-data.usace.army.mil)
 //
 // ── Reliability rules (the "NASA rules" the project runs under) ─────────────
 //  1. DETERMINISTIC INPUTS — every lake's feed is an explicit binding in
@@ -221,6 +223,84 @@ async function fetchUSBR(siteName, capacity) {
   };
 }
 
+// ---- TWDB daily reservoir CSV (Texas) -----------------------------------------
+// adsense-w2 (2026-10-26): Texas lakes without a USGS elevation gage. TWDB publishes one
+// row per day: date, water_level (ft msl), conservation storage and percent_full. TWDB is
+// slow (9-22 s measured), so one 45 s attempt plus one retry, all lakes fetched in
+// parallel before the main loop (see twdbFeed below).
+function parseTWDBCsv(txt) {
+  const rows = String(txt).split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
+  if (rows.length < 2) return [];
+  const header = rows[0].split(',');
+  const col = (n) => header.indexOf(n);
+  const iDate = col('date'), iLvl = col('water_level'), iPct = col('percent_full'), iSto = col('conservation_storage');
+  if (iDate < 0 || iLvl < 0) return [];
+  return rows.slice(1).map((l) => l.split(',')).filter((c) => c.length === header.length && /^\d{4}-\d{2}-\d{2}$/.test(c[iDate]))
+    .map((c) => ({ t: c[iDate], v: Number(c[iLvl]), pct: iPct >= 0 && c[iPct] !== '' ? Number(c[iPct]) : null, sto: iSto >= 0 && c[iSto] !== '' ? Number(c[iSto]) : null }))
+    .filter((r) => Number.isFinite(r.v));
+}
+async function fetchTWDB(name) {
+  const url = `https://www.waterdatafortexas.org/reservoirs/individual/${name}-30day.csv`;
+  let lastErr;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), TWDB_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { redirect: 'follow', signal: ac.signal, headers: { 'User-Agent': UA, Accept: 'text/csv,text/plain,*/*' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const rows = parseTWDBCsv(await res.text());
+      if (!rows.length) return null;
+      const last = rows[rows.length - 1];
+      const pct = Number.isFinite(last.pct) && last.pct >= 0 && last.pct <= 110 ? Math.round(last.pct * 10) / 10 : null;
+      const series = rows.map((r) => ({ t: r.t, v: r.v }));
+      return {
+        level_ft: last.v,
+        storage_af: Number.isFinite(last.sto) ? last.sto : null,
+        pct_full: pct,
+        as_of: last.t,
+        series: downsampleDaily(series, SERIES_DAYS),
+        delta_24h: delta24(series),
+        msl: true,
+        param_label: 'reservoir elevation',
+      };
+    } catch (e) {
+      lastErr = e;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastErr;
+}
+
+// ---- USACE CWMS Data API (Corps reservoirs; TVA and Alabama Power pools it carries) ----
+// adsense-w2 (2026-10-26). Deterministic binding (rule 1): sources.json gives the office and
+// the exact time-series id, found with /catalog/TIMESERIES and checked with curl. Values are
+// [epoch ms, value, quality]. Some upstream loggers stamp local time as UTC (Alabama Power's
+// Smith Lake reads 4-5 h "in the future"), so points later than the fetch time are dropped.
+async function fetchCWMS(office, tsid) {
+  const qs = new URLSearchParams({
+    office, name: tsid, unit: 'EN', 'page-size': '5000',
+    begin: new Date(daysAgo(SERIES_DAYS + 5)).toISOString(),
+    end: new Date(now + 86400000).toISOString(),
+  });
+  const d = JSON.parse(await httpGet(`https://cwms-data.usace.army.mil/cwms-data/timeseries?${qs}`, 'application/json;version=2'));
+  const pts = (d?.values || [])
+    .filter((x) => Array.isArray(x) && x[1] !== null && Number.isFinite(Number(x[1])) && x[0] <= now + 15 * 60000)
+    .map((x) => ({ t: new Date(x[0]).toISOString(), v: Math.round(Number(x[1]) * 100) / 100 }));
+  if (!pts.length) return null;
+  const last = pts[pts.length - 1];
+  return {
+    level_ft: last.v,
+    storage_af: null,
+    pct_full: null,
+    as_of: last.t,
+    series: downsampleDaily(pts, SERIES_DAYS),
+    delta_24h: delta24(pts),
+    msl: true,
+    param_label: 'reservoir elevation',
+  };
+}
+
 // ---- RISE fallback (Reclamation's official data API) ----------------------------
 // www.usbr.gov/.../hourlyweb.json can time out for days (from CI and locally), which
 // left Mead/Mohave/Havasu on "Connecting". RISE (data.usbr.gov) publishes the same
@@ -343,6 +423,31 @@ const sourcesRaw = JSON.parse(readFileSync(SOURCES_PATH, 'utf8'));
 const SOURCES = Object.fromEntries(Object.entries(sourcesRaw).filter(([k]) => !k.startsWith('_')));
 const prevLevels = safeReadJSON(LEVELS_OUT, {}); // last-known-good cache (rule 3)
 
+// adsense-w2 (2026-10-26): the committed levels.json is weeks old, so when CDEC timed out
+// in CI the "last-known-good" reading was older than FRESH_DAYS and 10 California pages
+// fell back to "feed connecting". Every deploy now also publishes the emitted levels.json
+// at /data/levels.json, and the next run reads it back as a second cache. Per lake, the
+// newer of the two wins. One bounded attempt; any failure leaves the committed cache.
+const LIVE_CACHE_URL = 'https://lakelevelnow.com/data/levels.json';
+const PUBLIC_LEVELS_OUT = join(ROOT, 'public', 'data', 'levels.json');
+try {
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 15000);
+  const res = await fetch(LIVE_CACHE_URL, { signal: ac.signal, headers: { 'User-Agent': UA, Accept: 'application/json' } });
+  clearTimeout(timer);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const live = await res.json();
+  let used = 0;
+  for (const [slug, r] of Object.entries(live || {})) {
+    if (!r || typeof r.as_of !== 'string' || !Array.isArray(r.series) || (r.level_ft == null && r.pct_full == null)) continue;
+    const prev = prevLevels[slug];
+    if (!prev || ageDays(r.as_of) < ageDays(prev.as_of)) { prevLevels[slug] = r; used++; }
+  }
+  console.log(`Live cache ${LIVE_CACHE_URL}: ${used} newer readings than the committed levels.json`);
+} catch (e) {
+  console.log(`Live cache ${LIVE_CACHE_URL} unavailable (${e.message || e.name}); using the committed levels.json only`);
+}
+
 function safeReadJSON(p, fallback) {
   try {
     return JSON.parse(readFileSync(p, 'utf8'));
@@ -389,6 +494,9 @@ function delta24(series) {
 const twdbPct = Object.fromEntries(
   await Promise.all(Object.entries(TWDB_NAMES).map(async ([slug, name]) => [slug, await fetchTWDBPct(name)])),
 );
+// Parallel prefetch for TWDB-bound lakes (slow upstream; rule 2 still bounds each call).
+const twdbFeed = Object.fromEntries(Object.entries(SOURCES).filter(([, s]) => s.feed === 'twdb')
+  .map(([slug, s]) => [slug, fetchTWDB(s.site).then((r) => ({ r }), (e) => ({ e }))]));
 const lakes = [];
 const levels = {};
 const health = [];
@@ -407,6 +515,15 @@ for (const lk of seed) {
       if (src.feed === 'cdec') newReading = await fetchCDEC(src.site, lk.capacity_af);
       else if (src.feed === 'usgs') newReading = await fetchUSGS(src.site);
       else if (src.feed === 'usbr') newReading = await fetchUSBRWithFallback(src.site, lk.capacity_af);
+      else if (src.feed === 'twdb') { const o = await twdbFeed[lk.slug]; if (o.e) throw o.e; newReading = o.r; }
+      else if (src.feed === 'cwms') newReading = await fetchCWMS(src.office, src.site);
+      // Fail closed on a wrong binding or a unit error in the newer TWDB/CWMS bindings: an
+      // elevation more than 120 ft from the lake's full pool is not this lake's surface.
+      // (Not applied to Mead/Powell, which really sit 170-190 ft below full pool.)
+      if ((src.feed === 'twdb' || src.feed === 'cwms') && newReading && newReading.level_ft != null && lk.full_pool_ft != null && Math.abs(newReading.level_ft - lk.full_pool_ft) > 120) {
+        err = `implausible level ${newReading.level_ft} ft vs full pool ${lk.full_pool_ft} ft`;
+        newReading = null;
+      }
     } catch (e) {
       err = e.message;
     }
@@ -458,7 +575,7 @@ for (const lk of seed) {
     // A USGS reading never carries its own percent; a cached one may hold an old TWDB value.
     let pctFull = src?.feed === 'usgs' ? null : (chosen.pct_full ?? null);
     let pctSource = pctFull != null ? (src?.feed ?? null) : null;
-    let pctAsOf = null;
+    let pctAsOf = pctSource === 'twdb' ? String(chosen.as_of).slice(0, 10) : null;
     const tw = src?.feed === 'usgs' ? twdbPct[lk.slug] : null;
     if (tw && chosenFresh && Math.abs(new Date(tw.date + 'T12:00:00Z').getTime() - new Date(chosen.as_of).getTime()) <= TWDB_MAX_GAP_DAYS * 86400000) {
       pctFull = tw.pct;
@@ -502,6 +619,9 @@ for (const lk of seed) {
 mkdirSync(DATA, { recursive: true });
 writeFileSync(LAKES_OUT, JSON.stringify(lakes, null, 2));
 writeFileSync(LEVELS_OUT, JSON.stringify(levels, null, 2));
+// Published with the site (gitignored), read back by the next run as the live cache.
+mkdirSync(dirname(PUBLIC_LEVELS_OUT), { recursive: true });
+writeFileSync(PUBLIC_LEVELS_OUT, JSON.stringify(levels));
 writeFileSync(
   HEALTH_OUT,
   JSON.stringify(

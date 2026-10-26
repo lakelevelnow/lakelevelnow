@@ -106,16 +106,22 @@ if (reading.delta_24h != null) trendParts.push(`The last 24 hours ${Math.abs(rea
 // 3. Data source: the exact station.
 const feed = feedLabel(reading.feed);
 const site = src?.site as string | undefined;
-const sourceText = feed === 'CDEC'
+const sourceText = feed === 'TWDB'
+  ? `the Texas Water Development Board (TWDB) daily reservoir record for ${lake.name} (Water Data for Texas, reservoir "${site}")`
+  : feed === 'USACE'
+    ? `the U.S. Army Corps of Engineers CWMS Data API, ${src?.desc ? `${src.desc}, ` : ''}office ${src?.office}, time series ${site}`
+    : feed === 'CDEC'
   ? `California Data Exchange Center (CDEC) station ${site} (California Department of Water Resources)`
   : feed === 'USBR'
     ? `the Bureau of Reclamation Lower Colorado hourly reservoir report (${site})`
     : `USGS monitoring location ${site || lake.usgs_site || ''}${src?.param === '62614' ? ' (lake surface elevation above NGVD 1929, parameter 62614)' : src?.param === '00062' ? ' (reservoir elevation, parameter 00062)' : ''}`;
-const sourceHref = feed === 'CDEC' && site ? `https://cdec.water.ca.gov/dynamicapp/staMeta?station_id=${site}`
+const sourceHref = feed === 'TWDB' && site ? `https://www.waterdatafortexas.org/reservoirs/individual/${site}`
+  : feed === 'USACE' && site ? `https://cwms-data.usace.army.mil/cwms-data/timeseries?office=${encodeURIComponent(src?.office || '')}&name=${encodeURIComponent(site)}&unit=EN`
+  : feed === 'CDEC' && site ? `https://cdec.water.ca.gov/dynamicapp/staMeta?station_id=${site}`
   : feed === 'USBR' ? 'https://www.usbr.gov/lc/region/g4000/riverops/webreports/hourlyweb.json'
     : (site || lake.usgs_site) ? `https://waterdata.usgs.gov/monitoring-location/${site || lake.usgs_site}/` : null;
 const pctNote = reading.pct_full == null ? ''
-  : reading.pct_source === 'twdb' ? ' Percent full is the Texas Water Development Board daily storage estimate for the same lake.'
+  : reading.pct_source === 'twdb' ? (feed === 'TWDB' ? ' Percent full is TWDB conservation storage divided by conservation capacity, from the same daily record.' : ' Percent full is the Texas Water Development Board daily storage estimate for the same lake.')
     : feed === 'CDEC' ? ' Percent full is CDEC storage divided by the capacity CDEC lists for the dam.'
       : feed === 'USBR' ? ' Percent full is Reclamation storage divided by the reservoir capacity.' : '';
 

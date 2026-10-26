@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE } from '../../consts';
-import { LAKES, byState, getReading, status, fmtNum, stateName } from '../../lib/lakes';
+import { LAKES, byState, getReading, status, fmtNum, stateName, lastReadingDate } from '../../lib/lakes';
 import { breadcrumbLd } from '../../lib/seo';
 const title = 'All lakes: directory';
 const description = `Every lake and reservoir ${SITE.name} tracks, with current level and percent full where a live gage is wired. Browse by state.`;
@@ -34,8 +34,8 @@ const toneHex = (t: string) => t === 'red' ? '#bb5a37' : t === 'amber' ? '#b07d1
                     <td><a href={`/lake/${l.slug}`}><b>{l.name}</b></a></td>
                     <td class="mut">{l.river}</td>
                     <td class="mut">{l.operator}</td>
-                    <td class="num">{live ? (r!.pct_full != null ? `${r!.pct_full}%` : `${fmtNum(r!.level_ft,1)} ft`) : 'n/a'}</td>
-                    <td>{live ? <span class={`pill ${st.tone==='red'?'red':st.tone==='amber'?'amber':'green'}`}>{st.label}</span> : <span class="mut" style="font-size:12px;">feed pending</span>}</td>
+                    <td class="num">{(live || (r && (r.pct_full != null || r.level_ft != null))) ? (r!.pct_full != null ? `${r!.pct_full}%` : `${fmtNum(r!.level_ft,1)} ft`) : 'n/a'}</td>
+                    <td>{live ? <span class={`pill ${st.tone==='red'?'red':st.tone==='amber'?'amber':'green'}`}>{st.label}</span> : (r && (r.pct_full != null || r.level_ft != null)) ? <span class="mut" style="font-size:12px;">last reading {lastReadingDate(r.as_of)}</span> : <span class="mut" style="font-size:12px;">no public feed</span>}</td>
                   </tr>
                 );
               })}

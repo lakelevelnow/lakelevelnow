@@ -21,3 +21,6 @@ node_modules/
 *.log
 npm-debug.log*
 .wrangler/
+
+# adsense-w2: written by fetch-levels.mjs, published with the site as the live cache
+public/data/levels.json
