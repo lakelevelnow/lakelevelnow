@@ -3,13 +3,18 @@
 // "Can I launch?" verdict + ~30-day sparkline. Pure server-rendered SVG (no client JS).
 import type { LakeEntry, Reading } from '../lib/lakes';
 import { launchRead, status, fmtNum, feedLabel } from '../lib/lakes';
+import { seasonalRead, seasonalStatus, diffWords } from '../lib/seasonal';
 
 interface Props { lake: LakeEntry; reading: Reading }
 const { lake, reading } = Astro.props;
 
 const hasPct = reading.pct_full != null;
 const pct = hasPct ? (reading.pct_full as number) : null;
-const st = status(pct, reading.feet_from_full);
+// adsense-w3: where the operator publishes a seasonal target, the status pill compares the
+// reading with that target, not with the summer full pool (a lake at its normal winter level
+// is not "below normal").
+const sea = reading.fresh ? seasonalRead(lake.slug, reading) : null;
+const st = sea && !hasPct ? seasonalStatus(sea) : status(pct, reading.feet_from_full);
 const tone = st.tone === 'green' || st.tone === 'cyan' ? '#0b7d6a' : st.tone === 'amber' ? '#b07d1a' : st.tone === 'red' ? '#bb5a37' : '#8a949a';
 
 // 270° arc gauge geometry (r=80, gap at bottom via rotate(135deg)).
@@ -59,7 +64,7 @@ const deltaUp = (reading.delta_24h ?? 0) >= 0;
     </svg>
     <div class="sub-line">
       <span class={`pill ${st.tone === 'red' ? 'red' : st.tone === 'amber' ? 'amber' : 'green'}`}>{st.label}</span>
-      {reading.feet_from_full != null && <span style="font-size:13px;color:var(--t2);">{fmtNum(Math.abs(reading.feet_from_full),1)} ft {reading.feet_from_full > 0 ? 'below' : 'above'} full pool</span>}
+      {reading.feet_from_full != null && <span style="font-size:13px;color:var(--t2);">{fmtNum(Math.abs(reading.feet_from_full),1)} ft {reading.feet_from_full > 0 ? 'below' : 'above'} full pool{sea ? `; ${diffWords(sea.diff)} seasonal target` : ''}</span>}
     </div>
     <div class="src-foot">
       <span class="src-badge">{feedLabel(reading.feed) || reading.feed}</span>
@@ -73,8 +78,10 @@ const deltaUp = (reading.delta_24h ?? 0) >= 0;
     {hasPct && <div class="stat-cell"><div class="v" style={`color:${tone}`}>{pct}%</div><div class="l">percent full</div></div>}
     {reading.level_ft != null && <div class="stat-cell"><div class="v">{fmtNum(reading.level_ft,1)}</div><div class="l">{reading.param?.includes('gage') ? 'gage height (ft)' : 'water level (ft msl)'}</div></div>}
     {reading.feet_from_full != null && <div class="stat-cell"><div class={`v ${reading.feet_from_full > 0 ? 'down' : 'up'}`}>{fmtNum(Math.abs(reading.feet_from_full),1)}</div><div class="l">{reading.feet_from_full > 0 ? 'ft below full pool' : 'ft above full pool'}</div></div>}
+    {sea && <div class="stat-cell"><div class="v">{fmtNum(sea.target,1)}</div><div class="l">seasonal target today (ft)</div></div>}
+    {sea && <div class="stat-cell"><div class={`v ${sea.diff < 0 ? 'down' : 'up'}`}>{fmtNum(Math.abs(sea.diff),1)}</div><div class="l">{Math.abs(sea.diff) < 0.05 ? 'ft from seasonal target' : sea.diff < 0 ? 'ft below seasonal target' : 'ft above seasonal target'}</div></div>}
     {reading.delta_24h != null && <div class="stat-cell"><div class={`v ${deltaUp ? 'up' : 'down'}`}>{deltaUp ? '+' : '−'}{fmtNum(Math.abs(reading.delta_24h),2)}</div><div class="l">24-hour change (ft)</div></div>}
-    {lake.full_pool_ft != null && <div class="stat-cell"><div class="v">{fmtNum(lake.full_pool_ft,0)}</div><div class="l">full pool (ft ref.)</div></div>}
+    {lake.full_pool_ft != null && <div class="stat-cell"><div class="v">{fmtNum(lake.full_pool_ft,0)}</div><div class="l">{sea && Math.abs(sea.curve.summer - lake.full_pool_ft) < 0.1 ? 'summer full pool (ft ref.)' : 'full pool (ft ref.)'}</div></div>}
     {lake.capacity_af != null && <div class="stat-cell"><div class="v">{fmtNum(lake.capacity_af/1e6,2)}M</div><div class="l">capacity (acre-ft)</div></div>}
   </div>
 </div>

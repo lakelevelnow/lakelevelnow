@@ -11,6 +11,7 @@ import type { LakeEntry, Reading } from '../lib/lakes';
 import { LAKES, getReading, fmtNum, feedLabel, status } from '../lib/lakes';
 import sources from '../data/sources.json';
 import caRes from '../data/ca-reservoirs.json';
+import { seasonalEntry, seasonalRead, seasonalStatus, diffWords, fmtMD, phaseWords } from '../lib/seasonal';
 
 interface Props { lake: LakeEntry; reading: Reading; slug: string; stName: string }
 const { lake, reading, slug, stName } = Astro.props;
@@ -31,6 +32,30 @@ const asOf = fmtDayYear(reading.as_of);
 const level = reading.level_ft;
 const full = lake.full_pool_ft;
 const below = reading.feet_from_full ?? (level != null && full != null ? Math.round((full - level) * 100) / 100 : null);
+
+// 0. Seasonal target (adsense-w3): the operator's own guide curve for the reading's date.
+const seaEntry = seasonalEntry(slug);
+const sea = seasonalRead(slug, reading);
+const seaParts: string[] = [];
+if (sea && level != null) {
+  const c = sea.curve;
+  const fullTxt = full != null ? `${fmtNum(full, full % 1 ? 1 : 0)} ft` : '';
+  seaParts.push(`${c.agencyLong} runs ${lake.name} on a ${/^seasonal/.test(c.name) ? c.name : `seasonal ${c.name}`}, so the level it aims for changes through the year.`);
+  seaParts.push(`For ${asOf} the ${c.name.replace(/ \(.*\)$/, '')} is ${ft(sea.target)}${sea.seasonalDrop > 0.05 ? `, ${ft(sea.seasonalDrop)} under the ${fmtNum(c.summer, c.summer % 1 ? 2 : 0)} ft summer level` : ''}, and the target is ${phaseWords[sea.phase]}.`);
+  seaParts.push(Math.abs(sea.diff) < 0.05
+    ? `The surface, at ${ft(level)}, is right on that target${below != null && below > 0.05 ? `, even though it reads ${ft(below)} below the full-pool mark` : ''}.`
+    : `The surface, at ${ft(level)}, is ${diffWords(sea.diff)} that target${below != null && Math.abs(below) >= 0.05 ? ` and ${ft(Math.abs(below))} ${below > 0 ? 'below' : 'above'} the full-pool mark of ${fullTxt}` : ''}.`);
+  seaParts.push(Math.abs(sea.diff) <= 1
+    ? (below != null && below > 1
+        ? 'So the lake is where its operator wants it for the date; the gap to full pool is the planned seasonal drawdown, not a shortage.'
+        : 'So the lake is where its operator wants it for the date.')
+    : sea.diff > 1
+      ? 'The water above the curve is flood storage, which the operator releases when the rivers downstream allow.'
+      : (full != null && below != null && below > 0.05 && full - sea.target > 0.05
+          ? `So the lake sits lower than its seasonal curve for this date: the planned seasonal drawdown accounts for ${ft(full - sea.target)} of the ${ft(below)} gap to full pool.`
+          : 'So the lake sits lower than its seasonal curve for this date.'));
+}
+const seaRows = sea ? [...sea.curve.points].sort((a, b) => a[0].localeCompare(b[0])) : [];
 
 // 1. Level against full pool and storage against capacity.
 const levelParts: string[] = [];
@@ -129,7 +154,7 @@ const pctNote = reading.pct_full == null ? ''
 // launch read uses (60% / 35% full, or 3 ft / 12 ft below full pool), and, when the level
 // moves at least 0.2 ft a week, where the 30-day pace would put it in four weeks.
 const stale = !reading.fresh;
-const st = status(stale ? null : reading.pct_full, stale ? null : below);
+const st = !stale && sea && reading.pct_full == null ? seasonalStatus(sea) : status(stale ? null : reading.pct_full, stale ? null : below);
 const recParts: string[] = [];
 if (stale) {
   recParts.push('There is no current reading, so there is no level-based launch read. Check the operator before you go.');
@@ -149,6 +174,7 @@ if (stale) {
         ? `At ${ft(below)} below full pool, the shallowest ramps can be out of the water. Check the one you plan to use with ${lake.operator}.`
         : `At ${ft(below)} below full pool, expect closed ramps and exposed hazards. Call ${lake.operator} before you tow a boat there.`);
   }
+  if (sea) recParts.push(`Against the seasonal target the lake is ${diffWords(sea.diff)} the level ${sea.curve.agency} plans for this date.`);
   if (weekRate != null && level != null && Math.abs(weekRate) >= 0.2) {
     recParts.push(`If the 30-day pace of ${ft(Math.abs(weekRate))} a week ${weekRate > 0 ? 'up' : 'down'} held, the surface would be near ${ft(level + weekRate * 4)} in four weeks. Releases and rain change that quickly.`);
   }
@@ -162,6 +188,28 @@ if (stale) {
       <h3 style="font-size:16px;margin-top:12px;">Level against full pool</h3>
       <p style="font-size:15px;color:var(--t1);max-width:660px;">{levelParts.join(' ')}</p>
     </>
+  )}
+  {sea && seaParts.length > 0 && (
+    <div id="seasonal-target">
+      <h3 style="font-size:16px;margin-top:12px;">Level against the seasonal target</h3>
+      <p style="font-size:15px;color:var(--t1);max-width:660px;">{seaParts.join(' ')}</p>
+      <p style="font-size:15px;color:var(--t1);max-width:660px;margin-top:8px;">{sea.curve.why}</p>
+      <div class="def-table" style="margin-top:10px;max-width:520px;">
+        <div class="row"><div class="k"><strong>Date (each year)</strong></div><div class="vv"><strong>{sea.curve.name.replace(/ \(.*\)$/, '')}, {sea.curve.datum}</strong></div></div>
+        {seaRows.map(([md, v]) => <div class="row"><div class="k">{fmtMD(md)}</div><div class="vv">{fmtNum(v, v % 1 ? 2 : 1)} ft</div></div>)}
+      </div>
+      <p style="font-size:14px;color:var(--t2);max-width:660px;margin-top:8px;">
+        {sea.curve.interp === 'step'
+          ? 'Each value holds from its date until the next date in the table; the operator publishes this curve as steps, not as a gradual line.'
+          : 'Between two dates the target moves in a straight line, as the published curve does.'}{sea.curve.precision ? ` ${sea.curve.precision}` : ''} Source: <a href={sea.curve.source.url} rel="noopener">{sea.curve.source.label}</a>, read on Oct 26, 2026.{sea.curve.operator ? <> Operator page: <a href={sea.curve.operator.url} rel="noopener">{sea.curve.operator.label}</a>.</> : null} The operator can deviate from its curve for floods, droughts or dam work.
+      </p>
+    </div>
+  )}
+  {!sea && seaEntry && seaEntry.kind === 'note' && (
+    <div id="seasonal-target">
+      <h3 style="font-size:16px;margin-top:12px;">Seasonal guide curve</h3>
+      <p style="font-size:15px;color:var(--t1);max-width:660px;">{seaEntry.text} Source: <a href={seaEntry.source.url} rel="noopener">{seaEntry.source.label}</a>.</p>
+    </div>
   )}
   {trendParts.length > 0 && (
     <>

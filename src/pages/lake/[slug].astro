@@ -12,6 +12,7 @@ import { almanacContext, descriptionClause } from '../../lib/almanac';
 import { SITE, AUTHOR } from '../../consts';
 import { LAKES, getReading, launchRead, status, fmtNum, stateName, POWELL_BAND, changeOverSeries, liveBandBelowFullPct, feedLabel, POWELL_HISTORY, compareToMark, fmtRecordDate, lastReadingDate} from '../../lib/lakes';
 import { lakeLd, authorLd, breadcrumbLd, speakableLd } from '../../lib/seo';
+import { seasonalRead, diffWords } from '../../lib/seasonal';
 
 export function getStaticPaths() {
   return LAKES.map((l) => ({ params: { slug: l.slug } }));
@@ -104,8 +105,12 @@ const title = datedTitle || titleDefault;
 // feet_from_full comes straight off the validated reading; the fuller feetBelowFull
 // fallback is computed further down and is not needed (or available) this early.
 const metaFeetFromFull = live ? (reading!.feet_from_full ?? null) : null;
+// adsense-w3: lakes with a published seasonal target say where the level sits against it,
+// so a lake at its normal winter level is not described only as "X ft below full pool".
+const seaMeta = live ? seasonalRead(slug, reading) : null;
+const seaClause = seaMeta ? ` (${diffWords(seaMeta.diff)} its seasonal target of ${fmtNum(seaMeta.target, 1)} ft)` : '';
 const belowFullPhrase = metaFeetFromFull != null
-  ? `, ${fmtNum(Math.abs(metaFeetFromFull), 1)} ft ${metaFeetFromFull > 0 ? 'below' : 'above'} full pool`
+  ? (Math.abs(metaFeetFromFull) < 0.05 ? `, at full pool${seaClause}` : `, ${fmtNum(Math.abs(metaFeetFromFull), 1)} ft ${metaFeetFromFull > 0 ? 'below' : 'above'} full pool${seaClause}`)
   : '';
 const descLead = livePct != null && liveFt != null
   ? `${lake.name} is ${livePct}% full (${pctSourceLabel}) at ${fmtNum(liveFt, 1)} ft on ${asOfFmt}${belowFullPhrase}.`
@@ -156,7 +161,9 @@ if (live) {
   } else if (reading!.pct_full != null) {
     qas = `${lake.name} is ${reading!.pct_full}% full as of ${asOfFmt}, per ${feedName} data${reading!.feet_from_full != null ? `; ${fmtNum(Math.abs(reading!.feet_from_full),1)} ft ${reading!.feet_from_full > 0 ? 'below' : 'above'} full pool` : ''}.`;
   } else if (reading!.level_ft != null) {
-    qas = `${lake.name} is at ${fmtNum(reading!.level_ft,1)} ft as of ${asOfFmt}, per ${feedName} data${lake.full_pool_ft != null ? `; full pool is ${fmtNum(lake.full_pool_ft,0)} ft` : ''}.`;
+    qas = seaMeta
+      ? `${lake.name} is at ${fmtNum(reading!.level_ft,1)} ft as of ${asOfFmt}, per ${feedName} data: ${diffWords(seaMeta.diff)} the ${fmtNum(seaMeta.target,1)} ft seasonal target${lake.full_pool_ft != null ? (Math.abs(lake.full_pool_ft - reading!.level_ft!) < 0.05 ? `, right at the ${fmtNum(lake.full_pool_ft, lake.full_pool_ft % 1 ? 1 : 0)} ft full pool` : ` and ${fmtNum(Math.abs(lake.full_pool_ft - reading!.level_ft!),1)} ft ${lake.full_pool_ft >= reading!.level_ft! ? 'below' : 'above'} the ${fmtNum(lake.full_pool_ft, lake.full_pool_ft % 1 ? 1 : 0)} ft full pool`) : ''}.`
+      : `${lake.name} is at ${fmtNum(reading!.level_ft,1)} ft as of ${asOfFmt}, per ${feedName} data${lake.full_pool_ft != null ? `; full pool is ${fmtNum(lake.full_pool_ft,0)} ft` : ''}.`;
   }
 }
 

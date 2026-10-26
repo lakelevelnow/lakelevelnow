@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../consts';
 import { LAKES, freshLakes, byState, getReading, status, fmtNum, stateName } from '../lib/lakes';
 import { authorLd, breadcrumbLd } from '../lib/seo';
+import { levelStatus } from '../lib/seasonal';
 import almanacData from '../data/almanac.json';
 import SupportLine from '../components/SupportLine.astro';
 
@@ -77,7 +78,7 @@ const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
       </div>
       <div class="grid cols-2">
         {fresh.map(({ lake, reading }) => {
-          const st = status(reading.pct_full, reading.feet_from_full);
+          const st = levelStatus(lake.slug, reading);
           const hex = toneHex(st.tone);
           const val = reading.pct_full != null ? `${reading.pct_full}%` : `${fmtNum(reading.level_ft,1)} ft`;
           // Elevation-only lakes have no %full; size the bar to the status bucket

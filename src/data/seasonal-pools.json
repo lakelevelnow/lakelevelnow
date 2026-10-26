@@ -1,0 +1,130 @@
+{
+  "_comment": "Seasonal target pools (guide curves / rule curves) for lakes whose operator lowers the target level in winter. adsense-w3 2026-10-26. Every breakpoint below was read from the operating agency's own published data (USACE CWMS Data API) on 2026-10-26; nothing is estimated. 'points' are [MM-DD, elevation ft]; the curve repeats every year. interp 'linear' = straight line between breakpoints (CWMS interpolate=true); 'step' = each value holds until the next breakpoint (CWMS interpolate=false). Re-read each source once a year: an operator can change its curve. A lake with kind 'note' runs a seasonal curve whose dates are not published in a form this site can read; the page says so and computes no target.",
+  "kentucky-lake": {
+    "kind": "curve",
+    "interp": "linear",
+    "name": "guide curve",
+    "agency": "TVA",
+    "agencyLong": "Tennessee Valley Authority",
+    "points": [["03-30", 354.0], ["04-29", 359.0], ["06-30", 359.0], ["09-28", 355.0], ["11-26", 354.0]],
+    "precision": "The CWMS series steps in 0.1 ft increments; the straight lines between these breakpoints match it within 0.1 ft.",
+    "summer": 359.0,
+    "winter": 354.0,
+    "datum": "ft above mean sea level",
+    "source": {
+      "label": "USACE CWMS Data API, office LRD, time series \"Kentucky-Lake.Elev.Inst.1Day.0.Guide Curve\" (daily values 26 Oct 2025 to 26 Oct 2026)",
+      "url": "https://cwms-data.usace.army.mil/cwms-data/timeseries?office=LRD&name=Kentucky-Lake.Elev.Inst.1Day.0.Guide%20Curve&unit=EN&format=json"
+    },
+    "operator": {
+      "label": "TVA Kentucky Reservoir operating guide",
+      "url": "https://www.tva.com/environment/lake-levels/kentucky/operating-guide"
+    },
+    "why": "TVA lowers Kentucky Lake about 5 ft each fall to make room for winter and spring flood water on the Tennessee River, holds it near 354 ft through the winter for navigation, and fills it back to the 359 ft summer pool in April."
+  },
+  "lake-lanier": {
+    "kind": "curve",
+    "interp": "linear",
+    "name": "top of conservation pool (guide curve)",
+    "agency": "USACE Mobile District",
+    "agencyLong": "U.S. Army Corps of Engineers, Mobile District",
+    "points": [["04-15", 1070.0], ["05-01", 1071.0], ["10-01", 1071.0], ["12-01", 1070.0]],
+    "summer": 1071.0,
+    "winter": 1070.0,
+    "datum": "ft NGVD29",
+    "source": {
+      "label": "USACE CWMS Data API, office SAM, location level \"Buford.Elev.Inst.0.Top of Conservation\" (2026 breakpoints)",
+      "url": "https://cwms-data.usace.army.mil/cwms-data/levels?office=SAM&level-id-mask=Buford.Elev.Inst.0.Top%20of%20Conservation&unit=EN&format=json&begin=2026-01-01T00:00:00Z&end=2026-12-31T23:59:00Z"
+    },
+    "why": "The Corps keeps Lake Lanier 1 ft lower in winter (1,070 ft) than in summer (1,071 ft) to hold flood space at Buford Dam. It lowers the target between October and December and raises it again in the last half of April."
+  },
+  "lewis-smith-lake": {
+    "kind": "curve",
+    "interp": "linear",
+    "name": "guide curve",
+    "agency": "Alabama Power",
+    "agencyLong": "Alabama Power Company",
+    "points": [["02-01", 496.0], ["04-01", 510.0], ["07-01", 510.0], ["12-01", 496.0]],
+    "summer": 510.0,
+    "winter": 496.0,
+    "datum": "ft NGVD29",
+    "source": {
+      "label": "USACE CWMS Data API, office SAM, time series \"Smith.Elev.Inst.1Hour.0.GC-APCO\" (Alabama Power guide curve, hourly values 26 Oct 2025 to 26 Oct 2026)",
+      "url": "https://cwms-data.usace.army.mil/cwms-data/timeseries?office=SAM&name=Smith.Elev.Inst.1Hour.0.GC-APCO&unit=EN&format=json"
+    },
+    "why": "Alabama Power draws Smith Lake down about 14 ft between July and December, holds it near 496 ft in December and January, and refills it to the 510 ft full pond by April."
+  },
+  "wappapello-lake": {
+    "kind": "curve",
+    "interp": "step",
+    "name": "seasonal rule curve",
+    "agency": "USACE St. Louis District",
+    "agencyLong": "U.S. Army Corps of Engineers, St. Louis District",
+    "points": [["04-01", 359.74], ["12-15", 354.74]],
+    "summer": 359.74,
+    "winter": 354.74,
+    "datum": "ft NAVD88",
+    "source": {
+      "label": "USACE CWMS Data API, office MVS, location level \"Wappapello Lk-St Francis.Elev.Inst.0.Seasonal Rule Curve\" (2026 values; stepped, not interpolated)",
+      "url": "https://cwms-data.usace.army.mil/cwms-data/levels?office=MVS&level-id-mask=Wappapello%20Lk-St%20Francis.Elev.Inst.0.Seasonal%20Rule%20Curve&unit=EN&format=json&begin=2026-01-01T00:00:00Z&end=2026-12-31T23:59:00Z"
+    },
+    "why": "The St. Louis District holds Wappapello Lake at its 359.7 ft summer pool from April 1 to mid-December, then drops the target 5 ft to the 354.7 ft winter pool to leave more room for winter and spring floods on the St. Francis River."
+  },
+  "lake-allatoona": {
+    "kind": "curve",
+    "interp": "linear",
+    "name": "top of conservation pool (guide curve)",
+    "agency": "USACE Mobile District",
+    "agencyLong": "U.S. Army Corps of Engineers, Mobile District",
+    "points": [["01-15", 823.0], ["05-02", 840.0], ["09-01", 840.0], ["10-02", 835.0], ["11-15", 835.0], ["12-31", 823.0]],
+    "summer": 840.0,
+    "winter": 823.0,
+    "datum": "ft NGVD29",
+    "source": {
+      "label": "USACE CWMS Data API, office SAM, location level \"Allatoona.Elev.Inst.0.Top of Conservation\" (2026 breakpoints)",
+      "url": "https://cwms-data.usace.army.mil/cwms-data/levels?office=SAM&level-id-mask=Allatoona.Elev.Inst.0.Top%20of%20Conservation&unit=EN&format=json&begin=2026-01-01T00:00:00Z&end=2026-12-31T23:59:00Z"
+    },
+    "why": "Allatoona has one of the largest seasonal swings of any lake on this site: the Corps fills it to 840 ft by early May, starts lowering it in September, holds 835 ft from October to mid-November, and draws it down to 823 ft by the end of December for flood storage."
+  },
+  "nolin-river-lake": {
+    "kind": "curve",
+    "interp": "linear",
+    "name": "seasonal pool (bottom of the flood-control pool)",
+    "agency": "USACE Louisville District",
+    "agencyLong": "U.S. Army Corps of Engineers, Louisville District",
+    "points": [["03-15", 492.0], ["04-15", 515.0], ["09-15", 515.0], ["10-15", 513.0], ["12-01", 492.0]],
+    "summer": 515.0,
+    "winter": 492.0,
+    "datum": "ft NGVD29",
+    "source": {
+      "label": "USACE CWMS Data API, office LRL, location level \"Nolin.Elev.Inst.0.Bottom of Flood Control\" (2026 breakpoints)",
+      "url": "https://cwms-data.usace.army.mil/cwms-data/levels?office=LRL&level-id-mask=Nolin.Elev.Inst.0.Bottom%20of%20Flood%20Control&unit=EN&format=json&begin=2026-01-01T00:00:00Z&end=2026-12-31T23:59:00Z"
+    },
+    "why": "The Louisville District keeps Nolin at its 515 ft summer pool from mid-April to mid-September, then lowers the seasonal pool line about 23 ft, to 492 ft by December 1, so the lake can catch winter and spring floods on the Nolin and Green rivers."
+  },
+  "lake-texoma": {
+    "kind": "curve",
+    "interp": "linear",
+    "name": "seasonal top of conservation pool",
+    "agency": "USACE Tulsa District",
+    "agencyLong": "U.S. Army Corps of Engineers, Tulsa District",
+    "points": [["02-14", 615.0], ["05-01", 615.0], ["06-01", 619.0], ["07-15", 619.0], ["08-20", 617.0], ["09-10", 616.5], ["10-01", 616.5], ["11-01", 618.5], ["12-01", 618.5]],
+    "summer": 619.0,
+    "winter": 615.0,
+    "datum": "ft",
+    "source": {
+      "label": "USACE CWMS Data API, office SWT, location level \"DENI.Elev.Inst.0.Top of Conservation\" (2026 breakpoints; the fixed reference \"Top of Constant Conservation\" is 617 ft)",
+      "url": "https://cwms-data.usace.army.mil/cwms-data/levels?office=SWT&level-id-mask=DENI.Elev.Inst.0.Top%20of%20Conservation&unit=EN&format=json&begin=2026-01-01T00:00:00Z&end=2026-12-31T23:59:00Z"
+    },
+    "why": "Texoma's 617 ft full pool is the fixed reference, but the Tulsa District moves the top of the conservation pool through the year: down to 615 ft from mid-February to May, up to 619 ft from June to mid-July, 616.5 ft in September, and 618.5 ft in November."
+  },
+  "kerr-lake": {
+    "kind": "note",
+    "name": "guide curve",
+    "agency": "USACE Wilmington District",
+    "text": "The Corps runs Kerr Lake on a seasonal guide curve: about 295.5 ft in winter, up to 302 ft in spring, and a normal summer pool of 299.5 ft (Water Control Plan for John H. Kerr Dam and Reservoir, revised June 2016). The plan gives the dates of the curve only as a chart (Plate 1), and this site found no published table or data series of the daily curve, so this page does not compute a seasonal target for a given day. Compare today's level with those three values, and with the 300 ft line between the conservation and flood pools.",
+    "source": {
+      "label": "Water Control Plan for John H. Kerr Dam and Reservoir, revised June 2016 (copy hosted by NC DEQ)",
+      "url": "https://deq.nc.gov/water-resources/planning-section/water-supply-planning/kerr-lake-water-control-plan-2016/open"
+    }
+  }
+}

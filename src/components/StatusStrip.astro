@@ -7,6 +7,7 @@
 // never a guess from the level.
 import type { LakeEntry, Reading } from '../lib/lakes';
 import { fmtNum, changeOverSeries, powellRamps, powellRampsAsOf } from '../lib/lakes';
+import { seasonalRead } from '../lib/seasonal';
 
 interface Props { lake: LakeEntry; reading: Reading; slug: string }
 const { lake, reading, slug } = Astro.props;
@@ -47,16 +48,27 @@ const pctCell = reading.pct_full != null
   ? { v: `${reading.pct_full}%`, l: 'full' }
   : null;
 const ftCell = reading.level_ft != null
-  ? { v: `${fmtNum(reading.level_ft, 1)} ft`, l: below != null ? `${ftLabel}, ${fmtNum(Math.abs(below), 1)} ft ${below > 0 ? 'below' : 'above'} full` : ftLabel }
+  ? { v: `${fmtNum(reading.level_ft, 1)} ft`, l: below != null ? (Math.abs(below) < 0.05 ? `${ftLabel}, at full pool` : `${ftLabel}, ${fmtNum(Math.abs(below), 1)} ft ${below > 0 ? 'below' : 'above'} full`) : ftLabel }
   : null;
 // Lake Mead readers track elevation against the 1,050 / 1,075 ft shortage tiers, so
 // feet lead there; percent full leads everywhere else.
 const firstTwo = slug === 'lake-mead' ? [ftCell, pctCell] : [pctCell, ftCell];
+// adsense-w3: lakes whose operator lowers the target pool in winter get a "vs seasonal
+// target" cell next to "below full", so a lake at its normal winter level does not read as low.
+const sea = seasonalRead(slug, reading);
+const seaCell = sea
+  ? { v: Math.abs(sea.diff) < 0.05 ? '0.0 ft' : `${sea.diff > 0 ? '+' : '−'}${fmtNum(Math.abs(sea.diff), 1)} ft`, l: `vs seasonal target (${fmtNum(sea.target, 1)} ft, ${sea.curve.agency} ${sea.curve.name.replace(/ \(.*\)$/, '')})` }
+  : null;
 ---
 <div class="status-strip" data-strip={slug} aria-label={`${lake.name} level summary`}>
   {firstTwo.filter(Boolean).map((c) => (
     <div class="ss-cell"><div class="ss-v">{c!.v}</div><div class="ss-l">{c!.l}</div></div>
   ))}
+  {seaCell && (
+    <a class="ss-cell ss-link" href="#seasonal-target">
+      <div class="ss-v">{seaCell.v}</div><div class="ss-l">{seaCell.l}</div>
+    </a>
+  )}
   {change != null && (
     <div class="ss-cell">
       <div class={`ss-v ${dir}`}><span aria-hidden="true">{arrow}</span> {change > 0 ? '+' : change < 0 ? '−' : ''}{fmtNum(Math.abs(change), 1)} ft</div>
