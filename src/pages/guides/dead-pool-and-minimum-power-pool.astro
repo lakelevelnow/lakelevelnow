@@ -1,0 +1,144 @@
+---
+// New page, AEO sprint 2026-10-28. Answers a question the site only ever answered in a
+// one-line FAQ on the Lake Powell depth page: what dead pool and minimum power pool mean,
+// and why a reservoir has two different floors. Every number is imported from the band
+// constants in src/lib/lakes.ts, so nothing here is typed by hand and nothing goes stale.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../consts';
+import { breadcrumbLd, absUrl, ORG_ID } from '../../lib/seo';
+import { getReading, fmtNum, POWELL_BAND, MEAD_BAND, POWELL_HISTORY } from '../../lib/lakes';
+
+const PATH = '/guides/dead-pool-and-minimum-power-pool/';
+const title = 'Dead pool and minimum power pool: a reservoir has two floors';
+const description =
+  'Dead pool is the elevation where water can no longer leave through the outlet works. Minimum power pool is where the turbines stop. Lake Powell and Lake Mead, with the published figures and the live buffer above each line.';
+const UPDATED = 'October 28, 2026';
+
+const powell = getReading('lake-powell');
+const mead = getReading('lake-mead');
+const powellElev = powell?.level_ft ?? null;
+const meadElev = mead?.level_ft ?? null;
+
+const rows = [
+  { name: 'Lake Powell', dam: 'Glen Canyon Dam', band: POWELL_BAND, elev: powellElev, path: '/lake/lake-powell/depth/' },
+  { name: 'Lake Mead', dam: 'Hoover Dam', band: MEAD_BAND, elev: meadElev, path: '/lake/lake-mead/chart/' },
+].map((r) => ({
+  ...r,
+  abovePower: r.elev != null ? r.elev - r.band.minPowerPoolFt : null,
+  aboveDead: r.elev != null ? r.elev - r.band.deadPoolFt : null,
+}));
+
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  '@id': `${absUrl(PATH)}#article`,
+  headline: title,
+  description,
+  url: absUrl(PATH),
+  mainEntityOfPage: absUrl(PATH),
+  datePublished: '2026-10-28',
+  dateModified: '2026-10-28',
+  author: { '@type': 'Person', name: 'Michael', url: absUrl('/about/') },
+  publisher: { '@id': ORG_ID },
+};
+const ld = [articleLd, breadcrumbLd([
+  { name: 'Home', path: '/' },
+  { name: 'Dead pool and minimum power pool', path: PATH },
+])];
+---
+<BaseLayout title={title} description={description} path={PATH} jsonLd={ld}>
+  <div class="container">
+    <article class="prose">
+      <h1>Dead pool and minimum power pool</h1>
+      <p>
+        A big reservoir has more than one bottom. The streambed is the physical bottom. Above it sit
+        two operating floors: minimum power pool, where the turbines stop, and dead pool, where water
+        can no longer reach the outlet works at all. On a dam page the three numbers answer three
+        different questions, and only one of them is about boats.
+      </p>
+
+      <h2 id="definitions">The two floors, defined</h2>
+      <p>
+        <strong>Minimum power pool</strong> is the surface elevation below which a hydroelectric plant
+        can no longer generate. The penstocks that feed the turbines sit above the lower part of the
+        storage band, so once the surface drops under that line the generators come off. The dam still
+        holds water. It just cannot turn it into electricity.
+      </p>
+      <p>
+        <strong>Dead pool</strong> is the lower line, the elevation below which water can no longer pass
+        the dam. The outlet works sit below the penstocks, and nothing else takes water downstream. Dead
+        pool is therefore the hard floor of the usable reservoir: below it the dam stops being a dam and
+        becomes a wall.
+      </p>
+
+      <h2 id="figures">The published figures</h2>
+      <p>
+        These elevations come from the operating agency, not from an estimate. For Glen Canyon Dam the
+        figures are the Reclamation operating landmarks; for Hoover Dam they are the same set of
+        Reclamation landmarks on the lower Colorado.
+      </p>
+      <div class="def-table">
+        {rows.map((r) => (
+          <div class="row">
+            <div class="k">{r.name} · {r.dam}</div>
+            <div class="vv">
+              Full pool {fmtNum(r.band.fullPoolFt, 0)} ft · minimum power pool {fmtNum(r.band.minPowerPoolFt, 0)} ft ·
+              dead pool {fmtNum(r.band.deadPoolFt, 0)} ft
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <h2 id="today">Where the water sits today</h2>
+      <p>
+        The gap between the current surface and each line is the number that matters operationally. It
+        is recomputed from the live reading every time this page builds, so it cannot drift.
+      </p>
+      <div class="def-table">
+        {rows.map((r) => (
+          <div class="row">
+            <div class="k">{r.name}</div>
+            <div class="vv">
+              {r.elev == null
+                ? 'No current reading.'
+                : `${fmtNum(r.elev, 2)} ft today, which leaves ${fmtNum(r.abovePower, 1)} ft to the power floor and ${fmtNum(r.aboveDead, 1)} ft to dead pool.`}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <h2 id="difference">Why the two lines are not the same line</h2>
+      <p>
+        The order is fixed by the plumbing, not by policy. Full pool is the top. Minimum power pool is
+        where generation stops. Dead pool is where release stops. Between the two lower lines the dam
+        can still pass water downstream through the outlet works while producing no power, which is why
+        a reservoir can be "dead" for hydropower and alive for the river.
+      </p>
+      <p>
+        The gap is not the same size on both dams. On Lake Powell the power floor sits
+        {fmtNum(POWELL_BAND.minPowerPoolFt - POWELL_BAND.deadPoolFt, 0)} ft above dead pool. On Lake Mead
+        it sits {fmtNum(MEAD_BAND.minPowerPoolFt - MEAD_BAND.deadPoolFt, 0)} ft above it, because the two
+        dams were built with different outlet and penstock elevations.
+      </p>
+
+      <h2 id="live">See the live gap on each lake</h2>
+      <p>
+        The Lake Powell page recomputes the buffer above both lines on every build, and prints the
+        streambed elevation so you can see how much water column is left at the dam:
+        <a href="/lake/lake-powell/depth/">Lake Powell water depth at Glen Canyon Dam</a>. The lowest
+        daily pool since the reservoir first filled was {fmtNum(POWELL_HISTORY.postFillLowFt, 1)} ft,
+        which is {fmtNum(POWELL_HISTORY.postFillLowFt - POWELL_BAND.deadPoolFt, 0)} ft above dead pool.
+        For the opposite end of the same river system, the
+        <a href="/lake/lake-mead/chart/">Lake Mead water level chart</a> shows the same band against
+        Hoover Dam.
+      </p>
+      <p>
+        Elevations on this site are the agency's own datum, printed as the source states them. If two
+        sites quote different numbers for the same lake on the same day, read
+        <a href="/guides/why-lake-elevations-differ/">why two sites show a different lake elevation</a>
+        before you assume one of them is wrong.
+      </p>
+      <p class="mut" style="font-size:12px;">Updated {UPDATED}. Figures re-read from the site's own band constants at build time.</p>
+    </article>
+  </div>
+</BaseLayout>

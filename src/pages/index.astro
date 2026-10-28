@@ -6,6 +6,8 @@ import { authorLd, breadcrumbLd } from '../lib/seo';
 import { levelStatus } from '../lib/seasonal';
 import almanacData from '../data/almanac.json';
 import SupportLine from '../components/SupportLine.astro';
+import ShortAnswer from '../components/ShortAnswer.astro';
+import { CONTENT_CHECKED } from '../consts';
 
 // Hand-tuned 2026-10-08 for "lake levels" / "current lake levels" (1,922 impressions, pos 18).
 // The count is the lakes that have a live percent-full reading today, never the registry size.
@@ -50,6 +52,11 @@ const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
       <div class="live-badge"><span class="dot"></span><span>{fresh.length} lakes live now</span></div>
       <h1>Live US lake &amp; reservoir water levels</h1>
       <p class="lead">Percent full and 30-day trend from USGS and CDEC gages, with a plain-English read on whether you can launch a boat.</p>
+      <ShortAnswer
+        question="What are US lake levels right now?"
+        answer={`This page lists the ${fresh.length} lakes that have a current reading from USGS or CDEC. Each card shows percent full, the 30-day trend and a plain-English read on whether you can launch a boat. Open a lake for its own gauge and its full pool.`}
+        updated={CONTENT_CHECKED}
+      />
     </section>
 
     {almFeature && (

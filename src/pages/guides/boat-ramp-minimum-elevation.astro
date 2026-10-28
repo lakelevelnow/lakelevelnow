@@ -1,0 +1,119 @@
+---
+// New page, AEO sprint 2026-10-28. Answers "what does the minimum elevation for a ramp
+// actually mean", which until now was a single FAQ line on the Lake Powell boat ramps page.
+// The ramp table and every minimum elevation come from src/data/powell-ramps.json, whose
+// source is the NPS Glen Canyon changing-lake-levels table.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../consts';
+import { breadcrumbLd, absUrl, ORG_ID } from '../../lib/seo';
+import { getReading, fmtNum, powellRamps, powellRampsAsOf, POWELL_RAMPS_SOURCE } from '../../lib/lakes';
+
+const PATH = '/guides/boat-ramp-minimum-elevation/';
+const title = 'What a boat ramp minimum elevation means, and what it does not';
+const description =
+  'A ramp minimum elevation is the lake surface at which the bottom end of a concrete ramp leaves the water. It is not a closure notice and not a guarantee. Lake Powell ramps, with the published minimums and the live comparison.';
+const UPDATED = 'October 28, 2026';
+
+const ramps = powellRamps();
+const asOf = powellRampsAsOf();
+const elev = getReading('lake-powell')?.level_ft ?? null;
+const lowestMin = ramps.length ? Math.min(...ramps.map((r) => r.minFt)) : null;
+const highestMin = ramps.length ? Math.max(...ramps.map((r) => r.minFt)) : null;
+const usable = elev == null ? [] : ramps.filter((r) => elev >= r.minFt);
+
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  '@id': `${absUrl(PATH)}#article`,
+  headline: title,
+  description,
+  url: absUrl(PATH),
+  mainEntityOfPage: absUrl(PATH),
+  datePublished: '2026-10-28',
+  dateModified: '2026-10-28',
+  author: { '@type': 'Person', name: 'Michael', url: absUrl('/about/') },
+  publisher: { '@id': ORG_ID },
+};
+const ld = [articleLd, breadcrumbLd([
+  { name: 'Home', path: '/' },
+  { name: 'Boat ramp minimum elevation', path: PATH },
+])];
+---
+<BaseLayout title={title} description={description} path={PATH} jsonLd={ld}>
+  <div class="container">
+    <article class="prose">
+      <h1>What a boat ramp minimum elevation means</h1>
+      <p>
+        A ramp minimum elevation is one number per ramp: the lake surface elevation at which the bottom
+        end of that ramp stops reaching the water. It is a property of the ramp's length and slope, not
+        of the lake. Two ramps on the same reservoir can differ by tens of feet, which is why a lake
+        that is "closed" for one ramp can still be open at another.
+      </p>
+
+      <h2 id="reading">How to read the number</h2>
+      <p>
+        If the lake surface is above a ramp's minimum elevation, the ramp's concrete still runs into
+        the water and the question becomes one of debris, slope and whether the operator has opened it.
+        If the surface is below that minimum, the ramp ends in mud and no vehicle should be on it.
+      </p>
+      <p>
+        The number is a threshold, not a promise. A ramp can be shut at a level well above its minimum
+        because of storm damage, a debris line, or a rule the agency applies for the season. Always read
+        the agency notice next to the number.
+      </p>
+
+      <h2 id="powell">Lake Powell, in aggregate</h2>
+      <p>
+        Each Glen Canyon ramp carries its own minimum lake elevation, published by the Park Service.
+        This site holds that table, read on {asOf ?? 'an unknown date'}, and compares the live USGS
+        surface elevation against every row at build time. Current surface:
+        {elev == null ? 'no reading.' : ` ${fmtNum(elev, 2)} ft.`}
+      </p>
+      <div class="def-table">
+        <div class="row">
+          <div class="k">Ramps with a published minimum</div>
+          <div class="vv">{ramps.length}</div>
+        </div>
+        <div class="row">
+          <div class="k">Lowest published minimum</div>
+          <div class="vv">{lowestMin == null ? 'not published' : `${fmtNum(lowestMin, 0)} ft`}</div>
+        </div>
+        <div class="row">
+          <div class="k">Highest published minimum</div>
+          <div class="vv">{highestMin == null ? 'not published' : `${fmtNum(highestMin, 0)} ft`}</div>
+        </div>
+        <div class="row">
+          <div class="k">Clearing their own minimum right now</div>
+          <div class="vv">{elev == null ? 'no reading' : `${usable.length} of ${ramps.length}`}</div>
+        </div>
+      </div>
+      <p class="mut" style="font-size:12px;">
+        Source: <a href={POWELL_RAMPS_SOURCE} rel="nofollow noopener">NPS Glen Canyon, changing lake levels</a>.
+        The row-by-row table with the agency status for each ramp is on the
+        <a href="/lake/lake-powell/boat-ramps/">Lake Powell boat ramp page</a>.
+      </p>
+
+      <h2 id="spread">Why the spread between ramps is useful</h2>
+      <p>
+        At Lake Powell the published minimums run from {fmtNum(lowestMin, 0)} ft to
+        {fmtNum(highestMin, 0)} ft, a spread of {fmtNum(highestMin != null && lowestMin != null ? highestMin - lowestMin : null, 0)} ft.
+        That spread is the difference between "the lake is too low to launch" and "the lake is too low
+        to launch here". A boater who reads only the lake-wide headline loses the ramps that are still
+        in the water.
+      </p>
+      <p>
+        {elev == null
+          ? 'No live reading is available, so no ramp can be ranked against its minimum right now.'
+          : `At the current surface, ${usable.length} of ${ramps.length} listed ramps sit at or above their published minimum elevation.`}
+        The <a href="/lake/lake-powell/boat-ramps/">Lake Powell boat ramp page</a> carries the same table
+        with the agency notes, and the <a href="/lake/lake-powell/depth/">depth page</a> shows how far
+        the surface is above the dam's own operating floors.
+      </p>
+      <p>
+        If you are comparing this number with another site's, check the datum first:
+        <a href="/guides/why-lake-elevations-differ/">why two sites show a different lake elevation</a>.
+      </p>
+      <p class="mut" style="font-size:12px;">Updated {UPDATED}.</p>
+    </article>
+  </div>
+</BaseLayout>

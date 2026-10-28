@@ -1,6 +1,11 @@
 # lakelevelnow.com, all pages public and indexable.
 # AI crawlers are explicitly allowed here. When competitors block GPTBot/PerplexityBot,
 # our content stays in the retrieval/citation pool and theirs doesn't.
+# Every group below is Allow: /, so no group here changes what a crawler may fetch:
+# `User-agent: *` with `Allow: /` already permits all of these bots. The named groups
+# exist so a human can read the policy, and so a later Disallow is added in one place.
+# Training bots (GPTBot, Google-Extended, ClaudeBot, Applebot-Extended, cohere-ai,
+# Bytespider, Meta-ExternalAgent, Amazonbot) keep the allow policy this site already had.
 User-agent: *
 Allow: /
 
@@ -8,15 +13,31 @@ User-agent: GPTBot
 Allow: /
 User-agent: ChatGPT-User
 Allow: /
+User-agent: OAI-SearchBot
+Allow: /
 User-agent: Google-Extended
 Allow: /
+User-agent: Googlebot
+Allow: /
+User-agent: Bingbot
+Allow: /
 User-agent: PerplexityBot
+Allow: /
+User-agent: Perplexity-User
 Allow: /
 User-agent: ClaudeBot
 Allow: /
 User-agent: Claude-Web
 Allow: /
+User-agent: Claude-SearchBot
+Allow: /
+User-agent: Claude-User
+Allow: /
+# Applebot-Extended is the training opt-out for Apple. It stays before Applebot so the
+# pair reads Disallow-style first, then the search crawler.
 User-agent: Applebot-Extended
+Allow: /
+User-agent: Applebot
 Allow: /
 User-agent: cohere-ai
 Allow: /

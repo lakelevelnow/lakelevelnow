@@ -1,0 +1,98 @@
+---
+// New page, AEO sprint 2026-10-28. Answers the question the Lake Powell depth page raises in
+// one FAQ line ("why do other sites show a different elevation than this page?") as a general
+// explanation a reader can apply to any lake on the site.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../consts';
+import { breadcrumbLd, absUrl, ORG_ID } from '../../lib/seo';
+import { getReading, fmtNum, POWELL_BAND } from '../../lib/lakes';
+
+const PATH = '/guides/why-lake-elevations-differ/';
+const title = 'Why two sites show a different lake elevation on the same day';
+const description =
+  'Three things make lake elevations disagree between sites: the vertical datum, the gage the number comes from, and the hour it was read. How to tell which difference you are looking at.';
+const UPDATED = 'October 28, 2026';
+
+const powell = getReading('lake-powell');
+const elev = powell?.level_ft ?? null;
+
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  '@id': `${absUrl(PATH)}#article`,
+  headline: title,
+  description,
+  url: absUrl(PATH),
+  mainEntityOfPage: absUrl(PATH),
+  datePublished: '2026-10-28',
+  dateModified: '2026-10-28',
+  author: { '@type': 'Person', name: 'Michael', url: absUrl('/about/') },
+  publisher: { '@id': ORG_ID },
+};
+const ld = [articleLd, breadcrumbLd([
+  { name: 'Home', path: '/' },
+  { name: 'Why lake elevations differ', path: PATH },
+])];
+---
+<BaseLayout title={title} description={description} path={PATH} jsonLd={ld}>
+  <div class="container">
+    <article class="prose">
+      <h1>Why two sites show a different lake elevation</h1>
+      <p>
+        Two pages can quote the same reservoir on the same morning and disagree by a foot without
+        either of them being wrong. There are three reasons, and they are easy to separate once you
+        know what to look for.
+      </p>
+
+      <h2 id="datum">1. A different vertical datum</h2>
+      <p>
+        An elevation is a height above a reference surface, and the United States has more than one.
+        The current national vertical datum is NAVD 88; older records and older engineering drawings
+        often use NGVD 29. The gap between them is not one number: it varies with location, so the two
+        datums do not convert by adding a constant. The National Geodetic Survey documents both at
+        <a href="https://www.ngs.noaa.gov/datums/vertical/" rel="nofollow noopener">ngs.noaa.gov/datums/vertical</a>.
+      </p>
+      <p>
+        A site that mixes datums across lakes produces a table where the numbers look comparable and are
+        not. This site prints the agency figure for each lake without shifting it, and where a page
+        derives a depth it subtracts two elevations that are on the same datum.
+      </p>
+
+      <h2 id="gage">2. A different gage</h2>
+      <p>
+        A reservoir is not a flat sheet. Wind, inflow and release points move the surface, and the gage
+        that produces the number sits at one place. For Lake Powell the reading comes from USGS site
+        09379900 at Glen Canyon Dam, parameter 62614, the reservoir water-surface elevation series. A
+        site quoting a different site number is quoting a different point on the water.
+      </p>
+      <p>
+        Storage-based figures add a second step. Percent full is storage divided by capacity, and
+        storage comes from a rating table that converts elevation to volume. Two sites can agree on the
+        elevation to the hundredth of a foot and still disagree on percent full.
+      </p>
+
+      <h2 id="time">3. A different hour</h2>
+      <p>
+        USGS instantaneous gages update every 15 to 60 minutes. Daily reservoir storage summaries are
+        published once a day. A page built at 09:00 and a page built at 15:00 can legitimately differ,
+        and a page that caches its build for a week can be six days behind while looking live.
+      </p>
+      <p>
+        Every reading on this site carries its own timestamp, and the lake pages print it next to the
+        gauge. Check the timestamp before you check the number.
+      </p>
+
+      <h2 id="apply">Applying it to a lake here</h2>
+      <p>
+        {elev == null
+          ? 'Lake Powell has no current reading in this build, so no comparison can be shown right now.'
+          : `Lake Powell reads ${fmtNum(elev, 2)} ft today. Full pool is ${fmtNum(POWELL_BAND.fullPoolFt, 0)} ft and dead pool is ${fmtNum(POWELL_BAND.deadPoolFt, 0)} ft, so the surface is ${fmtNum(elev - POWELL_BAND.deadPoolFt, 1)} ft above the dam's hard floor.`}
+        The <a href="/lake/lake-powell/depth/">Lake Powell depth page</a> shows the same elevation with
+        the depth it implies at the dam, and the
+        <a href="/guides/dead-pool-and-minimum-power-pool/">dead pool guide</a> explains the two
+        operating floors the number is measured against.
+      </p>
+      <p class="mut" style="font-size:12px;">Updated {UPDATED}.</p>
+    </article>
+  </div>
+</BaseLayout>

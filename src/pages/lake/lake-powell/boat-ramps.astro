@@ -15,7 +15,7 @@
 // published constants in lib/lakes.ts; nothing is typed by hand in the markup.
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { LAKES, getReading, fmtNum, feedLabel, POWELL_BAND, powellRamps, powellRampsAsOf, POWELL_RAMPS_SOURCE, POWELL_RAMP_PAGES, POWELL_APRIL_2023, changeOverSeries } from '../../../lib/lakes';
-import { authorLd, breadcrumbLd, speakableLd, absUrl } from '../../../lib/seo';
+import { authorLd, breadcrumbLd, speakableLd, absUrl, orgRef } from '../../../lib/seo';
 
 const lake = LAKES.find((l) => l.slug === 'lake-powell')!;
 const reading = getReading('lake-powell');
@@ -111,7 +111,7 @@ const articleLd = {
   datePublished: '2026-08-15',
   dateModified: asOfIso || '2026-08-15',
   author: { '@type': 'Person', name: 'Michael', url: absUrl('/about/'), description: 'Independent developer behind zovo.one, building small fast utility sites including LakeLevelNow. Works on LakeLevelNow full-time.' },
-  publisher: { '@type': 'Organization', name: 'LakeLevelNow', url: absUrl('/') },
+  publisher: orgRef(),
 };
 
 const datasetLd = live && elev != null ? {
@@ -181,6 +181,11 @@ const faqs = [
     </div>
 
     {qas && <p class="qas" data-keyword="lake powell boat ramps" style="font-size:15px;color:var(--t1);margin-top:14px;max-width:660px;font-weight:500;">{qas}</p>}
+
+    <p style="font-size:13px;color:var(--t2);margin-top:10px;">
+      New to these thresholds? <a href="/guides/boat-ramp-minimum-elevation/">What a ramp minimum elevation means</a> explains
+      why two ramps on the same lake disagree, and why clearing the number is necessary but not sufficient.
+    </p>
 
     {!live && (
       <div class="callout a" style="margin-top:20px;">
