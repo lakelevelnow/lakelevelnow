@@ -22,7 +22,7 @@ const toneHex = (t: string) => t === 'red' ? '#bb5a37' : t === 'amber' ? '#b07d1
       <section class="section" id={code}>
         <h2 style="margin-bottom:16px;">{stateName(code)} <span class="mut" style="font-size:.7em;font-weight:500;">({lakes.length})</span></h2>
         {code === 'CA' && (
-          <p class="mut" style="font-size:13px;margin:-8px 0 14px;max-width:660px;">Every reservoir in CDEC's daily storage summary, each ranked against its own record for the date, are on the <a href="/california-lake-levels/">California lake levels</a> page.</p>
+          <p class="mut" style="font-size:13px;margin:-8px 0 14px;max-width:660px;">Every reservoir in CDEC's daily storage summary, each ranked against its own record for the date, are on the <a href="/california-lake-levels/">California lake levels</a> page. If two sites quote a different elevation for the same lake, <a href="/guides/why-lake-elevations-differ/">this explains why</a>.</p>
         )}
         <div class="table-wrap">
           <table>

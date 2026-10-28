@@ -44,11 +44,28 @@ export function sourceFor(feed?: string | null) {
   return null;
 }
 
+// Stable entity ids. Without these, a page that prints `publisher: {'@type': 'Organization'}`
+// a second time defines a second Organization with no way to merge the two. One id, one entity.
+export const ORG_ID = `${SITE.url}/#organization`;
+export const WEBSITE_ID = `${SITE.url}/#website`;
+
+// A pointer to the Organization node defined by organizationLd(). Use this instead of
+// repeating the object: repeated objects are duplicate nodes (aeo sprint 2026-10-28).
+export function orgRef() {
+  return { '@id': ORG_ID };
+}
+
+// A pointer to the WebSite node defined by websiteLd().
+export function websiteRef() {
+  return { '@id': WEBSITE_ID };
+}
+
 // JSON-LD: Organization — knowsAbout declares topical authority to AI engines.
 export function organizationLd() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': ORG_ID,
     name: SITE.name,
     url: SITE.url,
     logo: absUrl('/favicon.svg'),
@@ -68,6 +85,7 @@ export function websiteLd() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': WEBSITE_ID,
     name: SITE.name,
     url: SITE.url,
   };

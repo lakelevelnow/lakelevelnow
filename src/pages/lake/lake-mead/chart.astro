@@ -32,7 +32,7 @@ import {
   MEAD_HISTORY_DAILY, MEAD_HISTORY_DAILY_START, MEAD_BAND, POWELL_HISTORY,
   compareToMark, fmtRecordDate,
 } from '../../../lib/lakes';
-import { authorLd, breadcrumbLd, speakableLd, absUrl } from '../../../lib/seo';
+import { authorLd, breadcrumbLd, speakableLd, absUrl, orgRef } from '../../../lib/seo';
 
 const lake = LAKES.find((l) => l.slug === 'lake-mead')!;
 const reading = getReading('lake-mead');
@@ -112,7 +112,7 @@ const articleLd = {
   datePublished: '2026-08-22',
   dateModified: asOfIso || '2026-08-22',
   author: { '@type': 'Person', name: 'Michael', url: absUrl('/about/'), description: 'Independent developer behind zovo.one, building small fast utility sites including LakeLevelNow. Works on LakeLevelNow full-time.' },
-  publisher: { '@type': 'Organization', name: 'LakeLevelNow', url: absUrl('/') },
+  publisher: orgRef(),
 };
 const datasetLd = {
   '@context': 'https://schema.org',

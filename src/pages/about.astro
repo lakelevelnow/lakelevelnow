@@ -3,6 +3,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../consts';
 import { LAKES, freshLakes } from '../lib/lakes';
 import { breadcrumbLd } from '../lib/seo';
+import ShortAnswer from '../components/ShortAnswer.astro';
+import { CONTENT_CHECKED } from '../consts';
 
 const liveCount = freshLakes().length;
 const title = 'About: the developer behind LakeLevelNow';
@@ -53,6 +55,11 @@ const EMAIL = 'support@zovo.one';
     <section class="hero" style="padding-top:56px;">
       <div class="eyebrow">The person behind the tools</div>
       <h1 style="max-width:620px;">About LakeLevelNow</h1>
+      <ShortAnswer
+        question="Who runs LakeLevelNow?"
+        answer="LakeLevelNow is run by one person: Michael, an independent developer who also builds small utility sites on zovo.one. Every reading is pulled straight from USGS, CDEC, Bureau of Reclamation and TWDB data. There is no account, no pop-ups and no essay before the gauge loads."
+        updated={CONTENT_CHECKED}
+      />
       <p class="lead" style="max-width:600px;">I'm Michael, an independent developer, and I run LakeLevelNow on my own. I build small, fast utility sites (they live on <a href="https://zovo.one" rel="noopener">zovo.one</a>), and I started this one because the lake-level pages I used before a trip were stale tables or a single reservoir's page. Check how full a lake is, see a 30-day trend, and get a straight answer on whether you can launch a boat, pulled straight from USGS, CDEC, Bureau of Reclamation and TWDB data. No account, no pop-ups, no essay before the gauge loads.</p>
     </section>
 

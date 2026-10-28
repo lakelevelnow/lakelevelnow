@@ -15,6 +15,8 @@
 //    by hand, so nothing can go stale or be wrong in a way the data is not.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import data from '../../data/almanac.json';
+import ShortAnswer from '../../components/ShortAnswer.astro';
+import { CONTENT_CHECKED } from '../../consts';
 
 const SINGLE_LINK = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
 const BUNDLE_LINK = import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE || '';
@@ -58,6 +60,11 @@ const ld = [{
     <section class="alm-hero">
       <p class="alm-eyebrow">Lake Level Almanac</p>
       <h1>Every tracker tells you the level.<br>None of them tells you if it is normal.</h1>
+      <ShortAnswer
+        question="What is the Lake Level Almanac?"
+        answer={`$${data.priceSingleUsd} buys the Almanac for one lake and $${data.priceBundleUsd} buys all ${data.lakeCount} reservoirs. Each one turns ${deepest} years of daily record into day-of-year normal ranges, monthly climatology and how often the lake has been below your own ramp or dock elevation.`}
+        updated={CONTENT_CHECKED}
+      />
 
       <p class="alm-lede">{featured.sentence}</p>
       <p class="readable">That sentence took {featured.years} years of daily readings to write, and

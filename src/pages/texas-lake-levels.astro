@@ -9,7 +9,7 @@
 // client script only filters and re-orders rows that are already in the HTML. No browser
 // fetch, no JSON island.
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { authorLd, breadcrumbLd, absUrl } from '../lib/seo';
+import { authorLd, breadcrumbLd, absUrl, orgRef } from '../lib/seo';
 import { AUTHOR, SITE } from '../consts';
 import snapshot from '../data/texas-reservoirs-snapshot.json';
 
@@ -270,8 +270,8 @@ const articleLd = {
   description,
   mainEntityOfPage: absUrl(PATH),
   dateModified: swDate,
-  author: { '@type': 'Person', '@id': `${absUrl(PATH)}#author`, name: AUTHOR.name },
-  publisher: { '@type': 'Organization', name: SITE.name, url: absUrl('/') },
+  author: { '@id': `${absUrl(PATH)}#author` },
+  publisher: orgRef(),
 };
 const datasetLd = {
   '@context': 'https://schema.org',

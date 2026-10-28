@@ -72,6 +72,11 @@ export const STATE_BY_CODE: Record<string, { code: string; name: string }> = Obj
   STATES.map((s) => [s.code, s])
 );
 
+// The date the content of the page was last checked against its sources.
+// Visible as "Updated <date>" in every short answer block. Change it when you re-check
+// the facts, and only then: a visible date must be a real check date.
+export const CONTENT_CHECKED = 'October 28, 2026';
+
 // Freshness window (days). Readings older than this are flagged "may be delayed",
 // never silently passed off as current. Must match scripts/fetch-levels.mjs FRESH_DAYS.
 export const FRESH_DAYS = 7;

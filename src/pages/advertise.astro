@@ -6,6 +6,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE, SPONSOR_EMAIL } from '../consts';
 import { breadcrumbLd } from '../lib/seo';
+import ShortAnswer from '../components/ShortAnswer.astro';
+import { CONTENT_CHECKED } from '../consts';
 import data from '../data/sponsors.json';
 
 const slot = data.slots['lake-mead'];
@@ -24,6 +26,11 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
   <div class="container">
     <article class="prose">
       <h1>Sponsor the {slot.lakeName} page</h1>
+      <ShortAnswer
+        question="What does the sponsor slot cost?"
+        answer={`$${slot.priceMonthUsd} a month buys the only sponsor slot on the ${slot.lakeName} water level page, or $${slot.priceFoundingYearUsd} for a founding year. One business only, labelled Advertisement, with a sponsored link. The slot sits below the live level and the trend chart.`}
+        updated={CONTENT_CHECKED}
+      />
       <p>People open the <a href="/lake/lake-mead/">{slot.lakeName} water level page</a> before a trip. They check the level, the trend and whether they can launch. If you run a marina, a boat rental, a guide service or a place to stay at {slot.lakeName}, this is the moment to be on the page.</p>
 
       <div class="adv-cta">

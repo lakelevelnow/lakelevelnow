@@ -10,7 +10,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { reservoirRows, reservoirSummary, type ReservoirRow } from '../lib/careservoirs';
 import { parseAsOf } from '../lib/almanac';
-import { authorLd, breadcrumbLd, absUrl } from '../lib/seo';
+import { authorLd, breadcrumbLd, absUrl, orgRef, websiteRef } from '../lib/seo';
+import ShortAnswer from '../components/ShortAnswer.astro';
+import { CONTENT_CHECKED } from '../consts';
 import { AUTHOR, SITE } from '../consts';
 import ladderData from '../data/ca-ladders.json';
 
@@ -116,7 +118,7 @@ function pill(r: ReservoirRow): { t: string; b: string } {
 
 const title = 'California lake levels';
 const description =
-  'Every reservoir in the California Data Exchange Center daily storage summary, with percent of capacity and a day-of-year storage percentile against each reservoir own record.';
+  "Every reservoir in the California Data Exchange Center's daily storage summary, with how full each one is and how unusual that is for this calendar day, measured against its own storage record.";
 
 // ---- JSON-LD. Every date below equals a date printed on the page. ------------------------
 const crumbs = {
@@ -132,7 +134,7 @@ const webPageLd = {
   name: title,
   description,
   breadcrumb: { '@id': `${absUrl(PATH)}#breadcrumb` },
-  isPartOf: { '@type': 'WebSite', name: SITE.name, url: absUrl('/') },
+  isPartOf: websiteRef(),
   dateModified: summary.asOf,
   mainEntity: { '@id': `${absUrl(PATH)}#dataset` },
   speakable: { '@type': 'SpeakableSpecification', cssSelector: ['h1', '.qas'] },
@@ -148,7 +150,7 @@ const articleLd = {
   datePublished: summary.asOf,
   dateModified: summary.asOf,
   author: { '@id': `${absUrl(PATH)}#author` },
-  publisher: { '@type': 'Organization', name: SITE.name, url: absUrl('/') },
+  publisher: orgRef(),
   about: [
     'California reservoir storage',
     'day-of-year storage percentile',
@@ -160,9 +162,9 @@ const datasetLd = {
   '@context': 'https://schema.org',
   '@type': 'Dataset',
   '@id': `${absUrl(PATH)}#dataset`,
-  name: 'California reservoir storage compared with its own day-of-year record',
-  description:
-    'Percent of capacity and a day-of-year storage percentile for every reservoir in the California Data Exchange Center daily reservoir storage summary, recomputed in code from the agency archive.',
+  name: title,
+  // Same sentence a reader sees under the H1, so the value matches the visible text.
+  description,
   url: absUrl(PATH),
   creator: {
     '@type': 'GovernmentOrganization',
@@ -194,6 +196,11 @@ const ld = [crumbs, person, webPageLd, articleLd, datasetLd];
       <h1>California lake levels</h1>
       <p class="lead">Every reservoir in the California Data Exchange Center's daily storage summary, with how full each one is and how unusual that is for this calendar day, measured against its own storage record.</p>
       <p class="byline">By <a href={AUTHOR.url}>{AUTHOR.name}</a>, independent developer and sole operator of {SITE.name}. Readings dated {summary.asOfLabel}.</p>
+      <ShortAnswer
+        question="How full are California's reservoirs right now?"
+        answer={`Every reading here comes from CDEC's daily storage summary and is dated ${summary.asOfLabel}. The ${summary.stations} reservoirs hold ${af(summary.totalStorageAf)} against ${af(summary.totalCapacityAf)} of stated capacity, which is ${pct(summary.statewidePctCapacity)} of capacity. Each row is also ranked against its own record for this calendar day.`}
+        updated={CONTENT_CHECKED}
+      />
     </section>
 
     <section class="section">
