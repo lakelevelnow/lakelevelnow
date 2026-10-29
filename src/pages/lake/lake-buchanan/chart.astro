@@ -1,0 +1,493 @@
+---
+// /lake/lake-buchanan/chart/, every row of the Texas Water Development Board file for Lake
+// Buchanan (from 1937-06-30), plotted against LCRA's own marks for the lake. Modeled on
+// /lake/lake-travis/chart/. Data comes from src/data/buchanan-history.json, generated from
+// TWDB's buchanan.csv by a script kept in the run folder, not in this repository. The TWDB
+// file (feet above NAVD88 +0.26) and LCRA's published marks (feet msl) are different
+// measurements of the same lake; every place they touch is labeled below.
+import { LAKES, getReading } from '../../../lib/lakes';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { breadcrumbLd, authorLd } from '../../../lib/seo';
+import history from '../../../data/buchanan-history.json';
+
+const lake = LAKES.find((l) => l.slug === 'lake-buchanan')!;
+const reading = getReading('lake-buchanan');
+
+// The four reference lines, all from LCRA's dams-and-lakes page, copied verbatim:
+// elevation when full 1,020 ft; (uncontrolled) spillway top 1,020.35 ft; historic high
+// 1,021.4 ft on Dec. 20, 1991; historic low 983.7 ft on Sept. 9, 1952.
+const FULL = 1020;
+const SPILL = 1020.35;
+const HIGH = 1021.4;
+const LOW = 983.7;
+// LCRA table "Lowest Lake Buchanan Elevations", https://www.lcra.org/water/dams-and-lakes/, fetched 2026-10-29. LCRA: "Based on daily readings at 8 a.m."
+const LCRA_LOWS = [
+  { rank: 1, drought: '1947 to 1957', date: '1952-09-09', ft: 983.70 },
+  { rank: 2, drought: '2008 to 2016', date: '2013-09-20', ft: 985.27 },
+  { rank: 3, drought: '1963 to 1964', date: '1964-09-20', ft: 986.63 },
+  { rank: 4, drought: '1983 to 1984', date: '1984-10-07', ft: 987.97 },
+  { rank: 5, drought: '1999 to 2000', date: '2000-10-15', ft: 994.73 },
+  { rank: 6, drought: '2005 to 2006', date: '2007-01-01', ft: 997.97 },
+];
+
+// First-fill boundary. The 20 rows before 1939-01-01 are treated as the first fill. The chart,
+// the counts and the ranks use every row; only the "lowest row after the first fill" and the
+// date tool's "lower rows on or after" count use this cutoff.
+const CUTOFF = '1939-01-01';
+
+const h = history.stats;
+const live = !!(reading && reading.fresh);
+const liveFt = live && reading ? reading.level_ft : null;
+
+const PATH = '/lake/lake-buchanan/chart/';
+const TWDB_PAGE = 'https://www.waterdatafortexas.org/reservoirs/individual/buchanan';
+const TWDB_CSV = 'https://www.waterdatafortexas.org/reservoirs/individual/buchanan.csv';
+const LCRA_DAMS = 'https://www.lcra.org/water/dams-and-lakes/';
+const USGS_SITE = 'https://waterdata.usgs.gov/monitoring-location/08148000/';
+
+const lastRowDate = h.latestDate;
+const lastRowLabel = new Date(lastRowDate + 'T00:00:00Z').toLocaleDateString('en-US', {
+  month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+});
+const latestLabel = new Date(lastRowDate + 'T00:00:00Z').toLocaleDateString('en-US', {
+  month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+});
+
+// Encoded daily series: base-36 (value-966)*10 with 'gv:'/'gu:' markers, decoded in the browser.
+const DAILY = history.daily;
+const twdbByDate = new Map<string, number>();
+{
+  const toks = String(history.daily).split(',');
+  let t = Date.parse(history.dailyStart + 'T00:00:00Z');
+  let cur = 0;
+  for (let i = 0; i < toks.length; i++) {
+    let tk = toks[i];
+    if (i === 0) cur = parseInt(tk, 10);
+    else {
+      const gi = tk.indexOf(':');
+      if (tk.charAt(0) === 'g' && gi > 0) { t += parseInt(tk.slice(1, gi), 36) * 86400000; tk = tk.slice(gi + 1); }
+      else t += 86400000;
+      cur += parseInt(tk, 36);
+    }
+    twdbByDate.set(new Date(t).toISOString().slice(0, 10), cur / 100);
+  }
+}
+
+const DAILY_FROM = '1942-09-30';
+let dailyN = 0, dailyLower = 0;
+for (const [d, v] of twdbByDate) { if (d >= DAILY_FROM) { dailyN++; if (v < h.latestFt) dailyLower++; } }
+
+// Same calendar date as the last row, computed here from the decoded rows.
+const sameMd = lastRowDate.slice(5);
+const sameRows = [...twdbByDate].filter(([d]) => d.slice(5) === sameMd);
+const sameN = sameRows.length;
+const sameFirstYear = sameRows.length ? sameRows[0][0].slice(0, 4) : '';
+const sameHigher = sameRows.filter(([, v]) => v > h.latestFt).length;
+const sameSorted = sameRows.map(([, v]) => v).sort((a, b) => a - b);
+const sameMedian = sameN % 2 ? sameSorted[(sameN - 1) / 2] : (sameSorted[sameN / 2 - 1] + sameSorted[sameN / 2]) / 2;
+const sameLowest = sameRows.reduce((m, r) => (r[1] < m[1] ? r : m), sameRows[0]);
+const sameVsMedian = Math.round((h.latestFt - sameMedian) * 100) / 100;
+const sameLabel = new Date(lastRowDate + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' });
+
+// Lowest row in the whole file, first fill included.
+let fileLowD = '', fileLowV = Infinity;
+for (const [d, v] of twdbByDate) { if (v < fileLowV) { fileLowV = v; fileLowD = d; } }
+
+// LCRA lows table against the TWDB row for the same date.
+const lowsEqual = LCRA_LOWS.filter((r) => twdbByDate.has(r.date) && Math.abs(twdbByDate.get(r.date)! - r.ft) < 0.005);
+const lowsDiffer = LCRA_LOWS.filter((r) => !lowsEqual.includes(r));
+
+const title = 'Lake Buchanan water level history since 1937';
+const description = `The Texas Water Development Board record for Lake Buchanan, ${h.totalDays.toLocaleString('en-US')} rows from June 30, 1937 to ${lastRowLabel}, next to the LCRA high, low and full-pool marks.`;
+
+const schemaLd = [
+  breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Lakes', path: '/lakes' }, { name: 'Lake Buchanan', path: '/lake/lake-buchanan/' }, { name: 'Water level chart', path: PATH }]),
+  authorLd(),
+];
+
+const fmtDate = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', {
+  month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+});
+---
+
+<BaseLayout title={title} description={description} path={PATH} jsonLd={schemaLd}>
+  <div class="container">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="sep">›</span>
+    <a href="/lakes/">Lakes</a><span class="sep">›</span>
+    <a href="/lake/lake-buchanan/">Lake Buchanan</a><span class="sep">›</span>
+    <span>Water level chart</span>
+  </nav>
+
+  <article>
+    <h1>Lake Buchanan water level history</h1>
+    <p class="byline">By <a href="/about/">Michael</a>, independent developer behind <a href="https://zovo.one" rel="noopener">zovo.one</a>.</p>
+    <p class="readable">
+      This page shows the Texas Water Development Board record for Lake Buchanan: {h.totalDays.toLocaleString('en-US')} rows from June 30, 1937 through {latestLabel}. The rows are not all daily. The first 86 rows, from June 30, 1937 to August 31, 1942, are mostly one row per month. Daily rows run without a break from September 30, 1942, except for 34 missing days from January 30 to March 3, 2016 and two single missing days in 2012. Statistics on this page are computed from the rows as they exist in the file. The record is
+      plotted against the reference marks LCRA publishes for the lake, in feet msl: the elevation
+      when full, {FULL.toLocaleString('en-US')} feet, the overflow spillway at {SPILL.toLocaleString('en-US')} feet,
+      the historic high of {HIGH.toLocaleString('en-US')} feet and the historic low of {LOW.toLocaleString('en-US')} feet.
+      Nothing on this page is a forecast.
+    </p>
+
+    <section class="section airy">
+      <h2>The whole record, 1937 to {lastRowDate.slice(0, 4)}</h2>
+      <div class="callout a" style="max-width:660px;">
+        <svg id="daily-svg" viewBox="0 0 960 300" width="100%" role="img" aria-label={'Lake Buchanan TWDB water level rows, ' + history.dailyStart + ' to ' + lastRowDate} style="display:block;max-width:100%;height:auto;"></svg>
+        <p class="callout-note" id="daily-readout">Loading the record…</p>
+        <div class="range-row" role="group" aria-label="Chart range">
+          <button class="btn small" id="daily-range" data-days="365">Last year</button>
+          <button class="btn small" id="daily-range-5" data-days="1825">5 years</button>
+          <button class="btn small" id="daily-range-all" data-days="0">Full record</button>
+        </div>
+      </div>
+      <p class="readable">
+        The last row in the file is <strong>{lastRowLabel}</strong>, when the lake stood at
+        {' '}{h.latestFt.toFixed(2)} feet above NAVD88 +0.26 (TWDB daily value). TWDB labels the file
+        "Estimated daily average data" and calls its values best estimates. The source file is
+        linked at the bottom of this page.
+      </p>
+    </section>
+
+    <section class="section airy">
+      <h2>Where the last row sits in the record</h2>
+      <p class="readable">
+        On {latestLabel}, the last row in the file, the TWDB value was {h.latestFt.toFixed(2)} feet (NAVD88 +0.26).
+        <span class="em-strong">{h.daysBelowLatest.toLocaleString('en-US')} of the
+        {h.totalDays.toLocaleString('en-US')} rows in the file are lower ({(100 * h.daysBelowLatest / h.totalDays).toFixed(1)} percent)</span>,
+        with the earliest of them on {fmtDate(h.firstBelowDate)}.
+        From {fmtDate(DAILY_FROM)}, when the rows become daily, {dailyLower.toLocaleString('en-US')} of the {dailyN.toLocaleString('en-US')} rows are lower ({(100 * dailyLower / dailyN).toFixed(1)} percent).
+        The file has a row for {sameLabel} in {sameN} years, from {sameFirstYear} to {lastRowDate.slice(0, 4)}.
+        Among those {sameN} rows, the {lastRowDate.slice(0, 4)} value ranks
+        <span class="em-strong"> #{sameHigher + 1} highest</span> ({sameHigher} are higher). The median of the {sameN} rows is
+        {' '}{sameMedian.toFixed(2)} feet, so the {lastRowDate.slice(0, 4)} value is {Math.abs(sameVsMedian).toFixed(2)} feet
+        {sameVsMedian >= 0 ? 'above' : 'below'} that median. The lowest {sameLabel} row is
+        {' '}{sameLowest[1].toFixed(2)} feet, on {fmtDate(sameLowest[0])}.
+      </p>
+      <p class="readable">
+        To check another date or elevation, use the two tools below. Both use the same TWDB file
+        and run in your browser.
+      </p>
+      <div class="callout a" style="max-width:660px;">
+        <h3 style="margin-bottom:8px;">Check any date against the record</h3>
+        <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input type="date" id="chart-date" min={history.dailyStart} max={lastRowDate} aria-label="Date to check" />
+          <button class="btn small" id="chart-date-go">Check</button>
+        </div>
+        <p class="callout-note" id="chart-date-out">Pick a date between {history.dailyStart} and {lastRowDate}.</p>
+      </div>
+      <div class="callout a" style="max-width:660px;">
+        <h3 style="margin-bottom:8px;">Check any elevation against the record</h3>
+        <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input type="number" id="chart-ft" step="0.01" min="900" max="1100" placeholder="e.g. 1000"
+            aria-label="Elevation in feet above NAVD88 +0.26 (TWDB datum)" style="max-width:140px;" />
+          <button class="btn small" id="chart-ft-go">Check</button>
+        </div>
+        <p class="callout-note" id="chart-ft-out">Enter an elevation in feet above NAVD88 +0.26, the TWDB datum.</p>
+      </div>
+    </section>
+
+    <section class="section airy">
+      <h2>The extremes the file actually contains</h2>
+      <p class="readable">
+        LCRA's dams-and-lakes page states a historic high of <strong>{HIGH.toLocaleString('en-US')} feet on
+        December 20, 1991</strong> and a historic low of <strong>{LOW.toLocaleString('en-US')} feet on
+        September 9, 1952</strong>. LCRA bases its table of lowest elevations on daily readings at 8 a.m. In the TWDB daily file, the
+        highest row is {h.recordHighFt.toFixed(2)} feet on {fmtDate(h.recordHighDate)}. That number is
+        {' '}{(HIGH - h.recordHighFt).toFixed(2)} feet lower than the LCRA high, and its date is one day later. The
+        lowest row on or after {fmtDate(CUTOFF)} is {h.postFillLowFt.toFixed(2)} feet on
+        {' '}{fmtDate(h.postFillLowDate)}, the same number and the same date as the LCRA low. The lowest row
+        in the whole file is {fileLowV.toFixed(2)} feet on {fmtDate(fileLowD)}, during the first fill.
+        LCRA values are in feet msl. TWDB values are daily values in feet above NAVD88 +0.26.
+        This page does not treat them as one measurement.
+      </p>
+      <p class="readable">
+        LCRA publishes a table of the six lowest Lake Buchanan elevations, based on daily readings at 8 a.m.
+        The list below puts each LCRA value next to the TWDB daily value for the same date.
+        For {lowsEqual.length} of the {LCRA_LOWS.length} dates the two numbers are equal. For
+        {' '}{lowsDiffer.map((r) => fmtDate(r.date)).join(' and ')} they differ.
+      </p>
+      <div class="def-table" id="lcra-lows" style="margin-top:12px;">
+        <div class="row"><div class="k"><strong>LCRA lowest elevations by drought</strong></div><div class="vv"><strong>LCRA 8 a.m. ft msl / TWDB daily ft (NAVD88 +0.26)</strong></div></div>
+        {LCRA_LOWS.map((r) => (
+          <div class="row"><div class="k">{r.rank}. {r.drought}, {fmtDate(r.date)}</div><div class="vv">{r.ft.toFixed(2)} / {twdbByDate.has(r.date) ? twdbByDate.get(r.date)!.toFixed(2) : 'no row'}</div></div>
+        ))}
+      </div>
+    </section>
+
+    <section class="section airy">
+      <h2>Does Buchanan have a season?</h2>
+      <p class="readable">Counting the {h.completeYears} full calendar years from 1943 to 2025 (each has at least 300 daily rows; 2026 is not complete), and asking only which month carried each year's highest and lowest reading, {h.peakMonth} carries the annual high in {h.peakMonthCount} of those years ({h.peakMonthShare} percent) and {h.troughMonth} carries the annual low in {h.troughMonthCount}, with {h.runnerUpTroughMonth} next at {h.runnerUpTroughCount}. If each month had the same chance, each month would carry about {Math.round(h.completeYears / 12)} of them. When a year's high (or low) value occurs on more than one date, the earliest of those dates counts, and the counts above follow that rule.</p>
+    </section>
+
+    <section class="section airy">
+      <h2>Where these numbers come from</h2>
+      <p class="readable">
+        How this page calculates. Rows lower = the number of rows in the TWDB file with a water level below the value of the last row; percent = rows lower divided by all rows, times 100.
+        Daily rows lower = the same count, using only rows from {fmtDate(DAILY_FROM)}.
+        Same-date rank = 1 + the number of rows on the same month and day (one per year) with a higher value. Rows with an equal value share a rank.
+        Median for the date = the middle value of those rows (the mean of the two middle values when the count is even), including the last row.
+        Difference from the median = the value of the last row minus that median.
+        Date check = the same counts, for the row of the date that you pick.
+        Elevation check = the number of rows above the entered value, divided by all rows, times 100.
+        LCRA comparison = the LCRA value next to the TWDB row of the same date, with no conversion between the two datums.
+        LCRA values fetched from https://www.lcra.org/water/dams-and-lakes/ on 2026-10-29.
+      </p>
+      <p class="readable">
+        One value on this page needs its own note: the full-pool elevation. LCRA's dams-and-lakes
+        page gives an elevation when full of 1,020 feet msl. The TWDB reservoir page gives a
+        conservation pool elevation of 1,020.00 ft above NAVD88 +0.26 from November 1, 2024. A TWDB
+        note dated June 12, 2025 says that, effective January 1, 2025, LCRA no longer operates Lake
+        Buchanan to a seasonal conservation pool. This page uses 1,020 for its full-pool line.
+        TWDB lists earlier conservation pool elevations of 1,020.50 ft until March 8, 1990, and
+        1,018.00 ft from May 1 to November 1 in the years from 1990 to 2024. Because the pool changed,
+        this page compares elevations across years, not percent full. This site's lake registry, which
+        the Lake Buchanan page uses, still carries 1,020.5 feet. A distance from full computed against
+        1,020.5 is 0.5 feet larger than one computed against 1,020. The datum label TWDB attaches
+        to the daily file is NAVD88 +0.26, and LCRA's marks are stated in feet msl. This page does
+        not claim the two are one measurement.
+      </p>
+      <p class="readable">
+        The chart and every rank come from <a href={TWDB_CSV} rel="noopener">the Texas Water Development Board daily file for Lake Buchanan (buchanan.csv)</a>
+        (<a href={TWDB_PAGE} rel="noopener">the Water Data for Texas page for Lake Buchanan</a>), fetched on {history.as_of.slice(0, 10)} at {history.as_of.slice(11, 16)} UTC. A second download on 2026-10-29 at 02:49 UTC had the same {h.totalDays.toLocaleString('en-US')} rows with the same values. The page prints the date of the
+        last row in the file ({lastRowLabel}) rather than claiming to be live. The four reference
+        lines come from <a href={LCRA_DAMS} rel="noopener">LCRA's dams-and-lakes page</a>, copied as
+        published.
+      </p>
+      <p class="readable">
+        This chart plots TWDB's daily file. The live reading on
+        {' '}<a href="/lake/lake-buchanan/">the Lake Buchanan page</a> comes from
+        {' '}<a href={USGS_SITE} rel="noopener">USGS site 08148000</a>, a USGS gage operated in cooperation with LCRA. That page uses its instantaneous values.
+        The two values can differ on the same day.
+      </p>
+      <p class="readable">
+        The TWDB file opens on June 30, 1937 at {twdbByDate.get(history.dailyStart)!.toFixed(2)} feet. LCRA gives 1938 as the year
+        Buchanan Dam was completed. The first row at 1,020.50 feet, the conservation pool elevation TWDB lists
+        for that time, is July 27, 1938. This page treats the 20 rows before January 1, 1939 as the first fill.
+        The chart, the count of lower rows, the same-date ranks and the two tools use every row in the file, from June 30, 1937. The count of lower daily rows uses only rows from September 30, 1942, and the season counts use only the {h.completeYears} calendar years from 1943 to 2025.
+        Two figures use only rows on or after January 1, 1939: the lowest row after the first fill, and
+        the date tool's count of lower rows on or after that date.
+      </p>
+      <p class="readable">
+        For the live reading, the 24-hour change and the 30-day trend, see
+        {' '}<a href="/lake/lake-buchanan/">the Lake Buchanan water level page</a>. A chart of the TWDB record for
+        {' '}<a href="/lake/lake-travis/chart/">Lake Travis</a> is also on this site.
+      </p>
+    </section>
+  </article>
+
+  <script define:vars={{ DSTART: history.dailyStart, DAILY, FULL, SPILL, HIGH, LOW, CUTOFF, latestFt: h.latestFt, latestDate: h.latestDate, totalDays: h.totalDays }}>
+    // Decode the delta-coded series: first token absolute hundredths, then base-36 deltas,
+    // 'g<gap>:' tokens skip days, per scripts/fetch-lake-history.mjs.
+    (function () {
+      var tokens = DAILY.split(',');
+      var dates = [], valsH = [], tms = [];
+      var t = Date.parse(DSTART + 'T00:00:00Z'), cur = null;
+      for (var i = 0; i < tokens.length; i++) {
+        var tk = tokens[i];
+        if (i === 0) { cur = parseInt(tk, 10); }
+        else {
+          var gi = tk.indexOf(':');
+          if (tk.charAt(0) === 'g' && gi > 0) { t += parseInt(tk.slice(1, gi), 36) * 86400000; tk = tk.slice(gi + 1); }
+          else { t += 86400000; }
+          cur += parseInt(tk, 36);
+        }
+        if (!isFinite(cur) || !isFinite(t)) return;
+        dates.push(new Date(t).toISOString().slice(0, 10)); tms.push(t);
+        valsH.push(cur / 100);
+      }
+      if (!valsH.length) return;
+
+      var fmtD = function (s) {
+        var d = new Date(s + 'T00:00:00Z');
+        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+      };
+
+      // ---- date checker ----------------------------------------------------------------
+      var dOut = document.getElementById('chart-date-out');
+      function runDate() {
+        var inp = document.getElementById('chart-date');
+        if (!inp || !inp.value) { dOut.textContent = 'Pick a date between ' + dates[0] + ' and ' + dates[dates.length - 1] + '.'; return; }
+        var want = inp.value;
+        if (want < dates[0] || want > dates[dates.length - 1]) {
+          dOut.textContent = 'No row for ' + want + ' in the file (' + dates[0] + ' to ' + dates[dates.length - 1] + ').';
+          return;
+        }
+        var idx = -1;
+        for (var i = 0; i < dates.length; i++) { if (dates[i] === want) { idx = i; break; } }
+        if (idx < 0 || valsH[idx] == null) { dOut.textContent = 'No row for ' + fmtD(want) + ' in the file.'; return; }
+        var v = valsH[idx], below = 0, sinceCutoff = 0;
+        for (var j = 0; j < valsH.length; j++) {
+          if (valsH[j] != null && valsH[j] < v) { below++; if (dates[j] >= CUTOFF) sinceCutoff++; }
+        }
+        var pct = (below / valsH.length) * 100;
+        dOut.textContent = 'On ' + fmtD(want) + ' Lake Buchanan stood at ' + v.toFixed(2) + ' ft (TWDB daily value, NAVD88 +0.26). '
+          + below.toLocaleString('en-US') + ' of the ' + valsH.length.toLocaleString('en-US')
+          + ' rows in the file are lower, that is '
+          + (pct < 1 || pct > 99 ? pct.toFixed(3) : pct.toFixed(1)) + ' percent of the record'
+          + (sinceCutoff === 0 ? ', and no row on or after ' + CUTOFF + ' is lower.' : ', with ' + sinceCutoff.toLocaleString('en-US') + ' of the lower rows falling on or after ' + CUTOFF + '.');
+        var md = want.slice(5), sameN = 0, higher = 0;
+        for (var s = 0; s < dates.length; s++) { if (dates[s].slice(5) === md) { sameN++; if (valsH[s] > v) higher++; } }
+        dOut.textContent += ' Against the same calendar date in the ' + sameN + ' years with a row for it, this value ranks #' + (higher + 1) + ' highest.';
+      }
+      var dGo = document.getElementById('chart-date-go');
+      if (dGo) dGo.addEventListener('click', runDate);
+      var dInput = document.getElementById('chart-date');
+      if (dInput) dInput.addEventListener('change', runDate);
+
+      // ---- elevation checker ------------------------------------------------------------
+      var fOut = document.getElementById('chart-ft-out');
+      function runFt() {
+        var inp = document.getElementById('chart-ft');
+        if (!inp || inp.value === '') { fOut.textContent = 'Enter a number from 900 to 1100 feet (TWDB datum, NAVD88 +0.26).'; return; }
+        var v = parseFloat(inp.value);
+        if (!isFinite(v) || v < 900 || v > 1100) { fOut.textContent = 'Enter a number from 900 to 1100 feet (TWDB datum, NAVD88 +0.26).'; return; }
+        var above = 0;
+        for (var j = 0; j < valsH.length; j++) { if (valsH[j] != null && valsH[j] > v) above++; }
+        var pct = (above / valsH.length) * 100;
+        fOut.textContent = 'The lake has been above ' + v.toFixed(2) + ' ft (NAVD88 +0.26) on '
+          + above.toLocaleString('en-US') + ' of ' + valsH.length.toLocaleString('en-US')
+          + ' rows in the file (' + (pct < 1 || pct > 99 ? pct.toFixed(3) : pct.toFixed(1)) + ' percent of the record'
+          + (above === 0 ? '; no row in the file is above that elevation).' : ').');
+      }
+      var fGo = document.getElementById('chart-ft-go');
+      if (fGo) fGo.addEventListener('click', runFt);
+      var fInput = document.getElementById('chart-ft');
+      if (fInput) fInput.addEventListener('change', runFt);
+
+      // ---- daily chart with range controls ----------------------------------------------
+      var dsvg = document.getElementById('daily-svg');
+      var dread = document.getElementById('daily-readout');
+      var NS = 'http://www.w3.org/2000/svg';
+      var DW = 960, DH = 300, DPL = 56, DPR = 16, DPT = 14, DPB = 28;
+      var MARKS = [[FULL, 'Full', -4, 'elevation when full'], [SPILL, 'Spillway', -4, 'overflow spillway'], [HIGH, 'LCRA high', 12, 'historic high'], [LOW, 'LCRA low', 12, 'historic low']];
+      var shownMarks = [], markLabelYs = [], curDays = 0;
+      var view = { i0: 0, i1: 0, yMin: 0, yMax: 1 };
+
+      function el(name, attrs) {
+        var n = document.createElementNS(NS, name);
+        var keys = Object.keys(attrs);
+        for (var k = 0; k < keys.length; k++) n.setAttribute(keys[k], String(attrs[keys[k]]));
+        return n;
+      }
+      function txt(x, y, s, anchor, op, halo) {
+        var a = { x: x, y: y, 'text-anchor': anchor, 'font-size': 12, fill: 'currentColor', 'fill-opacity': op };
+        if (halo) a.style = 'stroke:var(--amber-bg);stroke-width:4px;stroke-linejoin:round;paint-order:stroke;';
+        var t = el('text', a);
+        t.appendChild(document.createTextNode(s));
+        return t;
+      }
+      function dx(i) { return DPL + ((tms[i] - tms[view.i0]) / Math.max(1, tms[view.i1] - tms[view.i0])) * (DW - DPL - DPR); }
+      function dy(v) { return DPT + (1 - (v - view.yMin) / (view.yMax - view.yMin)) * (DH - DPT - DPB); }
+
+      function setRange(days) {
+        if (!dates.length) return;
+        var n = dates.length;
+        view.i1 = n - 1;
+        view.i0 = days > 0 ? Math.max(0, n - 1 - days) : 0;
+        var lo = Infinity, hi = -Infinity;
+        for (var i = view.i0; i <= view.i1; i++) { if (valsH[i] < lo) lo = valsH[i]; if (valsH[i] > hi) hi = valsH[i]; }
+        var pad = Math.max(0.5, (hi - lo) * 0.08);
+        view.yMin = Math.floor(lo - pad);
+        view.yMax = Math.ceil(hi + pad);
+        if (days === 0) { view.yMin = Math.min(view.yMin, LOW); view.yMax = Math.max(view.yMax, SPILL); }
+        if (view.yMax <= view.yMin) view.yMax = view.yMin + 1;
+      }
+
+      function drawAxes() {
+        var step = (view.yMax - view.yMin) > 60 ? 20 : ((view.yMax - view.yMin) > 20 ? 5 : 1);
+        var v0 = Math.ceil(view.yMin / step) * step;
+        for (var v = v0, guard = 0; v <= view.yMax && guard < 40; v += step, guard++) {
+          dsvg.appendChild(el('line', { x1: DPL, y1: dy(v), x2: DW - DPR, y2: dy(v), stroke: 'currentColor', 'stroke-opacity': 0.10, 'stroke-width': 1 }));
+          dsvg.appendChild(txt(DPL - 8, dy(v) + 4, String(v), 'end', 0.55));
+        }
+        var span = view.i1 - view.i0;
+        var ticks = DW < 560 ? 2 : 6;
+        for (var t = 0; t <= ticks; t++) {
+          var idx = view.i0 + Math.round((span * t) / ticks);
+          if (idx < 0 || idx >= dates.length) continue;
+          var label = span > 3000 ? dates[idx].slice(0, 4) : dates[idx].slice(0, 7);
+          dsvg.appendChild(txt(dx(idx), DH - DPB + 18, label, t === 0 ? 'start' : (t === ticks ? 'end' : 'middle'), 0.55));
+        }
+        // reference marks; labels of lines closer than 14 px share one label so they do not overlap
+        shownMarks = [];
+        var groups = [];
+        for (var mi = 0; mi < MARKS.length; mi++) {
+          var mk = MARKS[mi];
+          if (mk[0] < view.yMin || mk[0] > view.yMax) continue;
+          shownMarks.push(mk[3] + ' (' + mk[0] + ' ft msl)');
+          dsvg.appendChild(el('line', { x1: DPL, y1: dy(mk[0]), x2: DW - DPR, y2: dy(mk[0]), stroke: 'currentColor', 'stroke-opacity': 0.35, 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+          var g = null;
+          for (var gi2 = 0; gi2 < groups.length; gi2++) { if (Math.abs(groups[gi2].y - dy(mk[0])) < 14) g = groups[gi2]; }
+          if (g) { g.names.push(mk[1]); g.y = Math.min(g.y, dy(mk[0])); g.below = false; }
+          else groups.push({ y: dy(mk[0]), names: [mk[1]], below: mk[2] > 0 });
+        }
+        markLabelYs = [];
+        for (var gk = 0; gk < groups.length; gk++) {
+          var ly = groups[gk].below ? groups[gk].y + 14 : groups[gk].y - 4;
+          markLabelYs.push(ly);
+          dsvg.appendChild(txt(DW - DPR - 4, ly, groups[gk].names.join(' / '), 'end', 0.7, true));
+        }
+      }
+
+      function drawSeries() {
+        var pts = [];
+        var stepS = 1;
+        for (var i = view.i0; i <= view.i1; i += stepS) {
+          if (valsH[i] == null) continue;
+          pts.push(dx(i).toFixed(1) + ',' + dy(valsH[i]).toFixed(1));
+        }
+        if (pts.length > 1) {
+          dsvg.appendChild(el('polyline', { points: pts.join(' '), fill: 'none', stroke: 'currentColor', 'stroke-width': 1.4, 'stroke-opacity': 0.9 }));
+        }
+        var li = view.i1;
+        if (valsH[li] != null) {
+          dsvg.appendChild(el('circle', { cx: dx(li), cy: dy(valsH[li]), r: 3, fill: 'currentColor' }));
+          // value label left of the last point, moved below or above when it would touch a mark label
+          var vy = dy(valsH[li]) - 8, clash = false;
+          for (var q = 0; q < markLabelYs.length; q++) { if (Math.abs(markLabelYs[q] - vy) < 14) clash = true; }
+          if (clash) vy = dy(valsH[li]) + 18 > DH - DPB ? dy(valsH[li]) - 10 : dy(valsH[li]) + 18;
+          dsvg.appendChild(txt(dx(li) - 8, vy, valsH[li].toFixed(2), 'end', 0.85, true));
+        }
+      }
+
+      function draw(days) {
+        curDays = days;
+        // match the drawing units to the rendered width, so 12-unit text shows at 12 px on each screen
+        var rw = Math.round(dsvg.getBoundingClientRect().width || 0);
+        DW = rw >= 280 ? rw : 960;
+        DH = Math.max(200, Math.min(300, Math.round(DW * 0.5)));
+        DPL = DW < 560 ? 44 : 56;
+        while (dsvg.firstChild) dsvg.removeChild(dsvg.firstChild);
+        dsvg.setAttribute('viewBox', '0 0 ' + DW + ' ' + DH);
+        setRange(days);
+        drawAxes();
+        drawSeries();
+        dsvg.setAttribute('aria-label', 'Lake Buchanan TWDB water level rows, ' + dates[view.i0] + ' to ' + dates[view.i1]);
+        var markText = shownMarks.length === 0 ? ' No LCRA mark falls inside this range.'
+          : ' Dashed lines, LCRA values: ' + (shownMarks.length > 1 ? shownMarks.slice(0, -1).join(', ') + ' and ' + shownMarks[shownMarks.length - 1] : shownMarks[0]) + '.';
+        dread.textContent = 'All ' + (view.i1 - view.i0 + 1).toLocaleString('en-US') + ' TWDB rows from ' + dates[view.i0] + ' to ' + dates[view.i1]
+          + ', in feet above NAVD88 +0.26.' + markText;
+      }
+
+      var buttons = document.querySelectorAll('[data-days]');
+      for (var bi = 0; bi < buttons.length; bi++) {
+        (function (b) {
+          b.addEventListener('click', function () {
+            draw(parseInt(b.getAttribute('data-days'), 10));
+            for (var bj = 0; bj < buttons.length; bj++) buttons[bj].setAttribute('aria-pressed', buttons[bj] === b ? 'true' : 'false');
+          });
+        })(buttons[bi]);
+      }
+      var lastW = 0, rt = null;
+      window.addEventListener('resize', function () {
+        clearTimeout(rt);
+        rt = setTimeout(function () { var w = Math.round(dsvg.getBoundingClientRect().width || 0); if (w && w !== lastW) { lastW = w; draw(curDays); } }, 150);
+      });
+      draw(0); // full record first
+      lastW = Math.round(dsvg.getBoundingClientRect().width || 0);
+      for (var bk = 0; bk < buttons.length; bk++) buttons[bk].setAttribute('aria-pressed', buttons[bk].getAttribute('data-days') === '0' ? 'true' : 'false');
+    })();
+  </script>
+  </div>
+</BaseLayout>
