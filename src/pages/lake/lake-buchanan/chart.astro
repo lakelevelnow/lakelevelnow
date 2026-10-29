@@ -102,7 +102,13 @@ const description = `The Texas Water Development Board record for Lake Buchanan,
 
 const schemaLd = [
   breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Lakes', path: '/lakes' }, { name: 'Lake Buchanan', path: '/lake/lake-buchanan/' }, { name: 'Water level chart', path: PATH }]),
-  authorLd(),
+  {
+    ...authorLd(),
+    description: authorLd().description.replace(
+      'Pulls every LakeLevelNow reading from the same USGS, CDEC, USBR and TWDB feeds the operators report to.',
+      'Pulls each LakeLevelNow reading from public USGS, CDEC, USBR, TWDB and USACE CWMS data feeds. This page uses the TWDB daily file for Lake Buchanan.',
+    ),
+  },
 ];
 
 const fmtDate = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', {
