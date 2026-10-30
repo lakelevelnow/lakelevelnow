@@ -21,7 +21,8 @@ const { title, description, path, ogImage, noindex, robots, brand = true, jsonLd
 const ld = [organizationLd(), websiteLd(), ...jsonLd];
 const adPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
-  adPath.startsWith('/lake/') || adPath === '/california-lake-levels' || adPath === '/texas-lake-levels');
+  adPath.startsWith('/lake/') || adPath.startsWith('/guides/') ||
+  adPath === '/california-lake-levels' || adPath === '/texas-lake-levels');
 ---
 
 <!DOCTYPE html>
