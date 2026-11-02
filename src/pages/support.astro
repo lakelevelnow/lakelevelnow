@@ -2,41 +2,72 @@
 // /support/: why the site asks for tips. Thin by design, so it is noindex,follow and kept
 // out of the sitemap (astro.config.mjs). Linked from the footer block ("Why I ask") and the
 // footer link list.
+// Cost figures are the owner's real monthly numbers (2026-11-02): GitHub Actions ~$200,
+// Cloudflare ~$100, owner time 20 h x $175 = $3,500, total ~$3,800/mo (~$45,600/yr).
+// Per day = 3800 * 12 / 365 = ~$125; per lake = 3800 / LAKES. Visible copy has no colons.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import cfg from '../data/monetization.json';
+import lakes from '../data/lakes.json';
 const BMC = cfg.support.bmc;
 const PAYPAL = cfg.support.paypal;
 const GH = 'https://github.com/sponsors/theluckystrike';
+const LAKES = lakes.length;
+const STATES = new Set(lakes.map((l) => l.state)).size;
+const MONTHLY = 3800;
+const PER_DAY = Math.round((MONTHLY * 12) / 365);
+const PER_LAKE = Math.round(MONTHLY / LAKES);
 const title = 'Support LakeLevelNow';
-const description = 'Who builds LakeLevelNow, what it costs to run, and how to leave a small tip.';
+const description = 'LakeLevelNow is free to use. Here is what it really costs to keep every lake reading live, and how to chip in.';
+const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>';
 ---
 <BaseLayout title={title} description={description} path="/support" robots="noindex,follow">
   <div class="container">
     <article class="prose" data-support-cta="support_page">
-      <h1>Why I ask for tips</h1>
+      <h1>Free for you. Not free to run.</h1>
       <div class="sp-who">
         <picture><source srcset="/kit/michael-128.webp" type="image/webp" /><img class="sp-face" src="/kit/michael-128.jpg" width="64" height="64" alt="Michael Lip" /></picture>
-        <p>Hi, I'm Michael. Thank you for being here.</p>
+        <p>Hi, I'm Michael. I build and run LakeLevelNow on my own.</p>
       </div>
-      <p>I build and run LakeLevelNow on my own. I started it in June 2026. Since then I added 44 lakes and a daily job that pulls fresh readings from public USGS, CDEC, USBR and TWDB data. About 300 people a month find it on Google.</p>
-      <h2>What it costs me each year</h2>
+      <p>You pay nothing to check {LAKES} lakes in {STATES} states. Behind each reading is a daily job that pulls fresh data from five public agency feeds (USGS, USBR, the Army Corps, California's CDEC and Texas's TWDB), checks it and rebuilds every lake page. Keeping that live costs me about ${MONTHLY.toLocaleString('en-US')} a month.</p>
+      <div class="sp-stats" role="list">
+        <div class="sp-stat" role="listitem"><b>$0</b><span>what you pay</span></div>
+        <div class="sp-stat" role="listitem"><b>~${PER_DAY}</b><span>a day to keep it live</span></div>
+        <div class="sp-stat" role="listitem"><b>{LAKES}</b><span>lakes in {STATES} states</span></div>
+      </div>
+      <p class="sp-lead">A $5 coffee keeps every lake on the site live for about an hour.</p>
+      <div class="sp-row sp-row-top">
+        <a class="btn sp-btn sp-main" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><Fragment set:html={cup} />Buy me a coffee</a>
+        <a class="btn ghost sp-btn" href={`${PAYPAL}/5USD`} target="_blank" rel="noopener" data-rail="paypal">$5 on PayPal</a>
+      </div>
+
+      <h2>What it costs each month</h2>
       <table class="sp-cost">
+        <thead>
+          <tr><th scope="col">What</th><th scope="col">Per month</th></tr>
+        </thead>
         <tbody>
-          <tr><th scope="row">Domain (lakelevelnow.com, .com renewal at <a href="https://porkbun.com/products/domains" rel="nofollow noopener" target="_blank">Porkbun</a>)</th><td>about $11</td></tr>
-          <tr><th scope="row">Hosting (GitHub Pages)</th><td>$0</td></tr>
-          <tr><th scope="row">Gage data (USGS, CDEC, USBR, TWDB)</th><td>$0</td></tr>
-          <tr><th scope="row">Total in cash</th><td>about $11</td></tr>
+          <tr><th scope="row">GitHub Actions<small>The daily build that fetches every reading and rebuilds the site</small></th><td>about $200</td></tr>
+          <tr><th scope="row">Cloudflare<small>Workers for almanac downloads and a backup copy of the site</small></th><td>about $100</td></tr>
+          <tr><th scope="row">My time<small>20 hours at $175 an hour, fixing feeds, adding lakes and checking the numbers</small></th><td>$3,500</td></tr>
+          <tr class="sp-total"><th scope="row">Total<small>About $45,600 a year</small></th><td>about ${MONTHLY.toLocaleString('en-US')}</td></tr>
         </tbody>
       </table>
-      <p>The rest is my time: keeping the gage feeds working when an agency changes its format, and checking the numbers.</p>
-      <h2>What tips pay for</h2>
+      <p>That is about ${PER_DAY} a day, or about ${PER_LAKE} for each lake every month. You pay none of it. The site has no paywall and no sign-up.</p>
+
+      <h2>What the money buys</h2>
       <ul>
-        <li>The domain renewal, first.</li>
-        <li>Time to fix a feed when it breaks, so readings stay current.</li>
+        <li>A fresh reading every day for each lake with a live gage.</li>
+        <li>The site staying up and free for everyone.</li>
+        <li>Repairs when an agency changes its data format, so readings stay current.</li>
         <li>New lakes that people ask for.</li>
       </ul>
-      <p>Tips unlock nothing. Everyone gets the same tool. Lake pages may show ads, and I sell an optional paid almanac. A tip is separate from both.</p>
-      <p class="sp-k">Pick an amount on PayPal:</p>
+
+      <h2>Doing it by hand instead</h2>
+      <p>Without LakeLevelNow you would open the USGS water data site, CDEC, the USBR Lower Colorado pages, Water Data for Texas and Army Corps district pages. Each one has its own layout and units. Then you would look up each lake's full pool level and work out how far below it the lake sits. LakeLevelNow does that work for you every day, and you pay $0 for it.</p>
+
+      <h2>If you want to chip in</h2>
+      <p>$5 covers about an hour of running costs. $20 covers about four.</p>
+      <p class="sp-k">Pick an amount on PayPal.</p>
       <div class="sp-row">
         <a class="btn sp-btn sp-amt" href={`${PAYPAL}/5USD`} target="_blank" rel="noopener" data-rail="paypal">$5</a>
         <a class="btn ghost sp-btn sp-amt" href={`${PAYPAL}/10USD`} target="_blank" rel="noopener" data-rail="paypal">$10</a>
@@ -44,14 +75,14 @@ const description = 'Who builds LakeLevelNow, what it costs to run, and how to l
         <a class="btn ghost sp-btn" href={PAYPAL} target="_blank" rel="noopener" data-rail="paypal">Other amount</a>
       </div>
       <div class="sp-row">
-        <a class="btn ghost sp-btn" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>Card, any amount or monthly</a>
+        <a class="btn ghost sp-btn" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><Fragment set:html={cup} />Card, any amount or monthly</a>
         <a class="sp-gh" href={GH} target="_blank" rel="noopener" data-rail="github">Sponsor on GitHub <small>monthly or one-time</small></a>
       </div>
       <p class="sp-micro">Prefer monthly? On Buy Me a Coffee you can tick "Make this monthly". You can cancel at any time.</p>
       <p>PayPal shows my legal name, Michał Lip.</p>
-      <p>This is a tip, not a purchase. You get nothing extra, and you owe nothing.</p>
+      <p>A tip adds nothing to what you see. Everyone gets the same tool. Lake pages may show ads, and I sell an optional paid almanac. A tip is separate from both, and you owe nothing.</p>
       <p>The tip card on lake pages counts your visits so it can thank returning visitors. The use count on this site stays in your browser. I never see it.</p>
-      <p>The site stays free either way.</p>
+      <p>The site stays free either way. Thank you for being here.</p>
       <p>- Michael</p>
     </article>
   </div>
@@ -59,6 +90,7 @@ const description = 'Who builds LakeLevelNow, what it costs to run, and how to l
 
 <style>
   .sp-row { display: flex; flex-wrap: wrap; gap: 10px 12px; margin-top: 20px; }
+  .sp-row-top { margin-top: 12px; }
   .sp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 18px; text-decoration: none; }
   .sp-btn:hover { text-decoration: none; }
   .sp-amt { min-width: 64px; }
@@ -67,11 +99,25 @@ const description = 'Who builds LakeLevelNow, what it costs to run, and how to l
   .sp-who { display: flex; align-items: center; gap: 14px; margin: 8px 0 16px; }
   .sp-who p { margin: 0; }
   .sp-face { display: block; width: 64px; height: 64px; border-radius: 50%; object-fit: cover; flex: none; }
-  .sp-cost { border-collapse: collapse; width: 100%; max-width: 520px; font-size: 14px; margin: 8px 0 14px; }
-  .sp-cost th, .sp-cost td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); font-weight: 400; color: var(--t2); }
-  .sp-cost td { text-align: right; white-space: nowrap; color: var(--t1); font-variant-numeric: tabular-nums; }
-  .sp-cost tr:last-child th, .sp-cost tr:last-child td { font-weight: 600; color: var(--t1); }
+  .sp-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 18px 0 6px; max-width: 520px; }
+  .sp-stat { background: var(--card); border: 1px solid var(--border); border-radius: var(--r, 10px); padding: 12px 8px; text-align: center; min-width: 0; }
+  .sp-stat b { display: block; font-size: 22px; line-height: 1.15; color: var(--t1); font-variant-numeric: tabular-nums; }
+  .sp-stat span { display: block; font-size: 12px; line-height: 1.3; color: var(--t2); margin-top: 4px; }
+  article.prose .sp-lead { font-weight: 600; color: var(--t1); margin: 16px 0 0; }
+  /* Global th is nowrap + uppercase; reset it here so the table fits a 360 px screen. */
+  .sp-cost { border-collapse: collapse; width: 100%; max-width: 520px; table-layout: fixed; font-size: 14px; margin: 8px 0 14px; }
+  .sp-cost th, .sp-cost td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); font-weight: 400; color: var(--t1); white-space: normal; text-transform: none; letter-spacing: 0; font-size: 14px; background: none; vertical-align: top; overflow-wrap: anywhere; }
+  .sp-cost thead th { font-size: 12px; color: var(--t3); font-weight: 600; }
+  .sp-cost th:first-child { padding-left: 0; }
+  .sp-cost td, .sp-cost thead th:last-child { text-align: right; width: 104px; padding-right: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .sp-cost tbody th { font-weight: 600; }
+  .sp-cost th small { display: block; font-size: 13px; font-weight: 400; color: var(--t2); line-height: 1.4; margin-top: 2px; }
+  .sp-cost .sp-total th, .sp-cost .sp-total td { font-weight: 700; border-bottom: none; border-top: 2px solid var(--border-mid, var(--border)); }
+  .sp-cost tr:hover td { background: none; }
   .sp-k { margin-top: 22px; font-size: 14px; }
   article.prose .sp-micro { font-size: 13px; color: var(--t2); margin-top: 10px; }
-  @media (max-width: 420px) { .sp-btn:not(.sp-amt) { flex: 1 1 100%; } }
+  @media (max-width: 420px) {
+    .sp-btn:not(.sp-amt) { flex: 1 1 100%; }
+    .sp-stat b { font-size: 19px; }
+  }
 </style>
