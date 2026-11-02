@@ -5,6 +5,7 @@
 // Astro page so the depth recomputes from src/data on every weekly build, exactly like
 // the sibling lake pages. Every displayed number is a deterministic transform of the
 // validated reading + published constants; nothing is typed by hand.
+import AdSlot from '../../../components/AdSlot.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import DepthGauge from '../../../components/DepthGauge.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
@@ -130,6 +131,9 @@ const faqs = [
 
     {qas && <p class="qas" data-keyword="lake powell water depth" style="font-size:15px;color:var(--t1);margin-top:14px;max-width:660px;font-weight:500;">{qas}</p>}
 
+    {/* adsense-mobile 2026-11-02: first ad after the H1 and the one-sentence answer. */}
+    <AdSlot pos="top" />
+
     {live && reading ? (
       <DepthGauge reading={reading} bed={BED} maxDepthFt={band.maxDepthFullPoolFt} fullPoolFt={band.fullPoolFt} lakeName="Lake Powell" />
     ) : (
@@ -216,6 +220,8 @@ const faqs = [
         </p>
       )}
     </section>
+
+    <AdSlot pos="mid" />
 
     <section class="section airy">
       <h2 style="margin-bottom:8px;">How the depth is changing</h2>
@@ -316,6 +322,8 @@ const faqs = [
       <h2 style="margin-bottom:4px;">Questions about Lake Powell's depth</h2>
       {faqs.map((f) => <div class="faq-item"><div class="q">{f.q}</div><div class="a">{f.a}</div></div>)}
     </section>
+
+    <AdSlot pos="end" />
 
     <section class="section" style="padding-bottom:48px;">
       <h2 style="margin-bottom:8px;">Where these numbers come from</h2>

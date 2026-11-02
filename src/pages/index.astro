@@ -1,4 +1,5 @@
 ---
+import AdSlot from '../components/AdSlot.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../consts';
 import { LAKES, freshLakes, byState, getReading, status, fmtNum, stateName } from '../lib/lakes';
@@ -59,6 +60,9 @@ const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
       />
     </section>
 
+    {/* adsense-mobile 2026-11-02: first ad after the H1, the lead and the short answer. */}
+    <AdSlot pos="top" />
+
     {almFeature && (
       <section class="alm-home">
         <p class="alm-home-k">Is that level normal?</p>
@@ -84,7 +88,7 @@ const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
         <a class="see-all" href="/lakes">See all →</a>
       </div>
       <div class="grid cols-2">
-        {fresh.map(({ lake, reading }) => {
+        {fresh.map(({ lake, reading }, i) => {
           const st = levelStatus(lake.slug, reading);
           const hex = toneHex(st.tone);
           const val = reading.pct_full != null ? `${reading.pct_full}%` : `${fmtNum(reading.level_ft,1)} ft`;
@@ -93,6 +97,8 @@ const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
           const barProxy = ({ green: 92, cyan: 72, amber: 48, red: 18 } as const)[st.tone];
           const bar = reading.pct_full != null ? `${reading.pct_full}%` : `${barProxy}%`;
           return (
+            <>
+            {i === 6 && <AdSlot pos="mid" wide />}
             <a class="lake-card" href={`/lake/${lake.slug}`}>
               <div class="top">
                 <div><div class="name">{lake.name}</div><div class="sub">{lake.river} · {lake.state}</div></div>
@@ -101,6 +107,7 @@ const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
               <div class="status-row"><span class="d" style={`background:${hex}`}></span><span>{st.label}</span></div>
               <div class="bar"><i style={`width:${bar};background:${hex}`}></i></div>
             </a>
+            </>
           );
         })}
       </div>
@@ -148,6 +155,8 @@ const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
         <div class="faq-item"><div class="q">{f.q}</div><div class="a">{f.a}</div></div>
       ))}
     </section>
+
+    <AdSlot pos="end" />
 
   </div>
 </BaseLayout>

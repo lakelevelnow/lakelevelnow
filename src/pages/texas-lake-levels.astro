@@ -8,6 +8,7 @@
 // for that file and says so on the page. Every figure is rendered into the HTML here. The
 // client script only filters and re-orders rows that are already in the HTML. No browser
 // fetch, no JSON island.
+import AdSlot from '../components/AdSlot.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { authorLd, breadcrumbLd, absUrl, orgRef } from '../lib/seo';
 import { AUTHOR, SITE } from '../consts';
@@ -306,6 +307,9 @@ const ld = [crumbs, person, articleLd, datasetLd];
       <p class="byline">By <a href={AUTHOR.url}>{AUTHOR.name}</a>, independent developer and sole operator of {SITE.name}. Statewide reading dated {swDate}.</p>
     </section>
 
+    {/* adsense-mobile 2026-11-02: first ad after the H1 and the intro, inside the first phone screen. */}
+    <AdSlot pos="top" />
+
     <section class="section">
       <p class="section-k">The answer</p>
       <h2 class="section-h">Statewide reservoir storage in Texas</h2>
@@ -365,6 +369,8 @@ const ld = [crumbs, person, articleLd, datasetLd];
         ? 'For these reservoirs TWDB bases percent full on the Texas share, not on the whole lake. The file also lists Elephant Butte Lake, which is in New Mexico. TWDB notes that it supplies part of the water for El Paso when water is available.'
         : 'For these reservoirs TWDB bases percent full on the Texas share, not on the whole lake.'}</p>
     </section>
+
+    <AdSlot pos="mid" />
 
     <section class="section">
       <p class="section-k">How we know</p>

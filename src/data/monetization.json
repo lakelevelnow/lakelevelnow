@@ -1,10 +1,11 @@
 {
-  "_comment": "Owner switches. adsense.slots: paste the two display ad unit IDs (digits only) from AdSense > Ads > By ad unit > Display ads. Until a unit ID is set its slot stays hidden and reserves no space; the AdSense site script still loads for non-EEA/UK/CH visitors so the site can be reviewed. Do NOT turn on Auto ads for this site: it can place an ad above the gauge. support: the voluntary tip rails (Buy Me a Coffee primary, PayPal.Me secondary) used by SupportLine.astro and /support/.",
+  "_comment": "Owner switches. adsense.slots: the display ad unit IDs (digits only) for the three manual positions (top = first ad after the H1 and intro, mid = inside the content, end = after the content). Change them here only; AdSlot.astro reads them. An empty ID hides that slot. Auto ads stay under owner control in the AdSense UI (adsense-mobile 2026-11-02). support: the voluntary tip rails (Buy Me a Coffee primary, PayPal.Me secondary) used by SupportLine.astro and /support/.",
   "adsense": {
     "client": "ca-pub-2241192243363112",
     "slots": {
-      "lakeMid": "5693152633",
-      "lakeEnd": "1902081438"
+      "top": "5693152633",
+      "mid": "1902081438",
+      "end": "1255214171"
     }
   },
   "support": {

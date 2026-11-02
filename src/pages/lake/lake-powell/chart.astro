@@ -24,6 +24,7 @@
 //   - No interval between the first row and the closing of the dam gates. No source in hand
 //     gives the closure date, only the year.
 //   - No factual claim about what other trackers plot or how far back their charts go.
+import AdSlot from '../../../components/AdSlot.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
 import {
@@ -151,6 +152,9 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
     </div>
 
     <p class="qas" data-keyword="lake powell water level chart" style="font-size:15px;color:var(--t1);margin-top:14px;max-width:660px;font-weight:500;">{qas}</p>
+
+    {/* adsense-mobile 2026-11-02: first ad after the H1 and the one-sentence answer. */}
+    <AdSlot pos="top" />
 
     <section class="section" style="margin-top:18px;">
       <figure style="margin:0;">
@@ -410,6 +414,8 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
       <p class="readable"><strong>Why does this chart differ from the live reading elsewhere on the site?</strong> Because they are different series. This chart plots Reclamation's daily pool elevation for site 919. The live reading comes from USGS gage 09379900, sampled every fifteen minutes. Both are federal, neither is wrong, and they are not the same measurement.</p>
       <p class="readable"><strong>How often does it update?</strong> The file is refetched and every figure on this page recomputed on each build, which runs daily.</p>
     </section>
+
+    <AdSlot pos="end" />
 
     <section class="section airy">
       <h2>Where these numbers come from</h2>

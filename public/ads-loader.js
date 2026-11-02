@@ -5,7 +5,8 @@
    Control or Do Not Track asks Google for non-personalized ads.
    Runs on lakelevelnow.com and www only: on localhost, 127.0.0.1 and the workers.dev preview no
    ad request is made. A slot that Google reports as unfilled, or whose script fails to load,
-   is hidden so no empty "Advertisement" label is left behind. */
+   is hidden so no empty "Advertisement" label is left behind. Slots render hidden with no
+   reserved height (AdSlot.astro); the loader adds .ad-live (min-height) only when it loads. */
 (function () {
   'use strict';
   var w = window, d = document;
@@ -15,11 +16,12 @@
   var TRACE = 'https://lakelevelnow.lipmichal.workers.dev/cdn-cgi/trace';
   var REGION = ('AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE ' +
     'IS LI NO GB CH AX GF GP MQ RE YT MF GG JE IM GI').split(' ');
-  function collapse() { slots.forEach(function (s) { s.hidden = true; s.style.minHeight = '0'; }); }
+  function hide(box) { box.classList.remove('ad-live'); box.style.minHeight = ''; box.hidden = true; }
+  function collapse() { slots.forEach(hide); }
   function watch(box, ins) {
     if (!w.MutationObserver) return;
     new MutationObserver(function () {
-      if (ins.getAttribute('data-ad-status') === 'unfilled') box.hidden = true;
+      if (ins.getAttribute('data-ad-status') === 'unfilled') hide(box);
     }).observe(ins, { attributes: true, attributeFilter: ['data-ad-status'] });
   }
   function load(cc) {
@@ -38,7 +40,7 @@
     (d.head || d.documentElement).appendChild(s);
     slots.forEach(function (box) {
       var id = box.getAttribute('data-ad-slot-id');
-      if (!id || !/^\d{6,20}$/.test(id)) { box.hidden = true; return; }
+      if (!id || !/^\d{6,20}$/.test(id)) { hide(box); return; }
       var ins = d.createElement('ins');
       ins.className = 'adsbygoogle';
       ins.style.display = 'block';
@@ -46,6 +48,9 @@
       ins.setAttribute('data-ad-slot', id);
       ins.setAttribute('data-ad-format', 'auto');
       ins.setAttribute('data-full-width-responsive', 'true');
+      // Reserve the height (280px on phones, 100px from 768px, global.css .ad-live) only now
+      // that the gate said load, so a gated-out visitor never sees a shift.
+      box.classList.add('ad-live');
       box.hidden = false;
       box.appendChild(ins);
       watch(box, ins);

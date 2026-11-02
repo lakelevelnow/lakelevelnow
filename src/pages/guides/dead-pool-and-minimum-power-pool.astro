@@ -3,6 +3,7 @@
 // one-line FAQ on the Lake Powell depth page: what dead pool and minimum power pool mean,
 // and why a reservoir has two different floors. Every number is imported from the band
 // constants in src/lib/lakes.ts, so nothing here is typed by hand and nothing goes stale.
+import AdSlot from '../../components/AdSlot.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE } from '../../consts';
 import { breadcrumbLd, absUrl, ORG_ID } from '../../lib/seo';
@@ -56,6 +57,9 @@ const ld = [articleLd, breadcrumbLd([
         can no longer reach the outlet works at all. On a dam page the three numbers answer three
         different questions, and only one of them is about boats.
       </p>
+
+      {/* adsense-mobile 2026-11-02: first ad after the H1 and the intro. */}
+      <AdSlot pos="top" />
 
       <h2 id="definitions">The two floors, defined</h2>
       <p>
@@ -139,6 +143,7 @@ const ld = [articleLd, breadcrumbLd([
         before you assume one of them is wrong.
       </p>
       <p class="mut" style="font-size:12px;">Updated {UPDATED}. Figures re-read from the site's own band constants at build time.</p>
+      <AdSlot pos="end" />
     </article>
   </div>
 </BaseLayout>

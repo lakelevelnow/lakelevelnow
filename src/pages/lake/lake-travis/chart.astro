@@ -23,6 +23,7 @@
 //     NAVD88 plus 0.6 ft; LCRA quotes feet msl. Each series is labelled and linked, no equivalence asserted.
 //   - No ramp status. LCRA publishes it; this page links it.
 //   - No factual claim about what other trackers plot or how far back their charts go.
+import AdSlot from '../../../components/AdSlot.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
 import {
@@ -176,6 +177,9 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
     </div>
 
     <p class="qas" data-keyword="lake travis water level chart" style="font-size:15px;color:var(--t1);margin-top:14px;max-width:660px;font-weight:500;">{qas}</p>
+
+    {/* adsense-mobile 2026-11-02: first ad after the H1 and the one-sentence answer. */}
+    <AdSlot pos="top" />
 
     <section class="section" style="margin-top:18px;">
       <figure style="margin:0;">
@@ -587,6 +591,8 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
       <h3>How often does it update?</h3>
       <p class="readable">The file is refetched and every figure on this page recomputed on each build, which runs daily.</p>
     </section>
+
+    <AdSlot pos="end" />
 
     <section class="section airy">
       <h2>Where these numbers come from</h2>

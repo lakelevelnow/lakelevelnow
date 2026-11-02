@@ -229,6 +229,10 @@ const calcFull = fullPool; // exposed to the inline calculator script
 
     {qas && <p class="qas" data-keyword={`${lake.name} water level`} style="font-size:15px;color:var(--t1);margin-top:14px;max-width:660px;font-weight:500;">{qas}</p>}
 
+    {/* adsense-mobile 2026-11-02: first ad unit right after the H1, the status strip and the
+        one-sentence answer, so it sits in the first phone screen (about 0.65 screen). */}
+    <AdSlot pos="top" />
+
     {/* adsense-w2 (2026-10-26): a late feed never empties the page. When the newest reading
         is older than seven days (an upstream outage such as a CDEC timeout), the gauge still
         shows the last-known value, labelled with its date. Only a lake with no reading at all
@@ -258,7 +262,7 @@ const calcFull = fullPool; // exposed to the inline calculator script
 
     {/* Sponsor slot (owner apply #3): only lakes listed in src/data/sponsors.json (Lake Mead
         today). Below the gauge and chart, never in the first screen, and well above the
-        lakeMid AdSense unit (which itself keeps a 160px margin). */}
+        mid AdSense unit. */}
     <SponsorSlot slug={slug} />
 
     {/* Directly under the gauge, on purpose. The visitor came for one number and it is
@@ -270,6 +274,8 @@ const calcFull = fullPool; // exposed to the inline calculator script
     {/* Unique, data-derived facts for this lake (adsense-1025): level vs full pool, trend,
         exact source station, recreation status. Only where a reading exists. */}
     {!noData && <LakeFacts lake={lake} reading={reading!} slug={slug} stName={stName} />}
+
+    <AdSlot pos="mid" />
 
     {/* adsense-w2: the tip card (SupportLine "result") is removed from lake pages. It was the
         same self-promotion text on every lake page. /support/ keeps the ask. */}
@@ -375,7 +381,6 @@ const calcFull = fullPool; // exposed to the inline calculator script
       </div>
     </section>
 
-    <AdSlot slot="lakeMid" />
 
     {/* adsense-w2: the "Sponsor this page" invitation is removed from lake pages (same
         self-promotion text on every page). /advertise/ stays in the footer. */}
@@ -388,7 +393,7 @@ const calcFull = fullPool; // exposed to the inline calculator script
       {faqs.map((f) => <div class="faq-item"><div class="q">{f.q}</div><div class="a">{f.a}</div></div>)}
     </section>
 
-    <AdSlot slot="lakeEnd" />
+    <AdSlot pos="end" />
 
     {related.length > 0 && (
       <section class="section">
