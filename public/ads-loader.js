@@ -5,7 +5,7 @@
    Control or Do Not Track asks Google for non-personalized ads.
    Runs on lakelevelnow.com and www only: on localhost, 127.0.0.1 and the workers.dev preview no
    ad request is made. A slot that Google reports as unfilled, or whose script fails to load,
-   is hidden so no empty "Advertisement" label is left behind. Slots render hidden with no
+   is hidden so no empty "Advertisements" label is left behind. Slots render hidden with no
    reserved height (AdSlot.astro); the loader adds .ad-live (min-height) only when it loads. */
 (function () {
   'use strict';
@@ -16,18 +16,38 @@
   var TRACE = 'https://lakelevelnow.lipmichal.workers.dev/cdn-cgi/trace';
   var REGION = ('AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE ' +
     'IS LI NO GB CH AX GF GP MQ RE YT MF GG JE IM GI').split(' ');
-  function hide(box) { box.classList.remove('ad-live'); box.style.minHeight = ''; box.hidden = true; }
-  function collapse() { slots.forEach(hide); }
+  var root = d.documentElement;
+  // display:none !important also beats the pre-paint reserve rule for the top slot.
+  function hide(box) { box.classList.remove('ad-live'); box.style.minHeight = ''; box.hidden = true; box.style.setProperty('display', 'none', 'important'); }
+  // The gate said no: drop the pre-paint reserve (html.ads-likely, set in BaseLayout <head>)
+  // and hide every box.
+  function collapse() { root.classList.remove('ads-likely'); slots.forEach(hide); }
+  // Same values as global.css: top slot 330px on phones, every slot 280px otherwise.
+  function reserve(box) {
+    var wide = w.matchMedia && w.matchMedia('(min-width:768px)').matches;
+    return (!wide && box.getAttribute('data-ad-pos') === 'top' ? 330 : 280) + 'px';
+  }
   function watch(box, ins) {
     if (!w.MutationObserver) return;
+    var keep = false;
+    // Google writes min-height:0 !important on the box of an unfilled unit. A box that is on
+    // screen keeps its reserved space (recipetool site-analytics.js approach, Amendment B).
+    function hold() {
+      var r = reserve(box);
+      if (box.style.getPropertyValue('min-height') !== r || box.style.getPropertyPriority('min-height') !== 'important') {
+        box.style.setProperty('min-height', r, 'important');
+      }
+    }
     new MutationObserver(function () {
       // Amendment A: an unfilled box inside the viewport keeps its space (no shift under the
       // reader); one below the viewport collapses. "unfill-optimized" (Google's own Discover
       // more links) is never collapsed.
       if (ins.getAttribute('data-ad-status') !== 'unfilled') return;
-      if (box.getBoundingClientRect().top < (w.innerHeight || d.documentElement.clientHeight)) return;
+      if (box.getBoundingClientRect().top < (w.innerHeight || root.clientHeight)) { keep = true; hold(); return; }
       hide(box);
     }).observe(ins, { attributes: true, attributeFilter: ['data-ad-status'] });
+    new MutationObserver(function () { if (keep) hold(); })
+      .observe(box, { attributes: true, attributeFilter: ['style'] });
   }
   function load(cc) {
     if (!cc || cc === 'XX' || cc === 'T1' || REGION.indexOf(cc) >= 0) return collapse();
@@ -64,6 +84,9 @@
     });
   }
   if (!/^(www\.)?lakelevelnow\.com$/.test(location.hostname)) return collapse();
+  // Path guard (Amendment B): never on legal, contact, support, paid or checkout pages, even
+  // if a layout includes this script by mistake.
+  if (/^\/(privacy|terms|legal|contact|support|disclosure|advertise|almanac|checkout|thanks|404)(\/|\.|$)/.test(location.pathname)) return collapse();
   if (!w.fetch) return collapse();
   var ctl = w.AbortController ? new AbortController() : null;
   var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 4000);

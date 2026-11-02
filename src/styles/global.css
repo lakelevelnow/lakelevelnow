@@ -305,6 +305,12 @@ body .mt-cta-a:hover { color: #fff; text-decoration: none; }
 .ad-slot[hidden] { display: none; }
 .ad-slot.ad-wide { grid-column: 1 / -1; }
 .ad-slot .ad-label { display: block; font-size: 11px; line-height: 16px; letter-spacing: .06em; text-transform: uppercase; color: var(--t3); margin: 0 0 4px; }
+/* Reserve: 280px for every live slot, 330px for the top slot on phones (label plus the
+   300-390px unit Google sends at phone width). html.ads-likely is set by an inline <head>
+   script before first paint (non-Europe time zone, live host, ad page), so the top slot holds
+   its space from the first frame; the trace gate in /ads-loader.js confirms or collapses. */
 .ad-slot.ad-live { min-height: 280px; }
-@media (min-width: 768px) { .ad-slot.ad-live { min-height: 100px; } }
+.ads-likely .ad-slot[data-ad-pos="top"] { display: block !important; min-height: 330px; }
+@media (max-width: 767px) { .ad-slot.ad-live[data-ad-pos="top"] { min-height: 330px; } }
+@media (min-width: 768px) { .ads-likely .ad-slot[data-ad-pos="top"] { min-height: 280px; } }
 .ad-slot ins.adsbygoogle { display: block; max-width: 100%; }

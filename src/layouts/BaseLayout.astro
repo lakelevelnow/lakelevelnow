@@ -31,6 +31,10 @@ const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
     {/* AdSense site ownership check. A meta tag only: it loads nothing and sets no cookie,
         so it is safe for every region. The ad script itself is geo-gated in /ads-loader.js. */}
     <meta name="google-adsense-account" content="ca-pub-2241192243363112" />
+    {/* Amendment B: reserve the top ad slot before first paint for visitors who will probably
+        get ads (time zone outside Europe, live host). The geo gate in /ads-loader.js decides;
+        when it says no it removes the class and the space. */}
+    {hasAds && <script is:inline>(function(){try{var h=location.hostname;if(!/^(www\.)?lakelevelnow\.com$/.test(h))return;var z=(Intl.DateTimeFormat().resolvedOptions().timeZone)||'';if(!z||/^Europe\//.test(z)||/^Atlantic\/(Reykjavik|Canary|Madeira|Azores|Faroe|Faeroe)$/.test(z))return;document.documentElement.classList.add('ads-likely');}catch(e){}})();</script>}
     {hasAds && <script is:inline defer src="/ads-loader.js"></script>}
     <script is:inline defer src="/ga4.js" data-site="lakelevelnow" data-measurement-id="G-LYY6FMNH6R"></script>
     <BaseHead
