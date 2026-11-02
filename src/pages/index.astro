@@ -149,6 +149,16 @@ const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
       <div style="margin-top:16px;"><a class="see-all" href="/lakes">See all {LAKES.length} lakes in the registry →</a></div>
     </section>
 
+    <section class="section" id="use-in-ai">
+      <h2 style="margin-bottom:8px;">Use this data in Claude or ChatGPT</h2>
+      <p style="max-width:66ch;">The same gauge readings are available as a free MCP server, so an AI assistant can look up a lake's current level, recent history or a side-by-side comparison without you copying numbers across. It covers 44 lakes, needs no account or API key, and reads the agency gauges at the time you ask.</p>
+      <p style="margin-bottom:6px;"><strong>Claude.ai or ChatGPT.</strong> Add a custom connector and paste this URL:</p>
+      <pre class="mono" style="margin:0 0 14px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;overflow-x:auto;white-space:pre;"><code>https://lake-level-mcp.lipmichal.workers.dev/mcp</code></pre>
+      <p style="margin-bottom:6px;"><strong>Claude Code.</strong></p>
+      <pre class="mono" style="margin:0 0 14px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;overflow-x:auto;white-space:pre;"><code>claude mcp add --transport http lake-level https://lake-level-mcp.lipmichal.workers.dev/mcp</code></pre>
+      <p style="font-size:13.5px;"><a href="https://github.com/theluckystrike/lake-level-mcp">Source, tools and other install options on GitHub</a></p>
+    </section>
+
     <section class="section">
       <h2 style="margin-bottom:4px;">Common questions</h2>
       {faqs.map((f) => (
