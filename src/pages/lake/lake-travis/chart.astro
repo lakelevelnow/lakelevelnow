@@ -182,7 +182,7 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
     <AdSlot pos="top" />
 
     <section class="section" style="margin-top:18px;">
-      <figure style="margin:0;">
+      <figure class="google-anno-skip" style="margin:0;">
         <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img"
              aria-label={`Lake Travis water surface elevation from ${h.recordStart} to ${h.recordEnd}, ranging from ${fmtNum(h.seriesLowFt,0)} to ${fmtNum(h.recordHighFt,0)} feet msl, with LCRA's full mark, spillway, historic high and historic low drawn as reference lines.`}
              style="display:block;max-width:100%;height:auto;">
@@ -304,7 +304,7 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
       </p>
     </section>
 
-    <section class="section airy">
+    <section class="section airy google-anno-skip">
       <h2 style="margin-bottom:8px;">Check any elevation or date against the record</h2>
       <div class="callout a" style="max-width:660px;">
         <p style="margin-bottom:10px;">Enter an elevation in feet msl, a level you remember from a dock post or a past trip, and get where it sits against LCRA's full mark, the spillway and the two historic extremes, plus how many rows in the TWDB file are lower. Or pick a date and get the reading the file holds for that day and its rank. Both answers are computed in your browser from the same series the chart draws. Nothing is sent anywhere.</p>

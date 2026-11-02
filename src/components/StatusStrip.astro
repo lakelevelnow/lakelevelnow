@@ -60,7 +60,7 @@ const seaCell = sea
   ? { v: Math.abs(sea.diff) < 0.05 ? '0.0 ft' : `${sea.diff > 0 ? '+' : '−'}${fmtNum(Math.abs(sea.diff), 1)} ft`, l: `vs seasonal target (${fmtNum(sea.target, 1)} ft, ${sea.curve.agency} ${sea.curve.name.replace(/ \(.*\)$/, '')})` }
   : null;
 ---
-<div class="status-strip" data-strip={slug} aria-label={`${lake.name} level summary`}>
+<div class="status-strip google-anno-skip" data-strip={slug} aria-label={`${lake.name} level summary`}>
   {firstTwo.filter(Boolean).map((c) => (
     <div class="ss-cell"><div class="ss-v">{c!.v}</div><div class="ss-l">{c!.l}</div></div>
   ))}

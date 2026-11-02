@@ -160,7 +160,7 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
     <AdSlot pos="top" />
 
     <section class="section" style="margin-top:18px;">
-      <figure style="margin:0;">
+      <figure class="google-anno-skip" style="margin:0;">
         <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img"
              aria-label={`Lake Mead pool elevation from ${h.recordStart} to ${h.recordEnd}, ranging from ${fmtNum(h.seriesLowFt,0)} to ${fmtNum(h.recordHighFt,0)} feet above sea level.`}
              style="display:block;max-width:100%;height:auto;">
@@ -267,7 +267,7 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
       </p>
     </section>
 
-    <section class="section airy">
+    <section class="section airy google-anno-skip">
       <h2 style="margin-bottom:8px;">Check any elevation against the record</h2>
       <div class="callout a" style="max-width:660px;">
         <p style="margin-bottom:10px;">Pick a date and get the pool elevation Reclamation recorded that day, plus where it ranks among every reading in the file. Or enter an elevation and get how often the lake has been that low and when. Both answers are computed in your browser from the same series the chart draws. Nothing is sent anywhere.</p>

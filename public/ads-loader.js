@@ -21,7 +21,12 @@
   function watch(box, ins) {
     if (!w.MutationObserver) return;
     new MutationObserver(function () {
-      if (ins.getAttribute('data-ad-status') === 'unfilled') hide(box);
+      // Amendment A: an unfilled box inside the viewport keeps its space (no shift under the
+      // reader); one below the viewport collapses. "unfill-optimized" (Google's own Discover
+      // more links) is never collapsed.
+      if (ins.getAttribute('data-ad-status') !== 'unfilled') return;
+      if (box.getBoundingClientRect().top < (w.innerHeight || d.documentElement.clientHeight)) return;
+      hide(box);
     }).observe(ins, { attributes: true, attributeFilter: ['data-ad-status'] });
   }
   function load(cc) {
@@ -50,6 +55,7 @@
       ins.setAttribute('data-full-width-responsive', 'true');
       // Reserve the height (280px on phones, 100px from 768px, global.css .ad-live) only now
       // that the gate said load, so a gated-out visitor never sees a shift.
+      // The box is visible with its min-height before push(): Google may skip a hidden unit.
       box.classList.add('ad-live');
       box.hidden = false;
       box.appendChild(ins);

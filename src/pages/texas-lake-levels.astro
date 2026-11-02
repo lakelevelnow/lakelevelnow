@@ -323,7 +323,7 @@ const ld = [crumbs, person, articleLd, datasetLd];
       <h2 class="section-h">Every reservoir in the TWDB recent conditions file</h2>
       <p>The table lists all {rows.length} reservoirs in the file. {resLabel} {notPublished.length === 0 ? 'Every row has a published percent full.' : `${notPublished.length} ${notPublished.length === 1 ? 'row has' : 'rows have'} no published percent full and ${notPublished.length === 1 ? 'shows' : 'show'} "not published", not zero.`}</p>
 
-      <div class="ll-tool">
+      <div class="ll-tool google-anno-skip">
         <div>
           <label for="ll-q">Filter by reservoir name</label>
           <input id="ll-q" type="search" placeholder="reservoir name" autocomplete="off" />
@@ -339,7 +339,7 @@ const ld = [crumbs, person, articleLd, datasetLd];
       </div>
       <p class="ll-note" id="ll-count" aria-live="polite">{rows.length} of {rows.length} reservoirs shown, sorted by percent full, highest first</p>
 
-      <div class="ll-wrap">
+      <div class="ll-wrap google-anno-skip">
         <table>
           <caption>Percent of conservation capacity for each reservoir, with the date of the TWDB reading.</caption>
           <thead>

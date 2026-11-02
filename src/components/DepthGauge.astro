@@ -56,7 +56,7 @@ if (series.length >= 2) {
 const deltaUp = (reading.delta_24h ?? 0) >= 0;
 ---
 
-<div class="lake-hero">
+<div class="lake-hero google-anno-skip">
   <div class="gauge-card">
     <svg class="gauge" viewBox="0 0 200 200" role="img" aria-label={depth != null ? `${lakeName} is ${depth} feet deep at the dam` : `${lakeName} depth unavailable`}>
       <circle cx="100" cy="100" r={R} fill="none" stroke="#ebe7e0" stroke-width="13" stroke-linecap="round" stroke-dasharray={trackDash} transform="rotate(135 100 100)"></circle>

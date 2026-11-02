@@ -231,6 +231,8 @@ const faqs = [
       <p class="readable" style="margin-top:16px;">Clearing the published elevation is a necessary condition and not a sufficient one, which the status column makes obvious. Confirm with Glen Canyon National Recreation Area before you tow a boat. Park Service status read {rampsAsOfFmt} from <a href={POWELL_RAMPS_SOURCE}>the Glen Canyon lake level effects table</a>.</p>
     </section>
 
+    <AdSlot pos="mid" />
+
     <section class="section airy">
       <h2>Why the elevation cutoff does not tell you if a ramp is open</h2>
       <p class="readable">Every tracker that publishes these ramps, including this page in its first version, compares the lake against each published minimum and reports how many clear it. That count is misleading, and the Park Service data itself shows why.</p>
@@ -252,8 +254,6 @@ const faqs = [
       <p class="readable" style="margin-top:16px;">The reason is that a published minimum describes launching a motorized boat off that concrete. It does not describe a kayak carried to the water, and it does not describe a ramp the Park Service is willing to leave open at your own risk. So the elevation is the physics and the status is the decision, and a headline built on the physics alone will tell a paddler a ramp is unusable when the operator says otherwise.</p>
       <p class="readable">That is why the roster above prints both, and why the count at the top of this page counts Park Service status rather than elevation margins.</p>
     </section>
-
-    <AdSlot pos="mid" />
 
     <section class="section airy">
       <h2>How long the usable ramps last at this rate</h2>
@@ -299,7 +299,7 @@ const faqs = [
       <p class="readable" style="margin-top:16px;">This page reports the summary table figure in the roster above, because that is the source the Park Service updates alongside the status column. Where the ramp page disagrees, both numbers are shown rather than one being quietly chosen. Treat the higher of the two as the safe planning figure.</p>
     </section>
 
-    <section class="section airy">
+    <section class="section airy google-anno-skip">
       <h2>Check any elevation against the ramp thresholds</h2>
       <p class="readable">Type a surface elevation in feet and this compares it against every published threshold above. It runs the same subtraction the table does, so a forecast elevation or a figure from another site can be checked directly.</p>
       <div style="max-width:660px;margin-top:14px;">

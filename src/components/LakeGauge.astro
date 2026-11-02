@@ -44,7 +44,7 @@ if (series.length >= 2) {
 const deltaUp = (reading.delta_24h ?? 0) >= 0;
 ---
 
-<div class="lake-hero">
+<div class="lake-hero google-anno-skip">
   <!-- Gauge card -->
   <div class="gauge-card">
     <svg class="gauge" viewBox="0 0 200 200" role="img" aria-label={hasPct ? `${lake.name} is ${pct}% full` : `${lake.name} level ${fmtNum(reading.level_ft,1)} ft`}>
