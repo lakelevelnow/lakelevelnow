@@ -1,10 +1,11 @@
 // Lake Level Almanac fulfilment worker (lakelevelnow.com).
-// Routes: GET /health, /catalog, /verify?session_id=, /file?t=, /hit?e=&l=&p=
+// Routes: GET /health, /catalog, /verify?session_id=, /file?t=, /hit?e=&l=&p=,
+// POST /waitlist (fake-door email sign-up, JSON in and out).
 // Bindings: KV ALMANAC_ASSETS (catalog + zips), KV ALMANAC_ORDERS (mint + hit counters),
 // vars ALLOWED_ORIGINS, ALMANAC_MODE, LINK_SINGLE_ID, LINK_BUNDLE_ID (comma-separated lists),
 // secrets SIGNING_KEY, STRIPE_SECRET_KEY.
 
-const VERSION = "1.1.0";
+const VERSION = "1.2.0";
 const TEXT = { "content-type": "text/plain; charset=utf-8" };
 const JSONH = { "content-type": "application/json; charset=utf-8" };
 const TOKEN_TTL_S = 1800;
@@ -12,10 +13,23 @@ const MAX_MINTS_PER_SESSION = 60;
 const COUNTER_TTL_S = 60 * 60 * 24 * 400;
 const PAID_STATES = ["paid", "no_payment_required"];
 const MAX_CUSTOM_FIELDS = 10;
+// Waitlist views and clicks are NOT beacon events: they go to GA4 only, so the KV write
+// count does not grow with page views. Only an accepted /waitlist signup writes KV.
 const HIT_EVENTS = ["alm_view", "sample_view", "cta_click", "checkout_open", "thanks_view", "thanks_ok"];
 const HIT_HOSTS = ["lakelevelnow.com", "localhost"];
 const HIT_DIM_MAX = 40;
 const MAX_HIT_WRITES = 3;
+
+// ---- waitlist (fake-door test, src/components/WaitlistTest.astro) ----
+// Offer ids must match src/data/waitlist.json (worker/test/waitlist.mjs checks it).
+export const WL_OFFERS = ["alerts", "weekend", "forecast", "ramps", "rent"];
+export const WL_ORIGINS = ["https://lakelevelnow.com", "http://localhost:4321"];
+const WL_MAX_BODY = 2048;
+const WL_MAX_PER_IP_DAY = 5;
+const WL_RL_TTL_S = 60 * 60 * 48;
+const WL_RL_MAP_MAX = 5000;
+const EMAIL_RE = /^[^\s@"<>()[\]\\,;:]{1,64}@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z]{2,24}$/i;
+const SLUG_RE = /^[a-z0-9-]{1,40}$/;
 
 const enc = new TextEncoder();
 const json = (obj, status, extra) =>
@@ -291,6 +305,85 @@ async function handleHit(url, request, env, ch) {
   return done();
 }
 
+// ---- waitlist ---------------------------------------------------------------
+
+async function sha256hex(text) {
+  const d = await crypto.subtle.digest("SHA-256", enc.encode(text));
+  return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// CORS for /waitlist: only the two allowed origins, never a fallback origin.
+function wlCors(origin) {
+  if (!origin || !WL_ORIGINS.includes(origin)) return { "vary": "origin" };
+  return {
+    "access-control-allow-origin": origin,
+    "access-control-allow-methods": "POST,OPTIONS",
+    "access-control-allow-headers": "content-type",
+    "access-control-max-age": "86400",
+    "vary": "origin"
+  };
+}
+
+// Per-isolate signup counts per IP hash and day. KV backs it across isolates.
+const wlRate = new Map();
+
+async function wlRateCount(env, rlKey) {
+  if (wlRate.has(rlKey)) return wlRate.get(rlKey);
+  const n = parseInt(await env.ALMANAC_ORDERS.get(rlKey) || "0", 10) || 0;
+  if (wlRate.size >= WL_RL_MAP_MAX) wlRate.clear();
+  wlRate.set(rlKey, n);
+  return n;
+}
+
+// Returns an error code string, or "" when the payload is valid.
+export function wlInvalid(b) {
+  if (!b || typeof b !== "object" || Array.isArray(b)) return "bad_json";
+  if (typeof b.hp !== "undefined" && b.hp !== "") return "bad_request";
+  const email = typeof b.email === "string" ? b.email.trim() : "";
+  if (!email || email.length > 254 || !EMAIL_RE.test(email)) return "bad_email";
+  if (!WL_OFFERS.includes(b.offer_id)) return "bad_offer";
+  if (!WL_OFFERS.includes(b.ab_variant)) return "bad_variant";
+  if (typeof b.lake_slug !== "string" || !SLUG_RE.test(b.lake_slug)) return "bad_lake";
+  if (typeof b.placement !== "undefined" && (typeof b.placement !== "string" || !SLUG_RE.test(b.placement))) {
+    return "bad_placement";
+  }
+  return "";
+}
+
+async function handleWaitlist(request, env) {
+  const origin = request.headers.get("origin") || "";
+  const ch = { ...wlCors(origin), "cache-control": "no-store" };
+  if (!WL_ORIGINS.includes(origin)) return json({ ok: false, error: "bad_origin" }, 403, ch);
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: ch });
+  if (request.method !== "POST") return json({ ok: false, error: "method" }, 405, ch);
+  const ctype = request.headers.get("content-type") || "";
+  if (!/^application\/json\b/i.test(ctype)) return json({ ok: false, error: "bad_type" }, 415, ch);
+  const declared = parseInt(request.headers.get("content-length") || "0", 10) || 0;
+  if (declared > WL_MAX_BODY) return json({ ok: false, error: "too_large" }, 413, ch);
+  const raw = await request.text();
+  if (raw.length > WL_MAX_BODY) return json({ ok: false, error: "too_large" }, 413, ch);
+  let body;
+  try { body = JSON.parse(raw); } catch { return json({ ok: false, error: "bad_json" }, 400, ch); }
+  const bad = wlInvalid(body);
+  if (bad) return json({ ok: false, error: bad }, 400, ch);
+  const email = body.email.trim();
+  const day = new Date().toISOString().slice(0, 10);
+  const ip = request.headers.get("cf-connecting-ip") || "unknown";
+  const rlKey = `wlrl:${day}:${await sha256hex(ip)}`;
+  const used = await wlRateCount(env, rlKey);
+  if (used >= WL_MAX_PER_IP_DAY) return json({ ok: false, error: "rate_limited" }, 429, ch);
+  const key = `wl:${body.offer_id}:${await sha256hex(email.toLowerCase())}`;
+  if (await env.ALMANAC_ORDERS.get(key)) return json({ ok: true, dup: true }, 200, ch);
+  const country = (request.cf && typeof request.cf.country === "string") ? request.cf.country : null;
+  await env.ALMANAC_ORDERS.put(key, JSON.stringify({
+    email, offer_id: body.offer_id, ab_variant: body.ab_variant, lake_slug: body.lake_slug,
+    placement: body.placement || null, ts: new Date().toISOString(), country
+  }));
+  wlRate.set(rlKey, used + 1);
+  await env.ALMANAC_ORDERS.put(rlKey, String(used + 1), { expirationTtl: WL_RL_TTL_S });
+  return json({ ok: true, dup: false }, 200, ch);
+}
+
 // ---- router -----------------------------------------------------------------
 
 async function handleHealth(env, ch) {
@@ -313,6 +406,14 @@ async function handleHealth(env, ch) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/waitlist") {
+      try {
+        return await handleWaitlist(request, env);
+      } catch (e) {
+        console.error("waitlist error", (e && e.stack) || String(e));
+        return json({ ok: false, error: "internal" }, 500, wlCors(request.headers.get("origin")));
+      }
+    }
     const ch = cors(request.headers.get("origin"), env);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: ch });
     if (request.method !== "GET") return new Response("method not allowed", { status: 405, headers: TEXT });

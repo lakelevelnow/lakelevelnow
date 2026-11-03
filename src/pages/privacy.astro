@@ -15,7 +15,7 @@ const EMAIL = 'support@zovo.one';
   <div class="container">
     <article class="prose">
       <h1>Privacy policy</h1>
-      <p>Updated 25 October 2026. {SITE.name} (lakelevelnow.com) is run by Michael, an independent developer who also runs <a href="https://zovo.one" rel="noopener">zovo.one</a>. This page says what the site collects and what third parties collect when you visit. There are no accounts, no sign-up forms and no comment boxes, so we never ask for your name or email address on the site.</p>
+      <p>Updated 3 November 2026. {SITE.name} (lakelevelnow.com) is run by Michael, an independent developer who also runs <a href="https://zovo.one" rel="noopener">zovo.one</a>. This page says what the site collects and what third parties collect when you visit. There are no accounts and no comment boxes. The only form on the site is an optional waitlist that asks for an email address (see below). We never ask for your name.</p>
 
       <h2 id="ads">Advertising (Google AdSense)</h2>
       <p>Lake pages and the main overview pages can show ads served by Google AdSense. Third-party vendors, including Google, use cookies to serve ads based on a user's prior visits to this website or other websites. Google's use of advertising cookies enables it and its partners to serve ads to you based on your visit to this site and/or other sites on the Internet.</p>
@@ -27,6 +27,9 @@ const EMAIL = 'support@zovo.one';
 
       <h2 id="counter">Almanac counter and payments</h2>
       <p>A first-party counter on our own Cloudflare Worker records the event name, the lake slug and the placement of an Almanac offer when you view or click it. It stores no cookie and no personal data. If you buy the Almanac, Stripe processes the payment on its own site under its own privacy policy. Our Worker uses the Stripe checkout session only to hand you the download; it does not store your email address, IP address or browser details. Tips go through Buy Me a Coffee or PayPal under their own policies.</p>
+
+      <h2 id="waitlist">Waitlist email</h2>
+      <p>Some lake pages show a planned feature with a "Get early access" button. If you leave your email address there, our Cloudflare Worker stores it in Cloudflare KV with the feature you picked, the lake page, the time and your country. We use it once, to tell you when that feature is ready. We do not sell or share it and we add it to no other list. To limit abuse, the Worker also keeps a one-way hash of your IP address for two days. To have your address deleted, ask on the <a href="/contact/">contact page</a>.</p>
 
       <h2 id="logs">Hosting logs</h2>
       <p>The site is hosted on GitHub Pages. Like any web host, GitHub may log IP addresses and request details for security and operations. We do not receive or keep those logs.</p>

@@ -25,6 +25,7 @@
 //     gives the closure date, only the year.
 //   - No factual claim about what other trackers plot or how far back their charts go.
 import AdSlot from '../../../components/AdSlot.astro';
+import WaitlistTest from '../../../components/WaitlistTest.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
 import {
@@ -192,6 +193,10 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
         </figcaption>
       </figure>
     </section>
+
+    {/* a5-build 2026-11-03: waitlist fake-door test, right after the main data block. */}
+    <WaitlistTest slug={lake.slug} name={lake.name} placement="chart-waitlist" />
+
 
     <AlmanacContext slug="lake-powell" level={live && reading ? reading.level_ft : null} asOf={live && reading ? reading.as_of : null} />
 

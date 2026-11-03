@@ -1,0 +1,200 @@
+---
+// Fake-door waitlist test (a5-build, 2026-11-03). On /lake/<slug>/ and every lake sub-page
+// (chart, depth, boat ramps). Five planned products, one shown per
+// visitor, picked uniformly at random and kept in localStorage `lln_wl_v`. `?wl=<offer_id>`
+// forces one for QA. Copy and prices live in src/data/waitlist.json.
+//
+// No layout shift: all five cards render server-side in one CSS grid cell. Each card is
+// visibility:hidden until the inline script below marks one visible, so the box always has
+// the height of the tallest card before first paint, at every width. Only a click on
+// "Get early access" grows the box (user-initiated, so it does not count as CLS).
+//
+// Measurement: GA4 only, view_promotion (card 50% visible, once per page), select_promotion
+// (button click), generate_lead (200 from the Worker, new sign-up only). No KV /hit beacon
+// (cost rule): the Worker's wl:<offer>:<hash> keys are the lead count of record. GA4
+// respects DNT and GPC (ga4.js returns early). The email goes only to the Worker.
+import data from '../data/waitlist.json';
+
+// placement splits results by page type: lake-waitlist (/lake/<slug>/), chart-waitlist,
+// depth-waitlist, ramps-waitlist (sub-pages). Default comes from waitlist.json.
+interface Props { slug: string; name: string; placement?: string }
+const { slug, name, placement: placeProp } = Astro.props;
+const placement = /^[a-z0-9-]{1,40}$/.test(placeProp || '') ? placeProp! : data.placement;
+const WORKER = 'https://lake-level-almanac.lipmichal.workers.dev/waitlist';
+const fill = (s: string) => s.replace(/\{Lake\}/g, name);
+const offers = data.offers.filter((o) => /^[a-z0-9-]{1,20}$/.test(o.id));
+---
+<section class="wl" id="wl-test" aria-label="Planned features" data-wl-lake={slug}
+  data-wl-endpoint={WORKER} data-wl-place={placement}
+  data-t-sending={data.sending} data-t-success={data.success} data-t-invalid={data.invalid}
+  data-t-error={data.error} data-t-limit={data.limit}>
+  {offers.map((o) => (
+    <div class="wl-card" data-wl={o.id} aria-hidden="true">
+      <p class="wl-kicker">{data.kicker}</p>
+      <p class="wl-title" id={`wl-t-${o.id}`}>{fill(o.title)}</p>
+      <p class="wl-body">{fill(o.body)}</p>
+      <p class="wl-price">{fill(o.price)}</p>
+      <button type="button" class="wl-open" aria-expanded="false" aria-controls={`wl-f-${o.id}`}
+        tabindex="-1">{data.button}</button>
+      <form class="wl-form" id={`wl-f-${o.id}`} hidden novalidate aria-labelledby={`wl-t-${o.id}`}>
+        <label class="wl-label" for={`wl-e-${o.id}`}>{data.emailLabel}</label>
+        <div class="wl-row">
+          <input class="wl-email" id={`wl-e-${o.id}`} name="email" type="email" inputmode="email"
+            autocomplete="email" maxlength="254" required aria-describedby={`wl-n-${o.id} wl-s-${o.id}`} />
+          <button type="submit" class="wl-send">{data.submit}</button>
+        </div>
+        <div class="wl-hp" aria-hidden="true">
+          <label>Leave this empty <input type="text" name="hp_wl" tabindex="-1" autocomplete="off" /></label>
+        </div>
+        <p class="wl-note" id={`wl-n-${o.id}`}>{data.privacy} <a href="/privacy/#waitlist">{data.privacyLink}</a></p>
+        <p class="wl-status" id={`wl-s-${o.id}`} role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  ))}
+</section>
+<noscript><style>.wl { display: none; }</style></noscript>
+<script is:inline>
+(function () {
+  var root = document.getElementById('wl-test');
+  if (!root || root.dataset.wlInit) return;
+  root.dataset.wlInit = '1';
+  var cards = root.querySelectorAll('.wl-card');
+  var ids = [];
+  for (var i = 0; i < cards.length && i < 10; i++) ids.push(cards[i].getAttribute('data-wl'));
+  if (!ids.length) return;
+  var KEY = 'lln_wl_v';
+  var pick = '';
+  try { pick = new URLSearchParams(location.search).get('wl') || ''; } catch (_) {}
+  var forced = ids.indexOf(pick) >= 0;
+  if (!forced) {
+    try { pick = localStorage.getItem(KEY) || ''; } catch (_) { pick = ''; }
+    if (ids.indexOf(pick) < 0) {
+      var r = Math.random();
+      try { var b = new Uint32Array(1); crypto.getRandomValues(b); r = b[0] / 4294967296; } catch (_) {}
+      pick = ids[Math.floor(r * ids.length)];
+      try { localStorage.setItem(KEY, pick); } catch (_) { /* per-page pick */ }
+    }
+  }
+  var card = root.querySelector('.wl-card[data-wl="' + pick + '"]');
+  if (!card) return;
+  card.classList.add('wl-on');
+  card.removeAttribute('aria-hidden');
+  var openBtn = card.querySelector('.wl-open');
+  openBtn.removeAttribute('tabindex');
+  // Hidden cards stay out of the tab order and the accessibility tree.
+  for (var j = 0; j < cards.length; j++) {
+    if (cards[j] !== card) cards[j].setAttribute('inert', '');
+  }
+  var lake = root.getAttribute('data-wl-lake') || '';
+  var place = root.getAttribute('data-wl-place') || 'lake-waitlist';
+  var params = { offer_id: pick, ab_variant: pick, lake_slug: lake, placement: place };
+  function ga(name) {
+    var f = window.__siteGA4Event;
+    if (typeof f === 'function') { f(name, params); return; }
+    // ga4.js is deferred; it is defined before DOMContentLoaded unless DNT/GPC opted out.
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () {
+        if (typeof window.__siteGA4Event === 'function') window.__siteGA4Event(name, params);
+      }, { once: true });
+    }
+  }
+  var viewed = false;
+  function seen() { if (viewed) return; viewed = true; ga('view_promotion'); }
+  if (window.IntersectionObserver) {
+    var io = new IntersectionObserver(function (entries) {
+      for (var k = 0; k < entries.length; k++) {
+        if (entries[k].isIntersecting && entries[k].intersectionRatio >= 0.5) { seen(); io.disconnect(); }
+      }
+    }, { threshold: 0.5 });
+    io.observe(card);
+  }
+  function quietPopup() {
+    // lln-ui shows the Telegram card only when lln.last is older than capDays (7). Moving it
+    // to 6 days ago holds the card for 1 day; lln.seen holds it for this session.
+    try {
+      var day = 864e5, now = Date.now(), want = now - 6 * day;
+      var cur = parseInt(localStorage.getItem('lln.last') || '0', 10) || 0;
+      if (cur < want || cur > now + day) localStorage.setItem('lln.last', String(want));
+    } catch (_) {}
+    try { sessionStorage.setItem('lln.seen', '1'); } catch (_) {}
+  }
+  var form = card.querySelector('.wl-form');
+  var email = card.querySelector('.wl-email');
+  var send = card.querySelector('.wl-send');
+  var status = card.querySelector('.wl-status');
+  var hp = card.querySelector('input[name="hp_wl"]');
+  function say(key, bad) {
+    status.textContent = root.getAttribute('data-t-' + key) || '';
+    status.classList.toggle('wl-bad', !!bad);
+  }
+  openBtn.addEventListener('click', function () {
+    quietPopup();
+    ga('select_promotion');
+    openBtn.setAttribute('aria-expanded', 'true');
+    openBtn.hidden = true;
+    form.hidden = false;
+    try { email.focus({ preventScroll: true }); } catch (_) { email.focus(); }
+  });
+  var EMAIL_RE = /^[^\s@"<>()[\]\\,;:]{1,64}@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z]{2,24}$/i;
+  var busy = false;
+  form.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    if (busy) return;
+    var v = String(email.value || '').trim();
+    if (v.length > 254 || !EMAIL_RE.test(v)) {
+      email.setAttribute('aria-invalid', 'true'); say('invalid', true); email.focus(); return;
+    }
+    email.removeAttribute('aria-invalid');
+    busy = true; send.disabled = true; email.readOnly = true; say('sending');
+    var body = JSON.stringify({ email: v, offer_id: pick, ab_variant: pick, lake_slug: lake, placement: place, hp: hp ? hp.value : '' });
+    function fail(key) { busy = false; send.disabled = false; email.readOnly = false; say(key, true); }
+    fetch(root.getAttribute('data-wl-endpoint'), {
+      method: 'POST', mode: 'cors', credentials: 'omit',
+      headers: { 'content-type': 'application/json' }, body: body
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (j) {
+        if (res.status === 200 && j && j.ok) {
+          if (!j.dup) ga('generate_lead');
+          form.querySelector('.wl-row').hidden = true;
+          email.disabled = true;
+          say('success');
+          return;
+        }
+        fail(res.status === 429 ? 'limit' : j && j.error === 'bad_email' ? 'invalid' : 'error');
+      });
+    }).catch(function () { fail('error'); });
+  });
+})();
+</script>
+
+<style>
+  .wl { display: grid; margin: 18px 0; max-width: 70ch; }
+  .wl-card { grid-area: 1 / 1; visibility: hidden; padding: 14px 16px; border: 1px solid var(--border);
+    border-radius: var(--r); background: var(--card); color: var(--t1); font-size: 14px; line-height: 1.45; }
+  .wl-card.wl-on { visibility: visible; }
+  .wl [hidden] { display: none !important; }
+  .wl-kicker { margin: 0 0 4px; font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--teal); }
+  .wl-title { margin: 0 0 6px; font-size: 18px; font-weight: 700; line-height: 1.25; color: var(--t1); }
+  .wl-body { margin: 0 0 4px; color: var(--t1); }
+  .wl-price { margin: 0 0 12px; color: var(--t2); font-size: 13px; }
+  .wl-open, .wl-send { min-height: 44px; padding: 10px 16px; border: 0; border-radius: 6px;
+    background: var(--teal); color: #fff; font: 600 14px/1.2 var(--sans); cursor: pointer; }
+  .wl-open:hover, .wl-send:hover { background: var(--teal-deep); }
+  .wl-send:disabled { opacity: .6; cursor: progress; }
+  .wl-label { display: block; margin: 0 0 6px; font-weight: 600; font-size: 13px; }
+  .wl-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .wl-email { flex: 1 1 200px; min-width: 0; min-height: 44px; padding: 10px 12px; box-sizing: border-box;
+    border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--t1); font: 15px/1.2 var(--sans); }
+  .wl-email[aria-invalid="true"] { border-color: var(--burnt); }
+  .wl-send { flex: 0 0 auto; }
+  .wl-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .wl-note { margin: 8px 0 0; font-size: 12px; color: var(--t2); }
+  .wl-status { margin: 6px 0 0; min-height: 1.45em; font-size: 13px; color: var(--teal-deep); }
+  .wl-status.wl-bad { color: var(--burnt); }
+  .wl-status:empty { min-height: 0; }
+  @media (max-width: 420px) {
+    .wl-card { padding: 12px; }
+    .wl-send { flex: 1 1 100%; }
+  }
+</style>

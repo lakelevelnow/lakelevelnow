@@ -7,6 +7,7 @@ import AdSlot from '../../components/AdSlot.astro';
 import StatusStrip from '../../components/StatusStrip.astro';
 import SponsorSlot from '../../components/SponsorSlot.astro';
 import LakeFacts from '../../components/LakeFacts.astro';
+import WaitlistTest from '../../components/WaitlistTest.astro';
 // import RecreationAffiliates from '../../components/RecreationAffiliates.astro'; // enable with the box below
 import { almanacContext, descriptionClause } from '../../lib/almanac';
 import { SITE, AUTHOR } from '../../consts';
@@ -274,6 +275,11 @@ const calcFull = fullPool; // exposed to the inline calculator script
     {/* Unique, data-derived facts for this lake (adsense-1025): level vs full pool, trend,
         exact source station, recreation status. Only where a reading exists. */}
     {!noData && <LakeFacts lake={lake} reading={reading!} slug={slug} stName={stName} />}
+
+    {/* a5-build 2026-11-03: fake-door waitlist test (5 planned products, one per visitor).
+        Below the gauge and the readings, above the first mid-page ad slot. Copy lives in
+        src/data/waitlist.json. */}
+    <WaitlistTest slug={slug} name={lake.name} />
 
     <AdSlot pos="mid" />
 

@@ -13,6 +13,13 @@ Live at https://lake-level-almanac.lipmichal.workers.dev
 - `GET /hit?e=<event>&l=<lake>&p=<placement>` - beacon; events alm_view, sample_view, cta_click,
   checkout_open, thanks_view, thanks_ok. Counts only when Origin/Referer host is lakelevelnow.com or
   localhost. Always 204.
+- `POST /waitlist` - fake-door waitlist sign-up from the lake pages (`src/components/WaitlistTest.astro`).
+  JSON `{email, offer_id, ab_variant, lake_slug, placement?, hp}`. Origin must be https://lakelevelnow.com
+  or http://localhost:4321 (else 403, no CORS headers). Offers: alerts, weekend, forecast, ramps, rent.
+  Stores one key `wl:<offer_id>:<sha256(lowercased email)>` = `{email, offer_id, ab_variant, lake_slug,
+  placement, ts, country}` in ALMANAC_ORDERS (no TTL). Duplicate = 200 `{ok:true, dup:true}`, no write.
+  Max 5 sign-ups per IP per UTC day (`wlrl:<date>:<sha256(ip)>`, 48 h TTL, written only on accept).
+  Views and clicks are GA4-only (view_promotion, select_promotion); they never write KV.
 
 ## Bindings (wrangler.toml)
 KV `ALMANAC_ASSETS` (catalog.json, bundle.zip, lake/<slug>.zip) and `ALMANAC_ORDERS` (counters).

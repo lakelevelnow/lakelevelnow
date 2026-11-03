@@ -7,6 +7,7 @@
 // measurements of the same lake; every place they touch is labeled below.
 import { LAKES, getReading } from '../../../lib/lakes';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import WaitlistTest from '../../../components/WaitlistTest.astro';
 import { breadcrumbLd, authorLd } from '../../../lib/seo';
 import history from '../../../data/buchanan-history.json';
 
@@ -154,6 +155,10 @@ const fmtDate = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en
         linked at the bottom of this page.
       </p>
     </section>
+
+    {/* a5-build 2026-11-03: waitlist fake-door test, right after the main data block. */}
+    <WaitlistTest slug={lake.slug} name={lake.name} placement="chart-waitlist" />
+
 
     <section class="section airy">
       <h2>Where the last row sits in the record</h2>

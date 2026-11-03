@@ -1,0 +1,47 @@
+{
+  "_note": "Fake-door waitlist test on lake pages (WaitlistTest.astro). Edit text and prices here. {Lake} becomes the lake name. Offer ids are fixed: the Worker allowlist (worker/src/index.js WL_OFFERS) and the GA4 reports use them. No colons and no em dashes in visitor text.",
+  "placement": "lake-waitlist",
+  "kicker": "Coming soon",
+  "button": "Get early access",
+  "emailLabel": "Your email address",
+  "submit": "Email me when it is ready",
+  "sending": "Sending",
+  "privacy": "We email you once when it is ready. Nothing else. Unsubscribe in one click.",
+  "privacyLink": "Privacy policy",
+  "success": "Thanks. You are on the list. We will email you once when it is ready.",
+  "invalid": "Please enter a valid email address.",
+  "error": "Sorry, that did not work. Please try again in a minute.",
+  "limit": "Too many sign-ups from this connection today. Please try again tomorrow.",
+  "offers": [
+    {
+      "id": "alerts",
+      "title": "Level alerts for {Lake}",
+      "body": "Email when {Lake} rises or falls past a level you pick.",
+      "price": "$19 a year founding price."
+    },
+    {
+      "id": "weekend",
+      "title": "Friday lake report",
+      "body": "One email each Friday with the {Lake} level, the 7-day trend and what changed.",
+      "price": "Free."
+    },
+    {
+      "id": "forecast",
+      "title": "Where {Lake} will be in 30, 60 and 90 days",
+      "body": "A plain-English monthly email with the projected {Lake} level range.",
+      "price": "$29 a year."
+    },
+    {
+      "id": "ramps",
+      "title": "Boat ramp alerts for {Lake}",
+      "body": "Email when a ramp opens or closes at the current level.",
+      "price": "$9 a season."
+    },
+    {
+      "id": "rent",
+      "title": "Rent a boat at {Lake}",
+      "body": "Compare local boat rentals and get an email when booking opens.",
+      "price": "Free."
+    }
+  ]
+}

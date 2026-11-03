@@ -14,6 +14,7 @@
 // Every displayed number is a deterministic transform of the validated reading plus the
 // published constants in lib/lakes.ts; nothing is typed by hand in the markup.
 import AdSlot from '../../../components/AdSlot.astro';
+import WaitlistTest from '../../../components/WaitlistTest.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { LAKES, getReading, fmtNum, feedLabel, POWELL_BAND, powellRamps, powellRampsAsOf, POWELL_RAMPS_SOURCE, POWELL_RAMP_PAGES, POWELL_APRIL_2023, changeOverSeries } from '../../../lib/lakes';
 import { authorLd, breadcrumbLd, speakableLd, absUrl, orgRef } from '../../../lib/seo';
@@ -230,6 +231,9 @@ const faqs = [
 
       <p class="readable" style="margin-top:16px;">Clearing the published elevation is a necessary condition and not a sufficient one, which the status column makes obvious. Confirm with Glen Canyon National Recreation Area before you tow a boat. Park Service status read {rampsAsOfFmt} from <a href={POWELL_RAMPS_SOURCE}>the Glen Canyon lake level effects table</a>.</p>
     </section>
+
+    {/* a5-build 2026-11-03: waitlist fake-door test, right after the main data block. */}
+    <WaitlistTest slug={lake.slug} name={lake.name} placement="ramps-waitlist" />
 
     <AdSlot pos="mid" />
 

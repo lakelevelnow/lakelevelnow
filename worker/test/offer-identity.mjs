@@ -15,7 +15,9 @@ assert.equal(resolveLake({ client_reference_id: 'unknown--' + attempt }, catalog
 assert.equal(resolveLake({ custom_fields: [{ key: 'lake', dropdown: { value: 'pine-flat-lake' } }] }, catalog).slug, 'pine-flat-lake');
 
 const layout = readFileSync(new URL('../../src/layouts/BaseLayout.astro', import.meta.url), 'utf8');
-const inline = layout.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
+// The layout has several inline scripts (ads gate first); pick the beacon one.
+const inline = [...layout.matchAll(/<script is:inline>([\s\S]*?)<\/script>/g)]
+  .map((m) => m[1]).find((src) => src.includes('window.__almHit'));
 assert.ok(inline, 'Almanac inline script exists');
 
 function clickFixture(optOut) {

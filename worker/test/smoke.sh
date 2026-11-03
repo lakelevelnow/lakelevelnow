@@ -18,7 +18,7 @@ command -v jq >/dev/null || { echo "jq is required"; exit 2; }
 
 H=$(curl -s "$BASE/health")
 check "health.ok" "true" "$(echo "$H" | jq -r '.ok')"
-check "health.version" "1.1.0" "$(echo "$H" | jq -r '.version')"
+check "health.version" "1.2.0" "$(echo "$H" | jq -r '.version')"
 check "health.mode" "live" "$(echo "$H" | jq -r '.mode')"
 check "health.configured" "true" "$(echo "$H" | jq -r '[.configured[]] | all')"
 
@@ -32,6 +32,12 @@ check "verify.unpaid.error" "not_paid" "$(echo "$V" | sed '$d' | jq -r '.error')
 check "hit.with_origin" "204" "$(code -H 'Origin: https://lakelevelnow.com' "$BASE/hit?e=alm_view&l=test")"
 check "hit.no_origin" "204" "$(code "$BASE/hit?e=alm_view&l=test")"
 check "hit.bad_event" "204" "$(code -H 'Origin: https://lakelevelnow.com' "$BASE/hit?e=nope")"
+
+# /waitlist: none of these write KV (preflight, wrong origin, invalid email).
+O='Origin: https://lakelevelnow.com'
+check "waitlist.preflight" "204" "$(code -X OPTIONS -H "$O" -H 'Access-Control-Request-Method: POST' "$BASE/waitlist")"
+check "waitlist.bad_origin" "403" "$(code -X POST -H 'Origin: https://evil.example' -H 'content-type: application/json' -d '{}' "$BASE/waitlist")"
+check "waitlist.bad_email" "400" "$(code -X POST -H "$O" -H 'content-type: application/json' -d '{"email":"x","offer_id":"alerts","ab_variant":"alerts","lake_slug":"lake-mead","hp":""}' "$BASE/waitlist")"
 
 echo "passed=$PASS failed=$FAIL"
 [ "$FAIL" -eq 0 ]

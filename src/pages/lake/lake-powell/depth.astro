@@ -6,6 +6,7 @@
 // the sibling lake pages. Every displayed number is a deterministic transform of the
 // validated reading + published constants; nothing is typed by hand.
 import AdSlot from '../../../components/AdSlot.astro';
+import WaitlistTest from '../../../components/WaitlistTest.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import DepthGauge from '../../../components/DepthGauge.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
@@ -141,6 +142,10 @@ const faqs = [
         <p>Live feed reconnecting. The depth recomputes from the <a href={GAGE}>USGS gage</a> on every build; the published reference figures below don't change with the level.</p>
       </div>
     )}
+
+    {/* a5-build 2026-11-03: waitlist fake-door test, right after the main data block. */}
+    <WaitlistTest slug={lake.slug} name={lake.name} placement="depth-waitlist" />
+
 
     {/* This page had no call to action at all, and it has the site's best click-through
         rate (1.28% against a 0.74% site average). The depth reading it leads with raises

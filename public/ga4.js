@@ -69,6 +69,23 @@
     event('purchase', params);
     try { localStorage.setItem(key, '1'); } catch (_) {}
   };
+  // Waitlist fake-door test (WaitlistTest.astro). Three event names and four token params
+  // only, so a caller can never send an email address or free text. Defined after the
+  // DNT/GPC return above, so opted-out browsers never get it.
+  var promoNames = ['view_promotion', 'select_promotion', 'generate_lead'];
+  var promoKeys = ['offer_id', 'ab_variant', 'lake_slug', 'placement'];
+  window.__siteGA4Event = function (name, params) {
+    if (promoNames.indexOf(name) < 0 || !params || typeof params !== 'object') return false;
+    var clean = {};
+    for (var i = 0; i < promoKeys.length; i++) {
+      var k = promoKeys[i];
+      var v = Object.prototype.hasOwnProperty.call(params, k) ? params[k] : null;
+      if (typeof v === 'string' && /^[a-z0-9_-]{1,40}$/.test(v)) clean[k] = v;
+    }
+    if (!clean.offer_id) return false;
+    event(name, clean, name === 'generate_lead' ? null : name + ':' + clean.offer_id + ':' + (clean.placement || ''));
+    return true;
+  };
   document.dispatchEvent(new Event('site-ga4-ready'));
   var tag = document.createElement('script');
   tag.async = true;
