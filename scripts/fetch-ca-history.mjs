@@ -13,11 +13,6 @@
 //
 // IDEMPOTENT: the file carries no run timestamp. It is rewritten only when the data changed.
 //
-// CDEC_VIA=google-translate (local runs only): some networks cannot open a TCP connection to
-// cdec.water.ca.gov (the owner's VPN exit is one). This routes the same two URLs through
-// Google's translate.goog proxy and reads the untouched servlet text out of its <pre> block.
-// CI does not set it and talks to CDEC directly.
-//
 // No axios (supply-chain rule), native fetch only, bounded retries, bounded loops, and one
 // overall deadline so an unreachable CDEC cannot stall the build.
 import { readFile, writeFile } from 'node:fs/promises';
@@ -35,7 +30,6 @@ const MAX_STATIONS = 40;
 const MAX_ROWS = 2000;                // 1900 to 2066 is 2,000 months
 const MIN_ROWS = 120;                 // ten years; anything shorter is a truncated reply
 const MAX_AF = 1e8;
-const VIA = process.env.CDEC_VIA === 'google-translate' ? 'google-translate' : 'direct';
 const T0 = Date.now();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -44,16 +38,6 @@ const today = () => new Date().toISOString().slice(0, 10);
 const dataUrl = (id) =>
   `https://cdec.water.ca.gov/dynamicapp/req/CSVDataServlet?Stations=${id}&SensorNums=15&dur_code=M&Start=1900-01-01&End=${today()}`;
 const profileUrl = (id) => `https://cdec.water.ca.gov/dynamicapp/profile?s=${id}&type=res`;
-
-function routed(url) {
-  if (VIA !== 'google-translate') return url;
-  const u = new URL(url);
-  u.hostname = 'cdec-water-ca-gov.translate.goog';
-  u.searchParams.set('_x_tr_sl', 'auto');
-  u.searchParams.set('_x_tr_tl', 'en');
-  u.searchParams.set('_x_tr_hl', 'en');
-  return u.toString();
-}
 
 function unescapeHtml(s) {
   return s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
@@ -68,7 +52,7 @@ async function httpGet(url) {
     const ac = new AbortController();
     const timer = setTimeout(() => ac.abort(), TIMEOUT_MS);
     try {
-      const res = await fetch(routed(url), { redirect: 'follow', signal: ac.signal, headers: { 'User-Agent': UA } });
+      const res = await fetch(url, { redirect: 'follow', signal: ac.signal, headers: { 'User-Agent': UA } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.text();
     } catch (e) {
@@ -83,7 +67,7 @@ async function httpGet(url) {
 // The CSV servlet returns STATION_ID,DURATION,SENSOR_NUMBER,SENSOR_TYPE,DATE TIME,OBS DATE,
 // VALUE,DATA_FLAG,UNITS. '---' and negative or absurd values are missing months, never zero.
 function parseMonthly(txt, id) {
-  const body = VIA === 'google-translate' ? unescapeHtml((/<pre>([\s\S]*?)<\/pre>/.exec(txt) || [])[1] || '') : String(txt);
+  const body = String(txt);
   const lines = body.split('\n');
   const rows = new Map();
   for (let i = 0; i < lines.length && i <= MAX_ROWS + 1; i += 1) {
@@ -183,7 +167,7 @@ async function main() {
     await sleep(400);
   }
   if (fresh === 0) {
-    console.warn(`ca-history: CDEC gave no usable series (via ${VIA}), ${previous ? 'previous file kept' : 'and there is no previous file'}`);
+    console.warn(`ca-history: CDEC gave no usable series, ${previous ? 'previous file kept' : 'and there is no previous file'}`);
     process.exit(previous ? 0 : 1);
   }
   const payload = {
