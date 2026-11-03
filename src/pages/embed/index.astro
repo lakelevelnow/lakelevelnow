@@ -1,0 +1,73 @@
+---
+// Free level badge page (sprint2 2026-11-03). Marinas, fishing clubs, HOAs and newsrooms paste
+// one snippet. The snippet is a plain link around a static SVG, so each embed is a followed link
+// to the lake page and a referral source in GA4. Copy clicks fire select_promotion
+// (offer_id embed, placement embed-page) through window.__siteGA4Event.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../consts';
+import { LAKES, getReading } from '../../lib/lakes';
+import { breadcrumbLd } from '../../lib/seo';
+
+const rows = LAKES.map((l) => ({ lake: l, r: getReading(l.slug) }))
+  .filter((x) => x.r && x.r.level_ft != null)
+  .sort((a, b) => (a.lake.slug === 'lake-mead' ? -1 : b.lake.slug === 'lake-mead' ? 1 : a.lake.slug === 'lake-powell' ? -1 : b.lake.slug === 'lake-powell' ? 1 : a.lake.name.localeCompare(b.lake.name)));
+const snippet = (slug: string, name: string) =>
+  `<a href="${SITE.url}/lake/${slug}/" title="${name} water level today"><img src="${SITE.url}/embed/${slug}.svg" width="360" height="96" alt="${name} water level today, updated daily by LakeLevelNow" loading="lazy"></a>`;
+const title = 'Free lake level badge for your website';
+const description = `Show today's water level for Lake Mead, Lake Powell and ${rows.length - 2} other US lakes on your own site. One line of HTML, updated every day, free.`;
+const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Level badge', path: '/embed' }])];
+---
+<BaseLayout title={title} description={description} path="/embed" jsonLd={ld}>
+  <div class="container">
+    <style>
+      .emb-lead{font-size:16px;color:var(--t2);max-width:660px;line-height:1.7}
+      .emb-list{display:grid;gap:14px;margin-top:22px}
+      .emb{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;display:grid;gap:12px;grid-template-columns:1fr}
+      @media(min-width:860px){.emb{grid-template-columns:380px 1fr;align-items:center}}
+      .emb img{max-width:100%;height:auto;display:block}
+      .emb textarea{width:100%;min-height:76px;font:12px/1.45 ui-monospace,Menlo,monospace;border:1px solid var(--border);border-radius:8px;padding:8px;resize:vertical;background:var(--bg);color:var(--ink)}
+      .emb .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+      .emb button{font:600 13px/1 inherit;padding:9px 14px;border-radius:8px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer}
+      .emb button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+      .emb .ok{font-size:13px;color:var(--t2)}
+      .emb h2{font-size:17px;margin:0}
+    </style>
+    <h1>Free lake level badge for your website</h1>
+    <p class="emb-lead">Marinas, fishing clubs, lake associations, rental hosts and newsrooms can show today's level with one line of HTML. The badge is a small image that we redraw every morning from the same public gauge data as our lake pages. It costs nothing, needs no script and no account, and links your readers to the full reading.</p>
+    <p class="emb-lead">Paste the snippet where you want the badge. Keep the link around the image so readers can check the source.</p>
+    <div class="emb-list">
+      {rows.map(({ lake }) => (
+        <section class="emb" id={lake.slug}>
+          <div>
+            <h2>{lake.name}</h2>
+            <a href={`/lake/${lake.slug}/`}><img src={`/embed/${lake.slug}.svg`} width="360" height="96" alt={`${lake.name} water level today`} loading="lazy" /></a>
+          </div>
+          <div>
+            <label for={`snip-${lake.slug}`} class="ok">HTML for {lake.name}</label>
+            <textarea id={`snip-${lake.slug}`} readonly>{snippet(lake.slug, lake.name)}</textarea>
+            <div class="row">
+              <button type="button" data-copy={`snip-${lake.slug}`} data-lake={lake.slug}>Copy the HTML</button>
+              <span class="ok" aria-live="polite"></span>
+            </div>
+          </div>
+        </section>
+      ))}
+    </div>
+    <p class="emb-lead" style="margin-top:22px;">Need a different size, a chart, or the data for a story? Write to us through the <a href="/contact/">contact page</a>.</p>
+  </div>
+  <script is:inline>
+    (function () {
+      document.addEventListener('click', function (ev) {
+        var b = ev.target && ev.target.closest ? ev.target.closest('button[data-copy]') : null;
+        if (!b) return;
+        var ta = document.getElementById(b.getAttribute('data-copy'));
+        var note = b.parentNode.querySelector('[aria-live]');
+        var done = function (ok) { if (note) note.textContent = ok ? 'Copied. Paste it into your page.' : 'Select the text above and copy it.'; };
+        try { window.__siteGA4Event && window.__siteGA4Event('select_promotion', { offer_id: 'embed', placement: 'embed-page', lake_slug: b.getAttribute('data-lake') || '' }); } catch (e) {}
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(ta.value).then(function () { done(true); }, function () { ta.select(); done(false); });
+        } else { ta.select(); done(false); }
+      });
+    })();
+  </script>
+</BaseLayout>
