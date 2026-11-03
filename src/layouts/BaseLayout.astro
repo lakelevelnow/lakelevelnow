@@ -82,6 +82,8 @@ const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
           if (pick) { hit('cta_click', 'single', pick.getAttribute('data-alm-pick')); return; }
           var a = t.closest('a[data-alm-buy],a[data-alm-cta],.alm-home-btn');
           if (!a || (a.getAttribute('href') || '').indexOf('https://buy.stripe.com') !== 0) return;
+          if (Date.now() - (Number(a.dataset.almT) || 0) < 3000) return;
+          a.dataset.almT = String(Date.now());
           var m = /client_reference_id=([a-z0-9-]{1,40})/.exec(a.href);
           var slug = a.dataset.checkoutBaseRef || a.getAttribute('data-lake') || (m ? m[1] : 'bundle');
           a.dataset.checkoutBaseRef = slug;

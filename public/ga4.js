@@ -114,7 +114,7 @@
     var lakeSlug = /^[a-z0-9-]{1,40}$/.test(anchorLake || '') ? anchorLake :
       /^\/lake\/[a-z0-9-]+$/.test(path) ? path.split('/')[2] : '';
     return { currency: 'USD', value: product.price, items: [product], placement: placement(anchor),
-      ...(lake && lakeSlug ? { lake_slug: lakeSlug } : {}) };
+      ...(lake && lakeSlug && product.item_id === 'almanac_single' ? { lake_slug: lakeSlug } : {}) };
   }
   if (lake ? path === '/almanac' : path === '/pro' || path === '/kitchen-pack') {
     event('pricing_view', { content_id: lake ? 'almanac' : 'ingredientcalculator_pro' }, 'pricing_view');
@@ -140,6 +140,10 @@
     }
     var product = productFor(anchor);
     if (product) {
+      // One begin_checkout per link per 3 s: a double click must not count twice.
+      var now = Date.now();
+      if (now - (Number(anchor.dataset.gaCoT) || 0) < 3000) return;
+      anchor.dataset.gaCoT = String(now);
       var checkout = payload(product, anchor);
       var attempt = anchor.dataset && anchor.dataset.checkoutAttemptId;
       if (lake && /^[a-f0-9]{32}$/.test(attempt || '')) checkout.checkout_attempt_id = attempt;
