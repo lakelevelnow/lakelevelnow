@@ -234,6 +234,7 @@ td b { color: var(--t1); }
 .site-footer .flinks { display: flex; gap: 28px; flex-wrap: wrap; }
 .site-footer .flinks a { color: rgba(255,255,255,.4); font-size: 12px; }
 .site-footer .flinks a:hover { color: rgba(255,255,255,.75); text-decoration: none; }
+.site-footer .fdeep { gap: 10px 22px; margin-top: 18px; }
 .site-footer .disclaimer { font-size: 11px; line-height: 1.7; color: rgba(255,255,255,.25); max-width: 640px; margin-top: 28px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.06); }
 .site-footer .copy { font-size: 11px; color: rgba(255,255,255,.15); margin-top: 12px; }
 
