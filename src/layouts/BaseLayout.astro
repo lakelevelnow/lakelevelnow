@@ -74,7 +74,7 @@ const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
         var path = location.pathname.replace(/\/+$/, '');
         if (path === '/almanac') hit('alm_view', '', '');
         if (path === '/almanac/thanks') hit('thanks_view', '', '');
-        document.addEventListener('click', function (ev) {
+        function onOfferClick(ev) {
           var t = ev.target; if (!t || !t.closest) return;
           var w = t.closest('[data-alm-place]');
           var p = w ? w.getAttribute('data-alm-place') : '';
@@ -82,8 +82,8 @@ const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
           if (pick) { hit('cta_click', 'single', pick.getAttribute('data-alm-pick')); return; }
           var a = t.closest('a[data-alm-buy],a[data-alm-cta],.alm-home-btn');
           if (!a || (a.getAttribute('href') || '').indexOf('https://buy.stripe.com') !== 0) return;
-          if (Date.now() - (Number(a.dataset.almT) || 0) < 3000) return;
-          a.dataset.almT = String(Date.now());
+          if (a.dataset && Date.now() - (Number(a.dataset.almT) || 0) < 3000) return;
+          if (a.dataset) a.dataset.almT = String(Date.now());
           var m = /client_reference_id=([a-z0-9-]{1,40})/.exec(a.href);
           var slug = a.dataset.checkoutBaseRef || a.getAttribute('data-lake') || (m ? m[1] : 'bundle');
           a.dataset.checkoutBaseRef = slug;
@@ -102,7 +102,10 @@ const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
             }
           }
           hit('checkout_open', slug, p, attempt);
-        }, true);
+        }
+        document.addEventListener('click', onOfferClick, true);
+        // Middle-click opens the offer in a new tab: count it like a click.
+        document.addEventListener('auxclick', function (ev) { if (ev.button === 1) onOfferClick(ev); }, true);
       })();
     </script>
   </head>

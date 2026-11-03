@@ -127,7 +127,7 @@
     if (!/^[a-z0-9-]{1,40}$/.test(slug || '')) return;
     event('sample_open', { content_id: slug, placement: 'pine-flat-sample' }, 'sample_open:' + slug);
   }, true);
-  document.addEventListener('click', function (ev) {
+  function onOfferClick(ev) {
     var anchor = ev.target && ev.target.closest ? ev.target.closest('a') : null;
     if (!anchor || anchor.getAttribute('aria-disabled') === 'true') return;
     // Lake sponsor slot (house ad or a paid sponsor): count the click so each sponsor can
@@ -142,8 +142,9 @@
     if (product) {
       // One begin_checkout per link per 3 s: a double click must not count twice.
       var now = Date.now();
-      if (now - (Number(anchor.dataset.gaCoT) || 0) < 3000) return;
-      anchor.dataset.gaCoT = String(now);
+      var ds = anchor.dataset || {};
+      if (now - (Number(ds.gaCoT) || 0) < 3000) return;
+      if (anchor.dataset) anchor.dataset.gaCoT = String(now);
       var checkout = payload(product, anchor);
       var attempt = anchor.dataset && anchor.dataset.checkoutAttemptId;
       if (lake && /^[a-f0-9]{32}$/.test(attempt || '')) checkout.checkout_attempt_id = attempt;
@@ -157,7 +158,10 @@
     var intent = lake ? target === '/almanac' || target === '/almanac/sample' : target === '/pro' || target === '/kitchen-pack';
     if (intent) event('select_content', { content_type: 'paid_offer', content_id: target,
       placement: placement(anchor) }, 'select:' + target);
-  }, true);
+  }
+  document.addEventListener('click', onOfferClick, true);
+  // Middle-click opens the offer in a new tab: count it like a click.
+  document.addEventListener('auxclick', function (ev) { if (ev.button === 1) onOfferClick(ev); }, true);
   function observeOffers() {
     if (!window.IntersectionObserver) return;
     var observer = new IntersectionObserver(function (entries) {
