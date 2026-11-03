@@ -20,6 +20,8 @@ const isNoDataLake = (page) => {
 // Static output (default) = fastest LCP, best Core Web Vitals, most crawlable.
 // The weekly pipeline (scripts/fetch-levels.mjs) regenerates live USGS/CDEC readings
 // into src/data/, the build renders them, and a GitHub Action deploys + pings IndexNow.
+const BUILD_TIME = new Date().toISOString();
+
 export default defineConfig({
   site: 'https://lakelevelnow.com',
   trailingSlash: 'ignore',
@@ -37,6 +39,15 @@ export default defineConfig({
       filter: (page) => !page.includes('/404') && !page.includes('/almanac/thanks') && !page.includes('/support/') && !isNoDataLake(page),
       changefreq: 'weekly',
       priority: 0.7,
+      // sprint2 2026-11-03: lake, chart and badge pages show a new reading on every daily build,
+      // so their lastmod is the build time (true, and Google uses lastmod to schedule recrawls).
+      // Other pages get no lastmod rather than a false one.
+      serialize: (item) => {
+        if (/\/(lake|embed)\//.test(new URL(item.url).pathname)) {
+          return { ...item, lastmod: BUILD_TIME, changefreq: 'daily' };
+        }
+        return item;
+      },
     }),
     mdx(),
   ],
