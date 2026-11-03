@@ -14,6 +14,7 @@ import { SITE, AUTHOR } from '../../consts';
 import { LAKES, getReading, launchRead, status, fmtNum, stateName, POWELL_BAND, changeOverSeries, liveBandBelowFullPct, feedLabel, POWELL_HISTORY, compareToMark, fmtRecordDate, lastReadingDate} from '../../lib/lakes';
 import { lakeLd, authorLd, breadcrumbLd, speakableLd } from '../../lib/seo';
 import { seasonalRead, diffWords } from '../../lib/seasonal';
+import { caChartFor } from '../../lib/cahistory';
 
 export function getStaticPaths() {
   return LAKES.map((l) => ({ params: { slug: l.slug } }));
@@ -21,6 +22,8 @@ export function getStaticPaths() {
 
 const { slug } = Astro.params;
 const lake = LAKES.find((l) => l.slug === slug)!;
+// California lakes with a long CDEC monthly record get a chart page (src/pages/lake/[slug]/chart.astro).
+const caChart = caChartFor(slug);
 const reading = getReading(slug);
 const live = !!(reading && reading.fresh);
 const stName = stateName(lake.state);
@@ -325,6 +328,14 @@ const calcFull = fullPool; // exposed to the inline calculator script
       <section class="section">
         <p class="readable" style="font-size:15px;color:var(--t1);max-width:660px;">
           To see where today sits against every reading since 1940, the <a href="/lake/lake-travis/chart/">Lake Travis water level chart</a> plots the complete Texas Water Development Board daily record against LCRA's full mark, spillway, historic high and historic low.
+        </p>
+      </section>
+    )}
+
+    {caChart && (
+      <section class="section">
+        <p class="readable" style="font-size:15px;color:var(--t1);max-width:660px;">
+          To see where today sits against every monthly reading since {caChart.recordStart.slice(0, 4)}, the <a href={`/lake/${slug}/chart/`}>{lake.name} water level chart</a> plots the whole CDEC storage record and ranks the latest month against the same month in every year.
         </p>
       </section>
     )}

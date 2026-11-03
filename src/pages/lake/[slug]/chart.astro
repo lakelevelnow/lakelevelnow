@@ -1,0 +1,246 @@
+---
+// /lake/<slug>/chart/ for the California (CDEC) lakes. One page per lake whose CDEC monthly
+// storage record spans at least MIN_YEARS years (src/lib/cahistory.ts). Lake Mead, Powell,
+// Travis and Buchanan keep their own hand-built chart pages; this route only emits the CA slugs.
+//
+// WHY: GA4 (28 days to 2026-11-03) showed /lake/lake-mead/chart 721 landings against 594 for
+// the lake page itself, mostly from Bing. Long-record chart pages are extra landing pages on
+// top of the lake page, and California is the top state.
+//
+// CLAIM DISCIPLINE, same as the Mead chart. Every figure is computed from CDEC's monthly file
+// on every build. Extremes, counts, ranks, shares and a plain mean are fine. No medians, no
+// claim about what the monthly figure samples (CDEC does not say on the data reply), and the
+// first-fill boundary is stated next to every figure it shapes.
+import AdSlot from '../../../components/AdSlot.astro';
+import WaitlistTest from '../../../components/WaitlistTest.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { CA_CHARTS, monthLabel, fmtAf, ordinal, type CaChart } from '../../../lib/cahistory';
+import { authorLd, breadcrumbLd, speakableLd, absUrl, orgRef } from '../../../lib/seo';
+
+export function getStaticPaths() {
+  return CA_CHARTS.map((c) => ({ params: { slug: c.slug }, props: { c } }));
+}
+
+const { c } = Astro.props as { c: CaChart };
+const PATH = `/lake/${c.slug}/chart/`;
+const sm = c.sameMonth;
+const startYear = Number(c.recordStart.slice(0, 4));
+const fromYear = Number(c.compareFrom.slice(0, 4));
+const rankText = sm.rankLow <= sm.rankHigh
+  ? (sm.rankLow === 1 ? 'the lowest' : `the ${ordinal(sm.rankLow)} lowest`)
+  : (sm.rankHigh === 1 ? 'the highest' : `the ${ordinal(sm.rankHigh)} highest`);
+const pctText = c.pctOfCapacity != null && c.capacityAf ? `${c.pctOfCapacity} percent of its ${fmtAf(c.capacityAf)} acre-foot capacity` : null;
+const others = CA_CHARTS.filter((o) => o.slug !== c.slug);
+
+// ---- chart geometry, computed here so the SVG carries no magic numbers -------------
+const W = 960, H = 380, PAD_L = 56, PAD_R = 16, PAD_T = 18, PAD_B = 34;
+const pts = c.points;
+const top = Math.max(c.capacityAf ?? 0, c.recordHigh[1], ...pts.map((p) => p[1]));
+const rawStep = top / 4;
+const mag = 10 ** Math.floor(Math.log10(rawStep));
+const step = [1, 2, 2.5, 5, 10].map((k) => k * mag).find((s) => s >= rawStep) ?? 10 * mag;
+const yMax = Math.ceil((top * 1.04) / step) * step;
+const tOf = (ym: string) => Date.UTC(Number(ym.slice(0, 4)), Number(ym.slice(5, 7)) - 1, 1);
+const t0 = tOf(pts[0][0]);
+const t1 = tOf(pts[pts.length - 1][0]);
+const xOf = (ym: string) => PAD_L + ((tOf(ym) - t0) / (t1 - t0)) * (W - PAD_L - PAD_R);
+const yOf = (v: number) => PAD_T + (1 - v / yMax) * (H - PAD_T - PAD_B);
+const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${xOf(p[0]).toFixed(1)},${yOf(p[1]).toFixed(1)}`).join(' ');
+const base = (H - PAD_B).toFixed(1);
+const areaPath = `${path} L${xOf(pts[pts.length - 1][0]).toFixed(1)},${base} L${xOf(pts[0][0]).toFixed(1)},${base} Z`;
+const tickLabel = (v: number) => (v === 0 ? '0' : v >= 1e6 ? `${+(v / 1e6).toFixed(2)}M` : `${+(v / 1e3).toFixed(0)}k`);
+const yTicks: { y: number; label: string }[] = [];
+for (let v = 0; v <= yMax + 1 && yTicks.length < 12; v += step) yTicks.push({ y: yOf(v), label: tickLabel(v) });
+const decadeTicks: { x: number; label: string }[] = [];
+const endYear = Number(c.recordEnd.slice(0, 4));
+for (let y = Math.ceil(startYear / 10) * 10; y <= endYear && decadeTicks.length < 20; y += 10) {
+  if (`${y}-01` >= c.recordStart) decadeTicks.push({ x: xOf(`${y}-01`), label: String(y) });
+}
+const capY = c.capacityAf ? yOf(c.capacityAf) : null;
+const fillX = c.compareFrom > c.recordStart ? xOf(c.compareFrom) : null;
+const latestX = xOf(c.latest.ym);
+const latestY = yOf(c.latest.af);
+
+const shortName = c.name;
+let title = `${shortName} water level chart, ${c.years} years of monthly readings`;
+if (title.length > 60) title = `${shortName} water level chart, ${c.years} years of readings`;
+if (title.length > 60) title = `${shortName} water level chart`;
+const description = `${shortName} held ${fmtAf(c.latest.af)} acre-feet in ${c.latest.label}${c.pctOfCapacity != null ? `, ${c.pctOfCapacity}% of capacity` : ''}. Charted against ${c.years} years of CDEC monthly storage since ${startYear}.`;
+const qas = `CDEC's latest monthly storage figure for ${shortName} is ${fmtAf(c.latest.af)} acre-feet, for ${c.latest.label}${pctText ? `, ${pctText}` : ''}. It is ${rankText} of the ${sm.n} ${sm.name} figures from ${sm.sinceYear} to ${endYear}.`;
+
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description,
+  url: absUrl(PATH),
+  mainEntityOfPage: absUrl(PATH),
+  datePublished: '2026-11-03',
+  dateModified: `${c.recordEnd}-01`,
+  author: { '@type': 'Person', name: 'Michael', url: absUrl('/about/'), description: 'Independent developer behind zovo.one, building small fast utility sites including LakeLevelNow. Works on LakeLevelNow full-time.' },
+  publisher: orgRef(),
+};
+const datasetLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: `${shortName} monthly reservoir storage, complete CDEC record with derived rankings`,
+  description: `CDEC's monthly reservoir storage record for ${shortName} (station ${c.cdecId}) from ${monthLabel(c.recordStart)} to ${monthLabel(c.recordEnd)}, with extremes, counts and rankings recomputed in code on every build.`,
+  url: absUrl(PATH),
+  temporalCoverage: `${c.recordStart}/${c.recordEnd}`,
+  variableMeasured: [
+    { '@type': 'PropertyValue', name: 'Latest monthly reservoir storage', value: String(c.latest.af), unitText: 'acre-feet' },
+    { '@type': 'PropertyValue', name: 'Monthly readings in the record', value: String(c.monthsInFile), unitText: 'months' },
+    { '@type': 'PropertyValue', name: `Lowest monthly storage since ${c.compareFrom}`, value: String(c.recordLow[1]), unitText: 'acre-feet' },
+    { '@type': 'PropertyValue', name: `Highest monthly storage since ${c.compareFrom}`, value: String(c.recordHigh[1]), unitText: 'acre-feet' },
+    { '@type': 'PropertyValue', name: `Average ${sm.name} storage since ${sm.sinceYear}`, value: String(Math.round(sm.avgAf)), unitText: 'acre-feet' },
+    { '@type': 'PropertyValue', name: `Rank of the latest month among ${sm.name} readings, lowest first`, value: String(sm.rankLow), unitText: 'rank' },
+  ],
+  creator: { '@type': 'Organization', name: 'California Department of Water Resources, California Data Exchange Center', url: c.stationUrl },
+  distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: c.dataUrl }],
+  dateModified: `${c.recordEnd}-01`,
+  isAccessibleForFree: true,
+};
+const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
+  breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Lakes', path: '/lakes' }, { name: shortName, path: `/lake/${c.slug}/` }, { name: 'Water level chart', path: PATH }])];
+---
+<BaseLayout title={title} description={description} path={PATH} jsonLd={ld} brand={false}>
+  <div class="container">
+
+    <div class="crumbs" style="padding-top:20px;">
+      <a href="/">Home</a><span class="sep">›</span>
+      <a href="/lakes">Lakes</a><span class="sep">›</span>
+      <a href={`/lake/${c.slug}/`}>{shortName}</a><span class="sep">›</span>
+      <span>Water level chart</span>
+    </div>
+
+    <div style="padding-top:16px;">
+      <h1>{shortName} water level chart</h1>
+      <p style="font-size:13px;color:var(--t2);margin-top:8px;">By <a href="/about/">Michael</a>, independent developer behind <a href="https://zovo.one" rel="noopener">zovo.one</a>. Latest CDEC month {c.latest.label}.</p>
+    </div>
+
+    <p class="qas" data-keyword={`${shortName.toLowerCase()} water level chart`} style="font-size:15px;color:var(--t1);margin-top:14px;max-width:660px;font-weight:500;">{qas}</p>
+
+    <AdSlot pos="top" />
+
+    <section class="section" style="margin-top:18px;">
+      <figure class="google-anno-skip" style="margin:0;">
+        <svg id="ca-chart" viewBox={`0 0 ${W} ${H}`} width="100%" role="img"
+             aria-label={`${shortName} monthly storage from ${monthLabel(c.recordStart)} to ${monthLabel(c.recordEnd)}, from ${fmtAf(Math.min(...pts.map((p) => p[1])))} to ${fmtAf(Math.max(...pts.map((p) => p[1])))} acre-feet.`}
+             style="display:block;max-width:100%;height:auto;">
+          <defs>
+            <linearGradient id="llnFillCa" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--acc, #2a7ab0)" stop-opacity="0.28" />
+              <stop offset="100%" stop-color="var(--acc, #2a7ab0)" stop-opacity="0.02" />
+            </linearGradient>
+          </defs>
+          {yTicks.map((t) => (
+            <g>
+              <line x1={PAD_L} y1={t.y} x2={W - PAD_R} y2={t.y} stroke="currentColor" stroke-opacity="0.10" stroke-width="1" />
+              <text x={PAD_L - 8} y={t.y + 4} text-anchor="end" font-size="11" fill="currentColor" fill-opacity="0.55">{t.label}</text>
+            </g>
+          ))}
+          {decadeTicks.map((t) => (
+            <text x={t.x} y={H - PAD_B + 20} text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.55">{t.label}</text>
+          ))}
+          {capY != null && (
+            <g>
+              <line x1={PAD_L} y1={capY} x2={W - PAD_R} y2={capY} stroke="currentColor" stroke-opacity="0.42" stroke-width="1" stroke-dasharray="5 4" />
+              <text x={W - PAD_R} y={capY - 5} text-anchor="end" font-size="11" paint-order="stroke" stroke="var(--paper, #f4f1ec)" stroke-width="3" stroke-linejoin="round" fill="currentColor" fill-opacity="0.7">Capacity {fmtAf(c.capacityAf!)} af</text>
+            </g>
+          )}
+          {fillX != null && (
+            <g>
+              <line x1={fillX} y1={PAD_T} x2={fillX} y2={H - PAD_B} stroke="currentColor" stroke-opacity="0.30" stroke-width="1" stroke-dasharray="2 4" />
+              <text x={fillX + 4} y={PAD_T + 12} font-size="11" paint-order="stroke" stroke="var(--paper, #f4f1ec)" stroke-width="3" stroke-linejoin="round" fill="currentColor" fill-opacity="0.6">Ranked from {fromYear}</text>
+            </g>
+          )}
+          <path d={areaPath} fill="url(#llnFillCa)" stroke="none" />
+          <path d={path} fill="none" stroke="var(--acc, #2a7ab0)" stroke-width="1.4" stroke-linejoin="round" />
+          <circle cx={latestX} cy={latestY} r="4" fill="var(--acc, #2a7ab0)" />
+          <text x={latestX - 8} y={latestY > H - PAD_B - 24 ? latestY - 10 : latestY + 16} text-anchor="end" font-size="11" paint-order="stroke" stroke="var(--paper, #f4f1ec)" stroke-width="3" stroke-linejoin="round" fill="currentColor" fill-opacity="0.8">{tickLabel(Math.round(c.latest.af / 1000) * 1000)} af</text>
+        </svg>
+        <figcaption style="font-size:13px;color:var(--t2);margin-top:10px;max-width:700px;">
+          One point per month, from <a href={c.dataUrl}>CDEC's monthly storage file for station {c.cdecId}</a>. Storage is in acre-feet. {c.monthsInFile.toLocaleString('en-US')} monthly readings run from {monthLabel(c.recordStart)} to {monthLabel(c.recordEnd)}. Redrawn on every build.
+        </figcaption>
+      </figure>
+    </section>
+
+    <WaitlistTest slug={c.slug} name={shortName} placement="chart-waitlist" />
+
+    <section class="section airy">
+      <h2>Where {c.latest.label} sits in {c.years} years of readings</h2>
+      <p class="readable" data-latest-reading>
+        CDEC's latest monthly storage figure for {shortName} is <span class="em-strong">{fmtAf(c.latest.af)} acre-feet for {c.latest.label}</span>.{pctText && <> That is {pctText}.</>}
+      </p>
+      <p class="readable">
+        The file holds {sm.n} {sm.name} figures from {sm.sinceYear} to {endYear}. This one is {rankText} of them. The average {sm.name} figure across those years is {fmtAf(sm.avgAf)} acre-feet, so the lake holds {sm.pctOfAvg} percent of its average for the month.
+      </p>
+      <p class="readable">
+        Across every month from {monthLabel(c.compareFrom)} on, {c.monthsBelow.toLocaleString('en-US')} of {c.monthsCompared.toLocaleString('en-US')} months were lower than today. That is {c.shareBelowPct} percent of those months.
+      </p>
+      <div class="def-table">
+        <div class="row"><div class="k">Latest monthly reading</div><div class="vv">{fmtAf(c.latest.af)} af, {c.latest.label}</div></div>
+        {c.pctOfCapacity != null && <div class="row"><div class="k">Share of capacity ({fmtAf(c.capacityAf!)} af)</div><div class="vv">{c.pctOfCapacity}%</div></div>}
+        <div class="row"><div class="k">Rank among {sm.n} {sm.name} readings</div><div class="vv">{ordinal(sm.rankLow)} lowest, {ordinal(sm.rankHigh)} highest</div></div>
+        <div class="row"><div class="k">Average {sm.name} since {sm.sinceYear}</div><div class="vv">{fmtAf(sm.avgAf)} af</div></div>
+        <div class="row"><div class="k">Lowest {sm.name}</div><div class="vv">{fmtAf(sm.lowest[1])} af, {monthLabel(sm.lowest[0])}</div></div>
+        <div class="row"><div class="k">Highest {sm.name}</div><div class="vv">{fmtAf(sm.highest[1])} af, {monthLabel(sm.highest[0])}</div></div>
+        <div class="row"><div class="k">Record low since {monthLabel(c.compareFrom)}</div><div class="vv">{fmtAf(c.recordLow[1])} af, {monthLabel(c.recordLow[0])}</div></div>
+        <div class="row"><div class="k">Record high since {monthLabel(c.compareFrom)}</div><div class="vv">{fmtAf(c.recordHigh[1])} af, {monthLabel(c.recordHigh[0])}</div></div>
+        <div class="row"><div class="k">Months lower than today</div><div class="vv">{c.monthsBelow.toLocaleString('en-US')} of {c.monthsCompared.toLocaleString('en-US')}, {c.shareBelowPct}%</div></div>
+      </div>
+    </section>
+
+    <AdSlot pos="mid" />
+
+    <section class="section airy">
+      <h2>The record low and the record high</h2>
+      <p class="readable">
+        The lowest monthly figure since {monthLabel(c.compareFrom)} is {fmtAf(c.recordLow[1])} acre-feet, in {monthLabel(c.recordLow[0])}. The highest is {fmtAf(c.recordHigh[1])} acre-feet, in {monthLabel(c.recordHigh[0])}.{c.capacityAf && c.recordHigh[1] > c.capacityAf && <> That high is above the capacity CDEC lists today.</>}
+      </p>
+      {c.yearFill && c.compareFrom > c.recordStart ? (
+        <p class="readable">
+          CDEC lists {c.yearFill} as the year {shortName} first filled. So the ranks, the average and the record low on this page count months from {monthLabel(c.compareFrom)} on. That boundary is ours, not CDEC's. The file itself starts in {monthLabel(c.recordStart)}.{c.fileLow && <> Its lowest figure, {fmtAf(c.fileLow[1])} acre-feet in {monthLabel(c.fileLow[0])}, comes from before that boundary, so the comparisons leave it out.</>}
+        </p>
+      ) : (
+        <p class="readable">The comparisons on this page count every month in the file, from {monthLabel(c.recordStart)} on.</p>
+      )}
+    </section>
+
+    <section class="section airy">
+      <h2>How to read this chart</h2>
+      <p class="readable">
+        The line is storage, the volume of water in the reservoir, in acre-feet. It is not the surface elevation. CDEC publishes storage as one figure per month back to the start of the record, which is why this chart uses it.{capY != null && <> The dashed line is the capacity CDEC lists for the reservoir.</>}{fillX != null && <> The dotted line marks {monthLabel(c.compareFrom)}, where the ranks start.</>}
+      </p>
+      <p class="readable">
+        Want today's elevation and percent full rather than the monthly record? <a href={`/lake/${c.slug}/`}>The {shortName} water level page</a> carries the latest daily CDEC reading.
+      </p>
+    </section>
+
+    <section class="section airy">
+      <h2>Questions about the {shortName} record</h2>
+      <p class="readable"><strong>How far back does this chart go?</strong> To {monthLabel(c.recordStart)}, the first month in CDEC's monthly storage file for station {c.cdecId}. The file carries {c.monthsInFile.toLocaleString('en-US')} monthly readings through {monthLabel(c.recordEnd)}.</p>
+      <p class="readable"><strong>Is {shortName} low for {sm.name}?</strong> It is {rankText} of {sm.n} {sm.name} readings, at {sm.pctOfAvg} percent of the {sm.name} average.</p>
+      <p class="readable"><strong>What is the lowest it has been?</strong> {fmtAf(c.recordLow[1])} acre-feet in {monthLabel(c.recordLow[0])}, counting from {monthLabel(c.compareFrom)}.</p>
+      <p class="readable"><strong>How often does this page update?</strong> The build fetches the CDEC file again every day and recomputes each figure. A new month shows up once CDEC publishes it.</p>
+    </section>
+
+    <AdSlot pos="end" />
+
+    <section class="section airy">
+      <h2>Where these numbers come from</h2>
+      <p class="readable">
+        Every figure on this page is computed in code from <a href={c.dataUrl}>CDEC's monthly reservoir storage file</a> for <a href={c.stationUrl}>station {c.cdecId}</a>. The capacity and the first fill year come from CDEC's <a href={c.profileUrl}>reservoir information page</a> for the station. The build drops months that CDEC marks as missing. None of the numbers is typed by hand.
+      </p>
+      {others.length > 0 && (
+        <p class="readable">
+          The same chart exists for {others.length} other California lakes. They are {others.map((o, i) => <><a href={`/lake/${o.slug}/chart/`}>{o.name}</a>{i < others.length - 2 ? ', ' : i === others.length - 2 ? ' and ' : '.'}</>)} The <a href="/california-lake-levels/">California lake levels page</a> covers every reservoir in CDEC's daily storage summary.
+        </p>
+      )}
+      <p class="readable" style="font-size:14px;color:var(--t2);">
+        Levels are point-in-time readings and can lag real conditions. Confirm ramp and hazard status with the lake operator before heading out. Not affiliated with any government agency. Data is republished from public USGS, CDEC and USBR feeds.
+      </p>
+    </section>
+
+  </div>
+</BaseLayout>
