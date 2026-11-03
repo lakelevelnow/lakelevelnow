@@ -14,8 +14,9 @@ let withMid = 0;
 for (const slug of slugs) {
   const html = fs.readFileSync(path.join(lakeDir, slug, 'index.html'), 'utf8');
   assert.equal(count(html, 'id="wl-test"'), 1, `${slug}: component must appear exactly once`);
-  assert.equal(count(html, 'class="wl-card"'), ids.length, `${slug}: ${ids.length} cards`);
-  for (const id of ids) assert.equal(count(html, `data-wl="${id}"`), 1, `${slug}: card ${id}`);
+  const want = data.offers.filter((o) => !Array.isArray(o.lakes) || o.lakes.includes(slug)).map((o) => o.id);
+  assert.equal(count(html, 'class="wl-card"'), want.length, `${slug}: ${want.length} cards`);
+  for (const id of ids) assert.equal(count(html, `data-wl="${id}"`), want.includes(id) ? 1 : 0, `${slug}: card ${id}`);
   assert.ok(!html.includes('{Lake}'), `${slug}: unfilled {Lake}`);
   assert.equal(count(html, "'lln_wl_v'"), 1, `${slug}: one picker script`);
   const wl = html.indexOf('id="wl-test"');

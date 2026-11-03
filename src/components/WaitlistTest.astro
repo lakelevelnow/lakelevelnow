@@ -22,7 +22,10 @@ const { slug, name, placement: placeProp } = Astro.props;
 const placement = /^[a-z0-9-]{1,40}$/.test(placeProp || '') ? placeProp! : data.placement;
 const WORKER = 'https://lake-level-almanac.lipmichal.workers.dev/waitlist';
 const fill = (s: string) => s.replace(/\{Lake\}/g, name);
-const offers = data.offers.filter((o) => /^[a-z0-9-]{1,20}$/.test(o.id));
+// sprint2 2026-11-03: an offer with a `lakes` list shows only there (the forecast offer is
+// true only where Reclamation's 24-Month Study projects the lake). The picker reads the cards on the page.
+const offers = data.offers.filter((o: { id: string; lakes?: string[] }) =>
+  /^[a-z0-9-]{1,20}$/.test(o.id) && (!Array.isArray(o.lakes) || o.lakes.includes(slug)));
 ---
 <section class="wl" id="wl-test" aria-label="Planned features" data-wl-lake={slug}
   data-wl-endpoint={WORKER} data-wl-place={placement}

@@ -1,5 +1,5 @@
 {
-  "_note": "Fake-door waitlist test on lake pages (WaitlistTest.astro). Edit text and prices here. {Lake} becomes the lake name. Offer ids are fixed: the Worker allowlist (worker/src/index.js WL_OFFERS) and the GA4 reports use them. No colons and no em dashes in visitor text.",
+  "_note": "Fake-door waitlist test on lake pages (WaitlistTest.astro). Edit text and prices here. {Lake} becomes the lake name. Offer ids are fixed: the Worker allowlist (worker/src/index.js WL_OFFERS) and the GA4 reports use them. No colons and no em dashes in visitor text. An offer may carry \"lakes\" (slugs); it then shows only on those lakes and the picker chooses among the cards on the page.",
   "placement": "lake-waitlist",
   "kicker": "Coming soon",
   "button": "Get early access",
@@ -27,9 +27,14 @@
     },
     {
       "id": "forecast",
-      "title": "Where {Lake} will be in 30, 60 and 90 days",
-      "body": "A plain-English monthly email with the projected {Lake} level range.",
-      "price": "$29 a year."
+      "title": "Where {Lake} could be in 30, 60 and 90 days",
+      "body": "A plain-English monthly email with the Reclamation projection for {Lake} and how far off past projections were.",
+      "price": "$29 a year.",
+      "lakes": [
+        "lake-mead",
+        "lake-powell",
+        "lake-havasu"
+      ]
     },
     {
       "id": "ramps",
@@ -40,7 +45,7 @@
     {
       "id": "rent",
       "title": "Rent a boat at {Lake}",
-      "body": "Compare local boat rentals and get an email when booking opens.",
+      "body": "A short list of local boat rentals with prices and reviews. We email you once when it is ready.",
       "price": "Free."
     }
   ]
