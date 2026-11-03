@@ -156,6 +156,7 @@ const offers = data.offers.filter((o) => /^[a-z0-9-]{1,20}$/.test(o.id));
         if (res.status === 200 && j && j.ok) {
           if (!j.dup) ga('generate_lead');
           form.querySelector('.wl-row').hidden = true;
+          var lbl = form.querySelector('.wl-label'); if (lbl) lbl.hidden = true;
           email.disabled = true;
           say('success');
           return;
