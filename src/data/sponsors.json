@@ -13,13 +13,13 @@
     "lake-mead": {
       "source": "Google Analytics 4, /lake/lake-mead/ and /lake/lake-mead/chart/",
       "periodDays": 28,
-      "periodEnd": "2026-10-17",
-      "pageViewsAll": 550,
-      "pageViewsPerMonth": 590,
-      "pageViewsSlotPage": 392,
-      "pageViewsChartPage": 158,
-      "mobilePct": 42,
-      "usSearchClicksPct": 98
+      "periodEnd": "2026-11-02",
+      "pageViewsAll": 1506,
+      "pageViewsPerMonth": 1614,
+      "pageViewsSlotPage": 691,
+      "pageViewsChartPage": 815,
+      "mobilePct": 43,
+      "usSearchClicksPct": 95
     }
   }
 }
