@@ -26,6 +26,7 @@
 //   - No factual claim about what other trackers plot or how far back their charts go.
 import AdSlot from '../../../components/AdSlot.astro';
 import WaitlistTest from '../../../components/WaitlistTest.astro';
+import SponsorSlot from '../../../components/SponsorSlot.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
 import {
@@ -233,6 +234,10 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
 
     {/* sprint2 2026-11-03: mid unit. Only 5% of chart visitors reach the end unit. */}
     <AdSlot pos="mid" />
+
+    {/* CRO 2026-11-06 (L07): the top landing page (928 of 2,869 sessions in 28 days) had no
+        link to the one product sold for Lake Mead. House ad only, see SponsorSlot houseOnly. */}
+    <SponsorSlot slug="lake-mead" houseOnly cta="chart_sponsor_house" />
 
     <section class="section airy">
       <h2>Where the line sits against the operating landmarks</h2>

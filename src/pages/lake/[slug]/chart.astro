@@ -13,6 +13,8 @@
 // first-fill boundary is stated next to every figure it shapes.
 import AdSlot from '../../../components/AdSlot.astro';
 import WaitlistTest from '../../../components/WaitlistTest.astro';
+import AlmanacContext from '../../../components/AlmanacContext.astro';
+import { getReading } from '../../../lib/lakes';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { CA_CHARTS, monthLabel, fmtAf, ordinal, type CaChart } from '../../../lib/cahistory';
 import { authorLd, breadcrumbLd, speakableLd, absUrl, orgRef } from '../../../lib/seo';
@@ -31,6 +33,10 @@ const rankText = sm.rankLow <= sm.rankHigh
   : (sm.rankHigh === 1 ? 'the highest' : `the ${ordinal(sm.rankHigh)} highest`);
 const pctText = c.pctOfCapacity != null && c.capacityAf ? `${c.pctOfCapacity} percent of its ${fmtAf(c.capacityAf)} acre-foot capacity` : null;
 const others = CA_CHARTS.filter((o) => o.slug !== c.slug);
+// CRO 2026-11-06 (L07): 11 of these 12 lakes are Almanac lakes, and the chart pages carried no
+// offer at all. AlmanacContext renders nothing for a lake the Almanac does not cover (Casitas).
+const reading = getReading(c.slug);
+const live = !!(reading && reading.fresh);
 
 // ---- chart geometry, computed here so the SVG carries no magic numbers -------------
 const W = 960, H = 380, PAD_L = 56, PAD_R = 16, PAD_T = 18, PAD_B = 34;
@@ -190,6 +196,8 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
         <div class="row"><div class="k">Months lower than today</div><div class="vv">{c.monthsBelow.toLocaleString('en-US')} of {c.monthsCompared.toLocaleString('en-US')}, {c.shareBelowPct}%</div></div>
       </div>
     </section>
+
+    <AlmanacContext slug={c.slug} level={live ? reading!.level_ft : null} asOf={live ? reading!.as_of : null} place="chart" />
 
     <AdSlot pos="mid" />
 

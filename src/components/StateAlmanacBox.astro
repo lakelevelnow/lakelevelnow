@@ -1,0 +1,47 @@
+---
+// Almanac offer on a state hub page (CRO 2026-11-06, lane L07). The CA and TX hubs got
+// sessions but carried no offer, although 17 of the 19 Almanac lakes sit in those two states.
+// Every figure here comes from src/data/almanac.json, so the box can never show a lake,
+// a year count or a price that the product does not have.
+import data from '../data/almanac.json';
+
+interface Props { state: 'CA' | 'TX'; stateName: string }
+const { state, stateName } = Astro.props;
+const lakes = data.lakes.filter((l) => l.state === state).sort((a, b) => a.name.localeCompare(b.name));
+const bundle = import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE || '/almanac/';
+const minYears = Math.min(...lakes.map((l) => l.years));
+const maxYears = Math.max(...lakes.map((l) => l.years));
+const place = `state-${state.toLowerCase()}`;
+---
+{lakes.length > 0 && (
+  <section class="section st-alm" data-alm-place={place} aria-labelledby={`st-alm-h-${state}`}>
+    <h2 class="section-h" id={`st-alm-h-${state}`}>The full record for {lakes.length} {stateName} lakes</h2>
+    <p class="readable">
+      This page shows today. The Lake Level Almanac is the offline history of one lake, with {minYears} to {maxYears} years
+      of daily readings and the normal range for all 366 days. It also tells you how often the lake was below your own
+      ramp or dock elevation.
+    </p>
+    <p class="readable st-alm-lakes">
+      {stateName} lakes in the Almanac are {lakes.map((l, i) => <><a href={`/lake/${l.slug}/`}>{l.name}</a>{i < lakes.length - 2 ? ', ' : i === lakes.length - 2 ? ' and ' : '.'}</>)}
+    </p>
+    <div class="st-alm-cta">
+      <a class="st-alm-btn" href="/almanac/#pick" data-cta={`${place}_almanac_pick`}>Pick your lake, ${data.priceSingleUsd}</a>
+      <a href={bundle} data-alm-cta="bundle" data-cta={`${place}_almanac_bundle`} rel="nofollow">or all {data.lakeCount} lakes for ${data.priceBundleUsd}</a>
+    </div>
+    <p class="st-alm-micro">One payment, no subscription. Instant download. 60-day refund, no questions. <a href="/almanac/sample/">See a free sample first</a>.</p>
+  </section>
+)}
+
+<style>
+  .st-alm { border: 1px solid var(--border); border-left: 4px solid var(--teal); border-radius: 0 10px 10px 0;
+    padding: 18px 22px; background: var(--card); margin: 22px 0; }
+  .st-alm .readable { margin: 10px 0; }
+  .st-alm-lakes { font-size: 14.5px; color: var(--t2); }
+  .st-alm-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 14px; }
+  .st-alm-cta a:not(.st-alm-btn) { display: inline-block; padding: 12px 0; font-size: 14.5px; }
+  .st-alm-btn { display: inline-block; background: var(--teal); color: #fff; font-weight: 600; font-size: 15px;
+    padding: 13px 20px; min-height: 48px; box-sizing: border-box; border-radius: 8px; text-decoration: none; }
+  .st-alm-btn:hover { filter: brightness(1.08); color: #fff; }
+  .st-alm-micro { font-size: 13px; color: var(--t2); margin: 10px 0 0; line-height: 1.55; }
+  @media (max-width: 560px) { .st-alm { padding: 16px 18px; } .st-alm-btn { width: 100%; text-align: center; } }
+</style>

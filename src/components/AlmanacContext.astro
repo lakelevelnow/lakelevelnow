@@ -34,8 +34,13 @@ interface Props {
   asOf?: string | null;
   /** Set false on pages that already sell something, so a visitor never sees two asks. */
   showCta?: boolean;
+  /** Placement token for the beacon and GA4 (closed list: lake, chart). */
+  place?: 'lake' | 'chart';
 }
-const { slug, level = null, asOf = null, showCta = true } = Astro.props;
+const { slug, level = null, asOf = null, showCta = true, place = 'lake' } = Astro.props;
+// CTA ids, placement_target scheme (CRO 2026-11-06). Sent to GA4 as cta_id by public/ga4.js.
+const ctaSingle = `${place}_almanac_single`;
+const ctaBundle = `${place}_almanac_bundle`;
 
 const ctx = almanacContext(slug, level, asOf);
 const lake = ctx?.lake ?? null;
@@ -80,9 +85,9 @@ const fmt = (n: number, d = 2) =>
         convinced by the lead sentence should not have to scroll past a citation to act.
         The provenance still sits directly beneath, for the reader who wants it. */}
     {showCta && (
-      <div class="alm-ctx-cta" data-alm-place="lake">
+      <div class="alm-ctx-cta" data-alm-place={place}>
         <a class="alm-ctx-btn" href={buy} rel="nofollow"
-           data-alm-cta="lake" data-lake={slug}>
+           data-alm-cta="lake" data-lake={slug} data-cta={ctaSingle}>
           {slug === 'pine-flat-lake' ? `Get Pine Flat history + threshold tool, $${data.priceSingleUsd}` : `The full ${lake.name} almanac, $${data.priceSingleUsd}`}
         </a>
         <span class="alm-ctx-micro">
@@ -94,7 +99,7 @@ const fmt = (n: number, d = 2) =>
           {slug === 'pine-flat-lake' ? <a href="#pine-flat-sample">Pine Flat sample above</a> :
             <a href="/almanac/sample/">See a sample almanac (Lake Powell)</a>}
           <span class="alm-ctx-sep" aria-hidden="true">&middot;</span>
-          <a href={bundle} data-alm-cta="bundle" rel="nofollow">or all {data.lakeCount} lakes
+          <a href={bundle} data-alm-cta="bundle" data-cta={ctaBundle} rel="nofollow">or all {data.lakeCount} lakes
           for ${data.priceBundleUsd}</a>
         </span>
         <span class="alm-ctx-trust">Checkout runs on Stripe under our parent company, BeLikeNative (Autom8 LLC). That name appears on the receipt and card statement.</span>

@@ -109,12 +109,17 @@
     var place = section.getAttribute('data-alm-place');
     return /^[a-z0-9-]{1,40}$/.test(place || '') ? place : section.hasAttribute('data-mt-paywall') ? 'paywall' : section.tagName.toLowerCase();
   }
+  // CTA id from data-cta (placement_target scheme). Token only, never free text.
+  function ctaId(anchor) {
+    var id = anchor && anchor.getAttribute ? anchor.getAttribute('data-cta') : '';
+    return /^[a-z0-9_-]{1,40}$/.test(id || '') ? { cta_id: id } : {};
+  }
   function payload(product, anchor) {
     var anchorLake = anchor.getAttribute('data-lake');
     var lakeSlug = /^[a-z0-9-]{1,40}$/.test(anchorLake || '') ? anchorLake :
       /^\/lake\/[a-z0-9-]+$/.test(path) ? path.split('/')[2] : '';
-    return { currency: 'USD', value: product.price, items: [product], placement: placement(anchor),
-      ...(lake && lakeSlug && product.item_id === 'almanac_single' ? { lake_slug: lakeSlug } : {}) };
+    return Object.assign({ currency: 'USD', value: product.price, items: [product], placement: placement(anchor),
+      ...(lake && lakeSlug && product.item_id === 'almanac_single' ? { lake_slug: lakeSlug } : {}) }, ctaId(anchor));
   }
   if (lake ? path === '/almanac' : path === '/pro' || path === '/kitchen-pack') {
     event('pricing_view', { content_id: lake ? 'almanac' : 'ingredientcalculator_pro' }, 'pricing_view');
@@ -134,8 +139,8 @@
     // get its monthly click number. Slug and kind only, never the destination URL.
     var spon = anchor.getAttribute('data-spon');
     if (lake && /^[a-z0-9-]{1,40}$/.test(spon || '')) {
-      event('select_content', { content_type: 'sponsor_slot', content_id: spon,
-        placement: anchor.getAttribute('data-spon-kind') === 'paid' ? 'sponsor' : 'house_ad' });
+      event('select_content', Object.assign({ content_type: 'sponsor_slot', content_id: spon,
+        placement: anchor.getAttribute('data-spon-kind') === 'paid' ? 'sponsor' : 'house_ad' }, ctaId(anchor)));
       return;
     }
     var product = productFor(anchor);
@@ -156,8 +161,8 @@
     if (url.origin !== location.origin) return;
     var target = url.pathname.replace(/\/+$/, '');
     var intent = lake ? target === '/almanac' || target === '/almanac/sample' : target === '/pro' || target === '/kitchen-pack';
-    if (intent) event('select_content', { content_type: 'paid_offer', content_id: target,
-      placement: placement(anchor) }, 'select:' + target);
+    if (intent) event('select_content', Object.assign({ content_type: 'paid_offer', content_id: target,
+      placement: placement(anchor) }, ctaId(anchor)), 'select:' + target);
   }
   document.addEventListener('click', onOfferClick, true);
   // Middle-click opens the offer in a new tab: count it like a click.

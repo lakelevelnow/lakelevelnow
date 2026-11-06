@@ -9,6 +9,7 @@
 // client script only filters and re-orders rows that are already in the HTML. No browser
 // fetch, no JSON island.
 import AdSlot from '../components/AdSlot.astro';
+import StateAlmanacBox from '../components/StateAlmanacBox.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { authorLd, breadcrumbLd, absUrl, orgRef } from '../lib/seo';
 import { AUTHOR, SITE } from '../consts';
@@ -369,6 +370,8 @@ const ld = [crumbs, person, articleLd, datasetLd];
         ? 'For these reservoirs TWDB bases percent full on the Texas share, not on the whole lake. The file also lists Elephant Butte Lake, which is in New Mexico. TWDB notes that it supplies part of the water for El Paso when water is available.'
         : 'For these reservoirs TWDB bases percent full on the Texas share, not on the whole lake.'}</p>
     </section>
+
+    <StateAlmanacBox state="TX" stateName="Texas" />
 
     <AdSlot pos="mid" />
 

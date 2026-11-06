@@ -8,6 +8,7 @@
 // already complete in the served HTML. There is no JSON island and no client-side render:
 // a reader with JavaScript off sees the full answer and all 48 rows.
 import AdSlot from '../components/AdSlot.astro';
+import StateAlmanacBox from '../components/StateAlmanacBox.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { reservoirRows, reservoirSummary, type ReservoirRow } from '../lib/careservoirs';
 import { parseAsOf } from '../lib/almanac';
@@ -287,6 +288,8 @@ const ld = [crumbs, person, webPageLd, articleLd, datasetLd];
       <p class="ll-note" id="ll-empty" hidden>No reservoir matches that filter.</p>
       <p class="ll-note">Operators differ across the feed. <a href={CDEC_ORO}>Oroville Dam is operated and maintained by the California Department of Water Resources</a>, while <a href={CDEC_CCH}>Cachuma Lake (Bradbury Dam) is operated and maintained by the US Bureau of Reclamation, so the reservoirs carried on the CDEC feed are not all run by the same operator</a>.</p>
     </section>
+
+    <StateAlmanacBox state="CA" stateName="California" />
 
     <AdSlot pos="mid" />
 
