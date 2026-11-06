@@ -5,7 +5,7 @@
   --paper: #f4f1ec; --ink: #16282f; --card: #ffffff;
   --border: #e4dfd8; --border-soft: #f0ede8; --border-mid: #e8e4de; --row-head: #faf9f6;
   --t1: #16282f; --t2: #5c6a70; --t3: #8a949a;
-  --teal: #0b7d6a; --teal-bg: #e4f2ef; --teal-deep: #2f6258;
+  --teal: #0a7362; --teal-bg: #e4f2ef; --teal-deep: #2f6258;
   --amber: #b07d1a; --amber-bg: #f7efdc; --burnt: #bb5a37; --slate-bg: #eef0f0;
   --max: 1120px; --r: 10px; --r-pill: 999px; --r-sm: 4px;
   --shadow-hover: 0 8px 24px rgba(22,40,47,.08); --shadow-hover-sm: 0 4px 14px rgba(22,40,47,.07);
@@ -337,3 +337,10 @@ nav.main a { display: inline-flex; align-items: center; min-height: 48px; }
 .hero-offer-btn:hover { background: #0a6b5b; color: #fff; text-decoration: none; }
 .hero-offer-alt { display: inline-flex; align-items: center; min-height: 48px; font-size: 14.5px; font-weight: 600; text-decoration: underline; }
 @media (max-width: 560px) { .hero-offer-btn { flex: 1 1 100%; } }
+/* CRO 2026-11-06 R2: footer links were 3.6 to 1 and about 18 px tall. Now about 9 to 1 and 48 px targets. */
+.site-footer .flinks { row-gap: 0; column-gap: 22px; }
+.site-footer .flinks a { display: inline-flex; align-items: center; min-height: 48px; color: rgba(255,255,255,.72); font-size: 13px; }
+.site-footer .copy a { display: inline-flex; align-items: center; min-height: 48px; }
+/* CRO 2026-11-06 R3: 48 px targets for the secondary offer links. */
+.alm-home-alt, .alm-home-sample, .alm-ctx-more a, .spon-body a, .alm-sample a, .alm-terms a { display: inline-flex; align-items: center; min-height: 48px; }
+.table-wrap { overflow-x: auto; max-width: 100%; }

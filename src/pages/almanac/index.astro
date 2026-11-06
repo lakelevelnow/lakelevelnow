@@ -90,11 +90,6 @@ const ld = [{
     <section class="alm-hero">
       <p class="alm-eyebrow">Lake Level Almanac</p>
       <h1>Every tracker tells you the level.<br>None of them tells you if it is normal.</h1>
-      <ShortAnswer
-        question="What is the Lake Level Almanac?"
-        answer={`Live levels on every lake page stay free. The Almanac is the paid tier. $${data.priceSingleUsd} buys it for one lake and $${data.priceBundleUsd} buys all ${data.lakeCount} reservoirs. Each one turns ${shallowest} to ${deepest} years of daily record into day-of-year normal ranges, monthly climatology and how often the lake has been below your own ramp or dock elevation.`}
-        updated={CONTENT_CHECKED}
-      />
 
       {/* CRO 2026-11-06 R2: the buy block now sits right under the short answer, so the price
           and the button are on the first screen at 390 px. The live sentence follows it. */}
@@ -122,8 +117,14 @@ const ld = [{
       <p class="alm-sample">See a complete sample first. <a href="/almanac/sample/" data-cta="pricing_sample">Open the Lake Powell
       almanac</a>, free and with no email.</p>
       <p class="alm-micro alm-terms">Instant download &middot; no account, no password &middot;
-      60-day refund, no questions</p>
+      60-day refund, no questions &middot; <a href="#questions" data-cta="pricing_questions">Questions and answers</a></p>
       <p class="alm-micro alm-trust">Checkout runs on Stripe under our parent company, BeLikeNative (Autom8 LLC). That name appears on the receipt and card statement.</p>
+      <ShortAnswer
+        question="What is the Lake Level Almanac?"
+        answer={`Live levels on every lake page stay free. The Almanac is the paid tier. $${data.priceSingleUsd} buys it for one lake and $${data.priceBundleUsd} buys all ${data.lakeCount} reservoirs. Each one turns ${shallowest} to ${deepest} years of daily record into day-of-year normal ranges, monthly climatology and how often the lake has been below your own ramp or dock elevation.`}
+        updated={CONTENT_CHECKED}
+      />
+
       <p class="alm-lede">{featuredSentence}</p>
       <p class="readable">That sentence took {featured.years} years of daily readings to write, and
       we have not seen it on any other site. Not on the agency page the number comes from, not on
@@ -212,11 +213,11 @@ const ld = [{
             {rows.map((l) => (
               <tr>
                 <td><strong>{l.name}</strong>{l.state ? `, ${l.state}` : ''}</td>
-                <td>{l.years} yr <span class="mut">from {l.recordStart.slice(0, 4)}</span></td>
+                <td>{l.years} yr <span class="mut">of data since {l.recordStart.slice(0, 4)}</span></td>
                 <td>{l.obs.toLocaleString('en-US')}</td>
                 <td>{l.liveFt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ft{l.note}</td>
                 <td>{l.liveRead}</td>
-                <td><a class="alm-mini" data-alm-buy="single" data-cta="pricing_table_single" data-lake={l.slug}
+                <td><a class="alm-mini" data-alm-buy="single" data-cta={`table_${l.slug}`.slice(0, 40)} data-lake={l.slug}
                        href={SINGLE_LINK ? `${SINGLE_LINK}?client_reference_id=${l.slug}` : ''}
                        rel="nofollow">${data.priceSingleUsd}</a></td>
               </tr>
@@ -255,7 +256,7 @@ const ld = [{
         <li><strong>The method is not invented here.</strong> Day-of-year percentiles are how the
         USGS itself reports streamflow on its national WaterWatch map. That map excludes stage-only
         gages, which is exactly what a reservoir-elevation gage is. The technique is standard; the
-        application to reservoir levels is what nobody had done.</li>
+        application to reservoir levels is ours.</li>
       </ul>
     </section>
 
@@ -272,7 +273,7 @@ const ld = [{
     </section>
 
     <section class="section">
-      <h2>Questions</h2>
+      <h2 id="questions">Questions</h2>
       <div class="faq-item"><div class="q">Is this a subscription?</div>
         <div class="a">No. One payment, one download, yours to keep. There is nothing to cancel.</div></div>
       <div class="faq-item"><div class="q">Does the data update?</div>
@@ -348,8 +349,8 @@ const ld = [{
     background: var(--card); }
   .alm-card h3 { margin: 0 0 8px; font-size: 16px; }
   .alm-card p { margin: 0; font-size: 14.5px; }
-  .alm-mini { display: inline-block; background: var(--teal); color: #fff;
-    font: 600 13px/1 var(--sans); padding: 8px 12px; border-radius: 6px;
+  .alm-mini { display: inline-flex; align-items: center; min-height: 48px; background: var(--teal); color: #fff;
+    font: 600 13px/1 var(--sans); padding: 0 14px; border-radius: 6px;
     text-decoration: none; white-space: nowrap; }
   .alm-mini[href=""] { pointer-events: none; opacity: .4; }
   .mut { color: var(--t2); font-size: 12.5px; }

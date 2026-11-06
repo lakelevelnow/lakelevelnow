@@ -13,7 +13,8 @@ const GH = 'https://github.com/theluckystrike';
 const fpath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 // adsense-w2: no tip ask in the footer of lake pages (the same self-promotion text on every
 // lake page); /support/ and the footer Support link keep it reachable.
-const showTip = fpath !== '/support' && !fpath.startsWith('/almanac/thanks') && !fpath.startsWith('/lake/');
+// CRO 2026-11-06 R3: no tip ask on the two pages that sell the Almanac (/ and /almanac).
+const showTip = fpath !== '/support' && fpath !== '/' && fpath !== '/almanac' && !fpath.startsWith('/almanac/thanks') && !fpath.startsWith('/lake/');
 ---
 <footer class="site-footer">
   <div class="container">

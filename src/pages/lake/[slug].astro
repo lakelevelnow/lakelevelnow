@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import LakeGauge from '../../components/LakeGauge.astro';
 import AlmanacContext from '../../components/AlmanacContext.astro';
 import AlmanacPeek from '../../components/AlmanacPeek.astro';
+import MeadAlmanacNote from '../../components/MeadAlmanacNote.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import StatusStrip from '../../components/StatusStrip.astro';
 import SponsorSlot from '../../components/SponsorSlot.astro';
@@ -274,6 +275,7 @@ const calcFull = fullPool; // exposed to the inline calculator script
         normal, and this answers it before asking for anything. Renders nothing for a lake
         with no long record, so all 44 pages are safe to wrap. */}
     <AlmanacContext slug={slug} level={live ? reading!.level_ft : null} asOf={live ? reading!.as_of : null} />
+    {slug === 'lake-mead' && <MeadAlmanacNote place="mead" />}
 
     {/* Unique, data-derived facts for this lake (adsense-1025): level vs full pool, trend,
         exact source station, recreation status. Only where a reading exists. */}

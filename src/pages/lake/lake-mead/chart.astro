@@ -29,6 +29,7 @@ import WaitlistTest from '../../../components/WaitlistTest.astro';
 import SponsorSlot from '../../../components/SponsorSlot.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
+import MeadAlmanacNote from '../../../components/MeadAlmanacNote.astro';
 import {
   LAKES, getReading, fmtNum, POWELL_BAND, feedLabel,
   MEAD_HISTORY, MEAD_HISTORY_MONTHLY, MEAD_HISTORY_SOURCE, MEAD_HISTORY_CATALOG,
@@ -203,6 +204,7 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
 
 
     <AlmanacContext slug="lake-mead" level={live && reading ? reading.level_ft : null} asOf={live && reading ? reading.as_of : null} />
+    <MeadAlmanacNote place="mead-chart" />
 
     <section class="section airy">
       <h2>Where today sits in {yearsOfRecord} years of readings</h2>

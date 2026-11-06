@@ -1,0 +1,33 @@
+---
+// CRO 2026-11-06 R3: Lake Mead pages are the top landing pages (55 % of sessions) and the
+// Almanac does not cover Mead. This box says so plainly and offers the nearest true match,
+// Lake Powell upstream on the same river, or the full set. No claim about Mead itself.
+import alm from '../data/almanac.json';
+interface Props { place: 'mead' | 'mead-chart'; }
+const { place } = Astro.props;
+const SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
+const powell = alm.lakes.find((l) => l.slug === 'lake-powell');
+const id = place.replace('-', '_');
+---
+{powell && (
+  <aside class="mead-alm" data-alm-place={place} aria-labelledby={`mead-alm-${place}`}>
+    <h2 id={`mead-alm-${place}`}>The Almanac for the lake upstream</h2>
+    <p>Lake Mead is not in the Lake Level Almanac. Lake Powell, upstream on the same river, is in it. It shows whether Powell is normal for each date of the year, from {powell.years} years of daily readings.</p>
+    <div class="mead-alm-cta">
+      <a class="mead-alm-btn" href={SINGLE ? `${SINGLE}?client_reference_id=lake-powell` : '/almanac/#pick'} rel="nofollow" data-lake="lake-powell" data-cta={`${id}_almanac_powell`}>Lake Powell almanac, ${alm.priceSingleUsd}</a>
+      <a class="mead-alm-alt" href="/almanac/" data-cta={`${id}_almanac_all`}>All {alm.lakeCount} lakes, ${alm.priceBundleUsd}, with a free sample</a>
+    </div>
+    <p class="mead-alm-micro">One payment, no subscription. 60-day refund, no questions. Checkout runs on Stripe under our parent company, BeLikeNative (Autom8 LLC).</p>
+  </aside>
+)}
+<style>
+  .mead-alm { border: 1px solid var(--border); border-left: 4px solid var(--teal); border-radius: var(--r); background: var(--card); padding: 18px 22px; margin: 24px 0; max-width: 760px; }
+  .mead-alm h2 { font-size: 18px; margin: 0 0 8px; }
+  .mead-alm p { font-size: 14.5px; line-height: 1.6; color: var(--t1); margin: 0 0 12px; }
+  .mead-alm-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; }
+  .mead-alm-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px; border-radius: var(--r-sm); background: var(--teal); color: #fff; font-weight: 600; font-size: 15px; }
+  .mead-alm-btn:hover { color: #fff; text-decoration: none; filter: brightness(1.08); }
+  .mead-alm-alt { display: inline-flex; align-items: center; min-height: 48px; font-weight: 600; font-size: 14.5px; text-decoration: underline; }
+  .mead-alm p.mead-alm-micro { font-size: 12.5px; color: var(--t2); margin: 8px 0 0; }
+  @media (max-width: 560px) { .mead-alm { padding: 16px 18px; } .mead-alm-btn { flex: 1 1 100%; } }
+</style>
