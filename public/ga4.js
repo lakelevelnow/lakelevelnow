@@ -39,6 +39,30 @@
       page_location: cleanLocation, page_referrer: referrer, transport_type: 'beacon' }, campaign, params || {}));
   }
   event('page_view', {}, 'page_view');
+  // Same-site click hand-over (CRO 2026-11-06). gtag can hold an event for seconds, so a click
+  // that opens another page of this site lost its select_content. The click stores it and this
+  // page sends it, with the page_location of the page where the click happened.
+  var HAND = 'lln_ga4_next_v1';
+  try {
+    var held = sessionStorage.getItem(HAND);
+    if (held) {
+      sessionStorage.removeItem(HAND);
+      var h = JSON.parse(held);
+      if (h && h.n === 'select_content' && h.p && Date.now() - h.t < 60000) event('select_content', h.p);
+    }
+  } catch (_) {}
+  function sendOrHand(anchor, name, params) {
+    var sameSite = false;
+    try { sameSite = new URL(anchor.href, location.href).origin === location.origin && anchor.target !== '_blank'; } catch (_) {}
+    if (sameSite) {
+      try {
+        sessionStorage.setItem(HAND, JSON.stringify({ n: name, t: Date.now(),
+          p: Object.assign({ page_location: cleanLocation }, params) }));
+        return;
+      } catch (_) {}
+    }
+    event(name, params);
+  }
   // Invoked only by the return page after its existing paid-verification response.
   // Persist the transaction identifier alone; never pass licenses or customer fields.
   var paidSeen = new Set();
@@ -139,7 +163,7 @@
     // get its monthly click number. Slug and kind only, never the destination URL.
     var spon = anchor.getAttribute('data-spon');
     if (lake && /^[a-z0-9-]{1,40}$/.test(spon || '')) {
-      event('select_content', Object.assign({ content_type: 'sponsor_slot', content_id: spon,
+      sendOrHand(anchor, 'select_content', Object.assign({ content_type: 'sponsor_slot', content_id: spon,
         placement: anchor.getAttribute('data-spon-kind') === 'paid' ? 'sponsor' : 'house_ad' }, ctaId(anchor)));
       return;
     }
@@ -161,8 +185,11 @@
     if (url.origin !== location.origin) return;
     var target = url.pathname.replace(/\/+$/, '');
     var intent = lake ? target === '/almanac' || target === '/almanac/sample' : target === '/pro' || target === '/kitchen-pack';
-    if (intent) event('select_content', Object.assign({ content_type: 'paid_offer', content_id: target,
-      placement: placement(anchor) }, ctaId(anchor)), 'select:' + target);
+    if (intent && !once['select:' + target]) {
+      once['select:' + target] = true;
+      sendOrHand(anchor, 'select_content', Object.assign({ content_type: 'paid_offer', content_id: target,
+        placement: placement(anchor) }, ctaId(anchor)));
+    }
   }
   document.addEventListener('click', onOfferClick, true);
   // Middle-click opens the offer in a new tab: count it like a click.
