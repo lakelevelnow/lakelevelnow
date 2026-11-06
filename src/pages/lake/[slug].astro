@@ -237,6 +237,11 @@ import almPrice from '../../data/almanac.json';
           <a href={import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? `${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=${slug}` : '/almanac/#pick'} rel="nofollow" data-lake={slug} data-cta="lake_hero_almanac">Get it for ${almPrice.priceSingleUsd}</a>
           <span class="lake-alm-micro">One payment, 60-day refund.</span></p>
       )}
+      {slug === 'lake-mead' && (
+        <p class="lake-alm-line" data-alm-place="mead-hero">Lake Mead is not in the Almanac. Lake Powell, upstream on the same river, is.
+          <a href={import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? `${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=lake-powell` : '/almanac/#pick'} rel="nofollow" data-lake="lake-powell" data-cta="mead_hero_powell">Lake Powell almanac, ${almPrice.priceSingleUsd}</a>
+          <span class="lake-alm-micro">One payment, 60-day refund.</span></p>
+      )}
     </div>
 
     {qas && <p class="qas" data-keyword={`${lake.name} water level`} style="font-size:15px;color:var(--t1);margin-top:14px;max-width:660px;font-weight:500;">{qas}</p>}

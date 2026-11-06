@@ -213,7 +213,7 @@ const ld = [{
             {rows.map((l) => (
               <tr>
                 <td><strong>{l.name}</strong>{l.state ? `, ${l.state}` : ''}</td>
-                <td>{l.years} yr <span class="mut">of data since {l.recordStart.slice(0, 4)}</span></td>
+                <td>{l.years} yr <span class="mut">with data, first reading {l.recordStart.slice(0, 4)}</span></td>
                 <td>{l.obs.toLocaleString('en-US')}</td>
                 <td>{l.liveFt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ft{l.note}</td>
                 <td>{l.liveRead}</td>
