@@ -201,6 +201,20 @@
       var checkout = payload(product, anchor);
       var attempt = anchor.dataset && anchor.dataset.checkoutAttemptId;
       if (lake && /^[a-f0-9]{32}$/.test(attempt || '')) checkout.checkout_attempt_id = attempt;
+      // Fast click (CRO 2026-11-06 R4). Before gtag.js has loaded, a click that leaves for Stripe
+      // lost every queued hit. Hold the same-tab navigation until GA4 confirms the hit, at most
+      // 1.5 s, then always go. Once gtag.js is loaded the beacon is enough and nothing waits.
+      var ready = !!(window.google_tag_manager && window.google_tag_manager[measurementId]);
+      var plain = ev.type === 'click' && ev.button === 0 && !ev.metaKey && !ev.ctrlKey && !ev.shiftKey && !ev.altKey &&
+        !ev.defaultPrevented && (!anchor.target || anchor.target === '_self');
+      if (!ready && plain) {
+        ev.preventDefault();
+        var gone = false;
+        var go = function () { if (gone) return; gone = true; location.assign(anchor.href); };
+        checkout.event_callback = go;
+        checkout.event_timeout = 1500;
+        setTimeout(go, 1600);
+      }
       event('begin_checkout', checkout);
       return;
     }
