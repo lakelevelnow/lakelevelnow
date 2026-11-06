@@ -44,8 +44,22 @@ const shallowest = Math.min(...data.lakes.map((l) => l.years));
 
 // The two most striking lakes right now, chosen by distance from their own median rather
 // than by traffic, so the page leads with whatever is actually unusual today.
-const striking = [...lakes]
-  .sort((a, b) => Math.abs(b.percentile - 50) - Math.abs(a.percentile - 50))
+// CRO 2026-11-06 R2: the tables showed the August snapshot (Powell 3,521.43 ft) next to the live
+// headline (3,536.90 ft). Each row now uses the live reading, the same as the lake page. A lake
+// with no fresh reading keeps its snapshot and says the date.
+function ordinal(n: number) { const r = Math.round(n); const t = r % 100; const sfx = t >= 11 && t <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[r % 10] || 'th'; return `${r}${sfx}`; }
+function readFor(p: number) { return p < 1 ? 'lowest for this date in the whole record' : p < 10 ? 'far below normal' : p < 25 ? 'below normal' : p <= 75 ? 'normal' : p <= 90 ? 'above normal' : 'far above normal'; }
+const rows = lakes.map((l) => {
+  const r = getReading(l.slug);
+  const ctx = r && r.fresh ? almanacContext(l.slug, r.level_ft, r.as_of) : null;
+  const live = !!(ctx && ctx.live);
+  return { ...l, liveFt: live ? ctx!.ft : l.todayFt, liveMedian: live ? ctx!.median : l.medianForDate,
+    livePct: live ? ctx!.pct : l.percentile, liveRead: live ? readFor(ctx!.pct) : l.read.replace(' for this date', ''),
+    liveOrd: live ? ordinal(ctx!.pct) : l.percentileOrdinal,
+    note: live ? '' : ` (${new Date(l.todayDate + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })})` };
+});
+const striking = [...rows]
+  .sort((a, b) => Math.abs(b.livePct - 50) - Math.abs(a.livePct - 50))
   .slice(0, 3);
 
 const title = `Lake Level Almanac: is your lake normal for the date? | ${data.lakeCount} US reservoirs`;
@@ -112,7 +126,7 @@ const ld = [{
       <p class="alm-micro alm-trust">Checkout runs on Stripe under our parent company, BeLikeNative (Autom8 LLC). That name appears on the receipt and card statement.</p>
       <p class="alm-lede">{featuredSentence}</p>
       <p class="readable">That sentence took {featured.years} years of daily readings to write, and
-      you will not find it on any other site. Not on the agency page the number comes from, not on
+      we have not seen it on any other site. Not on the agency page the number comes from, not on
       a tracker, not in the search result you arrived from. The elevation is free everywhere. The
       context is nowhere.</p>
 
@@ -175,9 +189,9 @@ const ld = [{
             {striking.map((l) => (
               <tr>
                 <td><strong>{l.name}</strong>{l.state ? `, ${l.state}` : ''}</td>
-                <td>{l.todayFt.toLocaleString('en-US', { minimumFractionDigits: 2 })} ft</td>
-                <td>{l.medianForDate.toLocaleString('en-US', { minimumFractionDigits: 2 })} ft</td>
-                <td>{l.percentileOrdinal}</td>
+                <td>{l.liveFt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ft{l.note}</td>
+                <td>{l.liveMedian.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ft</td>
+                <td>{l.liveOrd}</td>
                 <td>{l.years} yr</td>
               </tr>
             ))}
@@ -195,13 +209,13 @@ const ld = [{
           <thead><tr><th>Lake</th><th>Record</th><th>Daily readings</th><th>Today</th>
             <th>Normal for the date</th><th></th></tr></thead>
           <tbody>
-            {lakes.map((l) => (
+            {rows.map((l) => (
               <tr>
                 <td><strong>{l.name}</strong>{l.state ? `, ${l.state}` : ''}</td>
                 <td>{l.years} yr <span class="mut">from {l.recordStart.slice(0, 4)}</span></td>
                 <td>{l.obs.toLocaleString('en-US')}</td>
-                <td>{l.todayFt.toLocaleString('en-US', { minimumFractionDigits: 2 })} ft</td>
-                <td>{l.read.replace(' for this date', '')}</td>
+                <td>{l.liveFt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ft{l.note}</td>
+                <td>{l.liveRead}</td>
                 <td><a class="alm-mini" data-alm-buy="single" data-cta="pricing_table_single" data-lake={l.slug}
                        href={SINGLE_LINK ? `${SINGLE_LINK}?client_reference_id=${l.slug}` : ''}
                        rel="nofollow">${data.priceSingleUsd}</a></td>
