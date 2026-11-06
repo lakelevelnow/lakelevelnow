@@ -17,13 +17,24 @@
   window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
   var gtag = window.gtag;
   gtag('js', new Date());
-  gtag('config', measurementId, {
+  // Internal traffic (CRO 2026-11-06 R2). ?traffic_type=internal marks this browser for 30 days,
+  // ?traffic_type=clear removes the mark. GA4 data filters drop traffic_type=internal.
+  var internal = false;
+  try {
+    var tq = new URLSearchParams(location.search).get('traffic_type');
+    if (tq === 'internal') localStorage.setItem('lln_internal_v1', String(Date.now()));
+    if (tq === 'clear') localStorage.removeItem('lln_internal_v1');
+    var mark = Number(localStorage.getItem('lln_internal_v1') || 0);
+    internal = mark > 0 && Date.now() - mark < 2592000000;
+  } catch (_) { internal = /[?&]traffic_type=internal\b/.test(location.search); }
+  var tt = internal ? { traffic_type: 'internal' } : {};
+  gtag('config', measurementId, Object.assign({
     send_page_view: false,
     page_location: cleanLocation,
     page_referrer: referrer,
     allow_google_signals: false,
     allow_ad_personalization_signals: false
-  });
+  }, tt));
   var once = Object.create(null);
   var campaign = {};
   var query = new URLSearchParams(location.search);
@@ -36,7 +47,7 @@
     if (key && once[key]) return;
     if (key) once[key] = true;
     gtag('event', name, Object.assign({ send_to: measurementId, site_name: site,
-      page_location: cleanLocation, page_referrer: referrer, transport_type: 'beacon' }, campaign, params || {}));
+      page_location: cleanLocation, page_referrer: referrer, transport_type: 'beacon' }, tt, campaign, params || {}));
   }
   event('page_view', {}, 'page_view');
   // Same-site click hand-over (CRO 2026-11-06). gtag can hold an event for seconds, so a click
@@ -47,8 +58,10 @@
     var held = sessionStorage.getItem(HAND);
     if (held) {
       sessionStorage.removeItem(HAND);
-      var h = JSON.parse(held);
-      if (h && h.n === 'select_content' && h.p && Date.now() - h.t < 60000) event('select_content', h.p);
+      var hs = JSON.parse(held);
+      (Array.isArray(hs) ? hs : [hs]).forEach(function (h) {
+        if (h && (h.n === 'select_content' || h.n === 'cta_click') && h.p && Date.now() - h.t < 60000) event(h.n, h.p);
+      });
     }
   } catch (_) {}
   function sendOrHand(anchor, name, params) {
@@ -56,8 +69,10 @@
     try { sameSite = new URL(anchor.href, location.href).origin === location.origin && anchor.target !== '_blank'; } catch (_) {}
     if (sameSite) {
       try {
-        sessionStorage.setItem(HAND, JSON.stringify({ n: name, t: Date.now(),
-          p: Object.assign({ page_location: cleanLocation }, params) }));
+        var list = [];
+        try { list = JSON.parse(sessionStorage.getItem(HAND) || '[]'); if (!Array.isArray(list)) list = [list]; } catch (_) { list = []; }
+        list.push({ n: name, t: Date.now(), p: Object.assign({ page_location: cleanLocation }, params) });
+        sessionStorage.setItem(HAND, JSON.stringify(list.slice(-4)));
         return;
       } catch (_) {}
     }
@@ -159,6 +174,15 @@
   function onOfferClick(ev) {
     var anchor = ev.target && ev.target.closest ? ev.target.closest('a') : null;
     if (!anchor || anchor.getAttribute('aria-disabled') === 'true') return;
+    // cta_click for every CTA with an id (CRO 2026-11-06 R2). Sent before the product events.
+    var cid = ctaId(anchor);
+    if (cid.cta_id) {
+      var cnow = Date.now();
+      if (cnow - (Number(anchor.dataset && anchor.dataset.gaCtaT) || 0) >= 1000) {
+        if (anchor.dataset) anchor.dataset.gaCtaT = String(cnow);
+        sendOrHand(anchor, 'cta_click', Object.assign({ placement: placement(anchor) }, cid));
+      }
+    }
     // Lake sponsor slot (house ad or a paid sponsor): count the click so each sponsor can
     // get its monthly click number. Slug and kind only, never the destination URL.
     var spon = anchor.getAttribute('data-spon');

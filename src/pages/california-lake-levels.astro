@@ -86,7 +86,7 @@ const rho = summary.spearman == null ? null : (Math.round(summary.spearman * 100
 type Cell = { text: string; sub: string; dir: 'up' | 'down' | 'flat' | 'none' };
 function changeCell(r: ReservoirRow): Cell {
   const v = r.storageChangeAf;
-  if (v == null) return { text: '—', sub: 'not published', dir: 'none' };
+  if (v == null) return { text: 'n/a', sub: 'not published', dir: 'none' };
   if (v === 0) return { text: '0 AF', sub: 'unchanged', dir: 'flat' };
   const signed = `${v > 0 ? '+' : '−'}${NF.format(Math.abs(Math.round(v)))} AF`;
   return v > 0

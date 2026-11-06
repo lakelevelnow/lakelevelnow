@@ -5,11 +5,12 @@
 //   <768px   native <details> hamburger — zero JS, keyboard accessible, 48px tap
 //            targets; open/close is browser-native so it cannot wedge in a bad state.
 import { SITE } from '../consts';
+import alm from '../data/almanac.json';
+// CRO 2026-11-06 R2: the paid Almanac gets one header CTA with its price, on every page and width.
 
 const NAV = [
   { href: '/', label: 'Live lakes' },
   { href: '/lakes/', label: 'All lakes' },
-  { href: '/almanac/', label: 'Almanac' },
   { href: '/california-lake-levels/', label: 'California' },
   { href: '/texas-lake-levels/', label: 'Texas' },
   { href: '/about/', label: 'About & data' },
@@ -23,6 +24,7 @@ const NAV = [
     <nav class="main" aria-label="Primary">
       {NAV.map((i) => <a href={i.href}>{i.label}</a>)}
     </nav>
+    <a class="hdr-cta" href="/almanac/" data-cta="header_almanac">Almanac, from ${alm.priceSingleUsd}</a>
     <details class="nav-m">
       <summary aria-label="Menu">
         <span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>

@@ -1,6 +1,7 @@
 ---
 // Global footer — dark slate, LakeLevelNow wordmark, zovo.one + GitHub, disclaimer.
 import { SITE } from '../consts';
+import alm from '../data/almanac.json';
 import SupportLine from './SupportLine.astro';
 import { LAKES, freshLakes } from '../lib/lakes';
 const featured = freshLakes().slice(0, 6).map((x) => x.lake);
@@ -34,6 +35,8 @@ const showTip = fpath !== '/support' && !fpath.startsWith('/almanac/thanks') && 
         <a href="https://mcp.zovo.one">MCP servers for Claude</a>
       </div>
     </div>
+    {/* CRO 2026-11-06 R2: one plain offer line in the footer of every page. */}
+    <p class="foffer">Live lake levels are free. The Lake Level Almanac is the paid tier, with the daily history of one lake for ${alm.priceSingleUsd}, or all {alm.lakeCount} Almanac lakes for ${alm.priceBundleUsd}. <a href="/almanac/" data-cta="footer_almanac">See the Almanac and a free sample</a></p>
     {/* sprint2 2026-11-03: crawl path. The four chart pages and three guides had no link from the
         53 pages Google has indexed, so Google never crawled them (URL Inspection: "unknown to Google").
         Bing finds them through IndexNow, and the Lake Mead chart is now the top Bing landing page. */}

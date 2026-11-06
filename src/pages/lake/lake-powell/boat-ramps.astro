@@ -15,6 +15,7 @@
 // published constants in lib/lakes.ts; nothing is typed by hand in the markup.
 import AdSlot from '../../../components/AdSlot.astro';
 import WaitlistTest from '../../../components/WaitlistTest.astro';
+import AlmanacContext from '../../../components/AlmanacContext.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { LAKES, getReading, fmtNum, feedLabel, POWELL_BAND, powellRamps, powellRampsAsOf, POWELL_RAMPS_SOURCE, POWELL_RAMP_PAGES, POWELL_APRIL_2023, changeOverSeries } from '../../../lib/lakes';
 import { authorLd, breadcrumbLd, speakableLd, absUrl, orgRef } from '../../../lib/seo';
@@ -236,6 +237,10 @@ const faqs = [
     <WaitlistTest slug={lake.slug} name={lake.name} placement="ramps-waitlist" />
 
     <AdSlot pos="mid" />
+
+    {/* CRO 2026-11-06 R2: this top-20 landing page had no paid offer. The Almanac answers the
+        ramp question directly (how often the lake was below a given elevation). */}
+    <AlmanacContext slug="lake-powell" level={live && reading ? reading.level_ft : null} asOf={live && reading ? reading.as_of : null} place="ramps" />
 
     <section class="section airy">
       <h2>Why the elevation cutoff does not tell you if a ramp is open</h2>

@@ -131,7 +131,7 @@ export function launchRead(r: Reading | undefined): { ok: boolean; text: string 
 
 // Stable HTML-escaped lake name for <title>/head.
 export function fmtNum(n: number | null | undefined, d = 1): string {
-  if (n == null || Number.isNaN(n)) return '—';
+  if (n == null || Number.isNaN(n)) return 'n/a';
   return n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
 }
 

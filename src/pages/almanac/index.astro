@@ -40,6 +40,7 @@ function liveSentence(l: { slug: string; sentence: string; todayDate: string }) 
 const featuredSentence = liveSentence(featured);
 const totalReadings = data.totalReadings.toLocaleString('en-US');
 const deepest = data.deepestRecordYears;
+const shallowest = Math.min(...data.lakes.map((l) => l.years));
 
 // The two most striking lakes right now, chosen by distance from their own median rather
 // than by traffic, so the page leads with whatever is actually unusual today.
@@ -48,7 +49,7 @@ const striking = [...lakes]
   .slice(0, 3);
 
 const title = `Lake Level Almanac: is your lake normal for the date? | ${data.lakeCount} US reservoirs`;
-const description = `Every tracker shows today's elevation. This shows whether it is normal. ${deepest} years of daily record for ${data.lakeCount} reservoirs, turned into day-of-year normals, monthly climatology, and how often the lake has been below your own ramp or dock elevation. $${data.priceSingleUsd} for one lake, $${data.priceBundleUsd} for all ${data.lakeCount}.`;
+const description = `Every tracker shows today's elevation. This shows whether it is normal. Up to ${deepest} years of daily record for ${data.lakeCount} reservoirs, turned into day-of-year normals, monthly climatology, and how often the lake has been below your own ramp or dock elevation. $${data.priceSingleUsd} for one lake, $${data.priceBundleUsd} for all ${data.lakeCount}.`;
 
 const ld = [{
   '@context': 'https://schema.org',
@@ -77,23 +78,19 @@ const ld = [{
       <h1>Every tracker tells you the level.<br>None of them tells you if it is normal.</h1>
       <ShortAnswer
         question="What is the Lake Level Almanac?"
-        answer={`$${data.priceSingleUsd} buys the Almanac for one lake and $${data.priceBundleUsd} buys all ${data.lakeCount} reservoirs. Each one turns ${deepest} years of daily record into day-of-year normal ranges, monthly climatology and how often the lake has been below your own ramp or dock elevation.`}
+        answer={`Live levels on every lake page stay free. The Almanac is the paid tier. $${data.priceSingleUsd} buys it for one lake and $${data.priceBundleUsd} buys all ${data.lakeCount} reservoirs. Each one turns ${shallowest} to ${deepest} years of daily record into day-of-year normal ranges, monthly climatology and how often the lake has been below your own ramp or dock elevation.`}
         updated={CONTENT_CHECKED}
       />
 
-      <p class="alm-lede">{featuredSentence}</p>
-      <p class="readable">That sentence took {featured.years} years of daily readings to write, and
-      you will not find it on any other site. Not on the agency page the number comes from, not on
-      a tracker, not in the search result you arrived from. The elevation is free everywhere. The
-      context is nowhere.</p>
-
+      {/* CRO 2026-11-06 R2: the buy block now sits right under the short answer, so the price
+          and the button are on the first screen at 390 px. The live sentence follows it. */}
       {/* The bundle is the flagship and comes first in DOM order on every viewport. The
           single-lake button is an in-page jump to the lake table, not a bare payment link:
           a bare link sold a product with no lake attached. */}
       <div class="alm-buy" data-alm-place="sales-hero">
         <div class="alm-buy-main">
           <div class="alm-price">${data.priceBundleUsd}<span>one time &middot; all {data.lakeCount} lakes
-            &middot; {totalReadings} daily readings &middot; {deepest} years</span></div>
+            &middot; {totalReadings} daily readings &middot; {shallowest} to {deepest} years per lake</span></div>
           <a class="alm-btn" href={BUNDLE_LINK} data-alm-buy="bundle" data-cta="pricing_almanac_bundle" rel="nofollow">
             Get every lake, ${data.priceBundleUsd}
           </a>
@@ -108,11 +105,17 @@ const ld = [{
           <p class="alm-micro">Pick the lake below. Checkout also asks which lake.</p>
         </div>
       </div>
-      <p class="alm-sample">See a complete sample first: <a href="/almanac/sample/">the Lake Powell
-      almanac</a> (free, no email).</p>
+      <p class="alm-sample">See a complete sample first. <a href="/almanac/sample/" data-cta="pricing_sample">Open the Lake Powell
+      almanac</a>, free and with no email.</p>
       <p class="alm-micro alm-terms">Instant download &middot; no account, no password &middot;
       60-day refund, no questions</p>
       <p class="alm-micro alm-trust">Checkout runs on Stripe under our parent company, BeLikeNative (Autom8 LLC). That name appears on the receipt and card statement.</p>
+      <p class="alm-lede">{featuredSentence}</p>
+      <p class="readable">That sentence took {featured.years} years of daily readings to write, and
+      you will not find it on any other site. Not on the agency page the number comes from, not on
+      a tracker, not in the search result you arrived from. The elevation is free everywhere. The
+      context is nowhere.</p>
+
     </section>
 
     <section class="section">
@@ -273,7 +276,7 @@ const ld = [{
         public domain and yours regardless.</div></div>
       <div class="faq-item"><div class="q">What if it is not useful?</div>
         <div class="a">Reply to the Stripe receipt within 60 days and the payment is refunded, no
-        questions. Keep the file: asking for it back would cost more than the refund.</div></div>
+        questions. Keep the file. Asking for it back would cost more than the refund.</div></div>
       <div class="faq-item"><div class="q">My lake is not listed.</div>
         <div class="a">Then no long daily record could be assembled for it from a public feed, or
         the one that exists failed an integrity check. Ask through <a href="/about/">the contact

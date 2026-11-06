@@ -14,8 +14,10 @@ import { CONTENT_CHECKED } from '../consts';
 // Hand-tuned 2026-10-08 for "lake levels" / "current lake levels" (1,922 impressions, pos 18).
 // The count is the lakes that have a live percent-full reading today, never the registry size.
 const pctCount = freshLakes().filter((x) => x.reading.pct_full != null).length;
-const title = pctCount >= 5
-  ? `Lake levels today: live % full for ${pctCount} US reservoirs`
+// CRO 2026-11-06 R2: one count on the page. The title, the badge and the short answer all use
+// the number of lakes with a current reading.
+const title = freshLakes().length >= 5
+  ? `Lake levels today: live readings for ${freshLakes().length} US lakes and reservoirs`
   : 'Live US lake & reservoir water levels';
 const description = SITE.description;
 const fresh = freshLakes();
@@ -29,7 +31,7 @@ const movers = [...fresh]
 const states = byState();
 
 const faqs = [
-  { q: 'Where does the lake level data come from?', a: `Directly from public water-data feeds: USGS Water Services for most lakes and CDEC for California reservoirs. ${SITE.name} fetches each lake's own gage, so the number you see is the same one the operator reports.` },
+  { q: 'Where does the lake level data come from?', a: `Directly from public water-data feeds, USGS Water Services for most lakes and CDEC for California reservoirs. ${SITE.name} fetches each lake's own gage, so the number you see is the same one the operator reports.` },
   { q: 'How often are the levels updated?', a: 'USGS instantaneous gages update every 15–60 minutes; CDEC storage is daily. Each reading carries a timestamp so you can see exactly when it was taken.' },
   { q: 'What does "percent full" mean?', a: 'Current storage divided by published full capacity, as a percentage. 100% means full pool; low percentages indicate drawdown for drought, flood control, or water supply.' },
   { q: 'Is the level shown in real time?', a: 'Almost. It is the most recent reading from the source, usually minutes to hours old. Always confirm conditions with the lake operator before heading out.' },
@@ -41,6 +43,8 @@ const ld = [authorLd(), breadcrumbLd([{ name: 'Home', path: '/' }])];
 // own normal today. That is a real headline, it changes on its own, and it is the single
 // claim on this domain that no competitor can reproduce.
 const almLakes = almanacData.lakes;
+const almYearsMin = Math.min(...almLakes.map((l) => l.years));
+const almYearsMax = Math.max(...almLakes.map((l) => l.years));
 const almFeature = [...almLakes].sort(
   (a, b) => Math.abs(b.percentile - 50) - Math.abs(a.percentile - 50)
 )[0];
@@ -67,6 +71,15 @@ const almFeatureSentence = almFeature ? liveSentence(almFeature) : '';
       <div class="live-badge"><span class="dot"></span><span>{fresh.length} lakes live now</span></div>
       <h1>Live US lake &amp; reservoir water levels</h1>
       <p class="lead">Percent full and 30-day trend from USGS and CDEC gages, with a plain-English read on whether you can launch a boat.</p>
+      {/* CRO 2026-11-06 R2: say what is free and what is paid on the first screen, at 390 px too. */}
+      <div class="hero-offer" data-alm-place="home-hero">
+        <p class="hero-offer-t">Live levels are free on every page. The paid Lake Level Almanac adds {almYearsMin} to {almYearsMax} years of daily history for one lake.</p>
+        <p class="hero-offer-p">${almanacData.priceSingleUsd} once for one lake, or ${almanacData.priceBundleUsd} for all {almanacData.lakeCount} Almanac lakes. 60-day refund.</p>
+        <div class="hero-offer-cta">
+          <a class="hero-offer-btn" href="/almanac/" data-cta="home_hero_almanac">See the Almanac, from ${almanacData.priceSingleUsd}</a>
+          <a class="hero-offer-alt" href="/almanac/sample/" data-cta="home_hero_sample">Open a free sample</a>
+        </div>
+      </div>
       <ShortAnswer
         question="What are US lake levels right now?"
         answer={`This page lists the ${fresh.length} lakes that have a current reading from USGS or CDEC. Each card shows percent full, the 30-day trend and a plain-English read on whether you can launch a boat. Open a lake for its own gauge and its full pool.`}
@@ -166,12 +179,12 @@ const almFeatureSentence = almFeature ? liveSentence(almFeature) : '';
     <section class="section" id="use-in-ai">
       <h2 style="margin-bottom:8px;">Use this data in Claude or ChatGPT</h2>
       <p style="max-width:66ch;">The same gauge readings are available as a free MCP server, so an AI assistant can look up a lake's current level, recent history or a side-by-side comparison without you copying numbers across. It covers 44 lakes, needs no account or API key, and reads the agency gauges at the time you ask.</p>
-      <p style="margin-bottom:6px;"><strong>Claude.ai or ChatGPT.</strong> Add a custom connector and paste this URL:</p>
+      <p style="margin-bottom:6px;"><strong>Claude.ai or ChatGPT.</strong> Add a custom connector and paste this URL.</p>
       <pre class="mono" style="margin:0 0 14px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;overflow-x:auto;white-space:pre;"><code>https://lake-level-mcp.lipmichal.workers.dev/mcp</code></pre>
       <p style="margin-bottom:6px;"><strong>Claude Code.</strong></p>
       <pre class="mono" style="margin:0 0 14px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;overflow-x:auto;white-space:pre;"><code>claude mcp add --transport http lake-level https://lake-level-mcp.lipmichal.workers.dev/mcp</code></pre>
       <p style="font-size:13.5px;"><a href="https://github.com/theluckystrike/lake-level-mcp">Source, tools and other install options on GitHub</a></p>
-      <p style="font-size:13.5px;">For rivers, a companion server reads live USGS stream gauges and NWS flood forecasts the same way: <a href="https://github.com/theluckystrike/river-level-mcp">River Level MCP on GitHub</a></p>
+      <p style="font-size:13.5px;">For rivers, a companion server reads live USGS stream gauges and NWS flood forecasts the same way. <a href="https://github.com/theluckystrike/river-level-mcp">River Level MCP on GitHub</a></p>
     </section>
 
     <section class="section">

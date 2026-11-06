@@ -35,7 +35,7 @@ interface Props {
   /** Set false on pages that already sell something, so a visitor never sees two asks. */
   showCta?: boolean;
   /** Placement token for the beacon and GA4 (closed list: lake, chart). */
-  place?: 'lake' | 'chart';
+  place?: 'lake' | 'chart' | 'ramps';
 }
 const { slug, level = null, asOf = null, showCta = true, place = 'lake' } = Astro.props;
 // CTA ids, placement_target scheme (CRO 2026-11-06). Sent to GA4 as cta_id by public/ga4.js.
@@ -59,7 +59,7 @@ const fmt = (n: number, d = 2) =>
 
     {showCta && slug === 'pine-flat-lake' && (
       <div class="pine-sample" id="pine-flat-sample" data-alm-place="pine-flat-sample">
-        <h3>A real Pine Flat sample: September history</h3>
+        <h3>A real Pine Flat sample, September history</h3>
         <p>The middle half of recorded September elevations was <strong>{fmt(sample.p25Ft)}–{fmt(sample.p75Ft)} ft</strong>.
           The median was {fmt(sample.medianFt)} ft. This is historical context, not today&rsquo;s reading.</p>
         <details data-alm-sample="pine-flat-lake">
@@ -70,11 +70,11 @@ const fmt = (n: number, d = 2) =>
           <p>The purchased file lets you enter your own verified ramp or dock elevation and explore the full record.
             Match its vertical datum to the lake readings before comparing. Historical water levels cannot confirm
             ramp access or a safe launch; check with the operator.</p>
-          <p>Source: <a href={sample.sourceUrl}>CDEC station PNF, elevation sensor 6</a>, {sample.recordStart} to {sample.recordEnd}.
+          <p>Data from <a href={sample.sourceUrl}>CDEC station PNF, elevation sensor 6</a>, {sample.recordStart} to {sample.recordEnd}.
             September observations only; missing days excluded and each observed day counted equally.
             The 25th–75th percentiles describe the middle half, not a guaranteed operating range.</p>
         </details>
-        <p class="pine-value">Free above: the current reading and its historical context.
+        <p class="pine-value">The current reading and its historical context above are free.
           The ${data.priceSingleUsd} download adds the offline almanac, all 366 daily normal ranges,
           threshold explorer and CSV records for Pine Flat. One payment; no subscription.</p>
       </div>

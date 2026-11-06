@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE, AFFILIATE_REPLACE_ME } from '../consts';
 import { breadcrumbLd } from '../lib/seo';
 const title = 'Disclosure: ads, sponsors and affiliate links';
-const description = `How ${SITE.name} pays for itself: display ads outside Europe, one local sponsor per lake, reader support and affiliate links, and what each one collects.`;
+const description = `How ${SITE.name} pays for itself. Display ads outside Europe, one local sponsor per lake, reader support and affiliate links, and what each one collects.`;
 const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Disclosure', path: '/disclosure' }])];
 ---
 <BaseLayout title={title} description={description} path="/disclosure" jsonLd={ld}>

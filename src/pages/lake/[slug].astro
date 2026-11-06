@@ -123,7 +123,7 @@ const descriptionDefault = liveFigure
   ? (descCtx
       ? `${descLead}${descCtx} Live gage and 30-day trend.`
       : `${descLead} Live ${feedLabel(reading!.feed) || 'USGS'} gage reading, 30-day trend, and a plain-English boat-launch read.`)
-  : `${lake.name} water level and percent full: live USGS/CDEC gauge, 30-day trend, and a plain-English boat-launch read.`;
+  : `${lake.name} water level and percent full from the live USGS/CDEC gauge, with the 30-day trend and a plain-English boat-launch read.`;
 // Dated-title pages get a 140-155 character description: the reading, then what the page
 // adds (trend, history, ramp outlook). The richest lead + tail pair that fits wins.
 let description = descriptionDefault;
@@ -166,7 +166,7 @@ if (live) {
     qas = `${lake.name} is ${reading!.pct_full}% full as of ${asOfFmt}, per ${feedName} data${reading!.feet_from_full != null ? `; ${fmtNum(Math.abs(reading!.feet_from_full),1)} ft ${reading!.feet_from_full > 0 ? 'below' : 'above'} full pool` : ''}.`;
   } else if (reading!.level_ft != null) {
     qas = seaMeta
-      ? `${lake.name} is at ${fmtNum(reading!.level_ft,1)} ft as of ${asOfFmt}, per ${feedName} data: ${diffWords(seaMeta.diff)} the ${fmtNum(seaMeta.target,1)} ft seasonal target${lake.full_pool_ft != null ? (Math.abs(lake.full_pool_ft - reading!.level_ft!) < 0.05 ? `, right at the ${fmtNum(lake.full_pool_ft, lake.full_pool_ft % 1 ? 1 : 0)} ft full pool` : ` and ${fmtNum(Math.abs(lake.full_pool_ft - reading!.level_ft!),1)} ft ${lake.full_pool_ft >= reading!.level_ft! ? 'below' : 'above'} the ${fmtNum(lake.full_pool_ft, lake.full_pool_ft % 1 ? 1 : 0)} ft full pool`) : ''}.`
+      ? `${lake.name} is at ${fmtNum(reading!.level_ft,1)} ft as of ${asOfFmt}, per ${feedName} data, ${diffWords(seaMeta.diff)} the ${fmtNum(seaMeta.target,1)} ft seasonal target${lake.full_pool_ft != null ? (Math.abs(lake.full_pool_ft - reading!.level_ft!) < 0.05 ? `, right at the ${fmtNum(lake.full_pool_ft, lake.full_pool_ft % 1 ? 1 : 0)} ft full pool` : ` and ${fmtNum(Math.abs(lake.full_pool_ft - reading!.level_ft!),1)} ft ${lake.full_pool_ft >= reading!.level_ft! ? 'below' : 'above'} the ${fmtNum(lake.full_pool_ft, lake.full_pool_ft % 1 ? 1 : 0)} ft full pool`) : ''}.`
       : `${lake.name} is at ${fmtNum(reading!.level_ft,1)} ft as of ${asOfFmt}, per ${feedName} data${lake.full_pool_ft != null ? `; full pool is ${fmtNum(lake.full_pool_ft,0)} ft` : ''}.`;
   }
 }
@@ -246,7 +246,7 @@ const calcFull = fullPool; // exposed to the inline calculator script
     ) : !noData ? (
       <>
         <div class="callout a" style="margin-top:18px;">
-          <p><span class="em-strong">Last reading: {reading!.pct_full != null ? `${reading!.pct_full}% full` : `${fmtNum(reading!.level_ft,1)} ft`} on {lastReadingDate(reading!.as_of)}.</span> The {feedLabel(reading!.feed) || 'gage'} feed has not reported a newer value, so treat this as the last-known level, not today's.</p>
+          <p><span class="em-strong">Last reading was {reading!.pct_full != null ? `${reading!.pct_full}% full` : `${fmtNum(reading!.level_ft,1)} ft`} on {lastReadingDate(reading!.as_of)}.</span> The {feedLabel(reading!.feed) || 'gage'} feed has not reported a newer value, so treat this as the last-known level, not today's.</p>
         </div>
         <LakeGauge lake={lake} reading={reading!} />
       </>

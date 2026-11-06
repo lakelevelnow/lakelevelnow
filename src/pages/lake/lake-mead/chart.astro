@@ -257,7 +257,7 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
     <section class="section airy">
       <h2>Two Reclamation series, and what neither of them states</h2>
       <p class="readable">
-        This chart plots Reclamation's daily pool elevation for Lake Mead, site 921. The live figure elsewhere on this site comes from Reclamation's <a href={LC}>Lower Colorado hourly report</a>, which publishes the end-of-period reading many times a day. Both are Reclamation, and they are still two different series: a daily value and an hourly one will differ by a tenth of a foot or so on any given day, which is a difference in sampling rather than a disagreement.
+        This chart plots Reclamation's daily pool elevation for Lake Mead, site 921. The live figure elsewhere on this site comes from Reclamation's <a href={LC}>Lower Colorado hourly report</a>, which publishes the end-of-period reading many times a day. Both are Reclamation, and they are still two different series. A daily value and an hourly one will differ by a tenth of a foot or so on any given day, which is a difference in sampling rather than a disagreement.
       </p>
       <p class="readable">
         Worth knowing before you compare this number with one from somewhere else: <a href={RISE}>Reclamation's catalog entry for this series</a> carries a field for the vertical datum and this page makes no claim about what belongs in it, because no value is published there. Lake Mead elevations are conventionally quoted against a Reclamation datum rather than a national one, and sites that print a Mead figure rarely say which. So this page does not assert a datum. It plots the Reclamation series, labels it as the Reclamation series, and links the file so you can check any figure against the source.
@@ -270,7 +270,7 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
         Upstream reservoirs fill on snowmelt and draw down through autumn, which gives them a yearly rhythm you can see in the line. Mead sits below Hoover Dam and is governed by release schedules rather than by a spring freshet, so its year does not have that shape.
       </p>
       <p class="readable">
-        Count the {h.completeYears} complete calendar years from {h.firstFillCutoff} onward and ask only which month carried each year's highest reading. The winner is <span class="em-strong">{h.peakMonth}, and it wins only {h.peakMonthCount} of {h.completeYears} years, {h.peakMonthShare} percent</span>. The rest scatter: {h.peakTop3.slice(1).map((x) => `${x.month} takes ${x.count}`).join(', ')}. The annual low is just as spread, with {h.troughMonth} the most common at {h.troughMonthCount} years.
+        Count the {h.completeYears} complete calendar years from {h.firstFillCutoff} onward and ask only which month carried each year's highest reading. The winner is <span class="em-strong">{h.peakMonth}, and it wins only {h.peakMonthCount} of {h.completeYears} years, {h.peakMonthShare} percent</span>. The rest scatter. {h.peakTop3.slice(1).map((x) => `${x.month} takes ${x.count}`).join(', ')}. The annual low is just as spread, with {h.troughMonth} the most common at {h.troughMonthCount} years.
       </p>
       <p class="readable">
         Compare that with <a href="/lake/lake-powell/chart/">Lake Powell upstream</a>, where {powell.peakMonth} carries the annual high in {powell.peakMonthCount} of {powell.completeYears} years, {powell.peakMonthShare} percent of them. Powell has a season. Mead has an operating schedule.

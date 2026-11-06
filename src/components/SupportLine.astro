@@ -86,4 +86,12 @@ const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
 .tip-why{color:rgba(255,255,255,.72);font-size:13px;text-decoration:underline;padding:12px 4px}
 .tip-why:hover{color:#fff}
 @media (max-width:420px){.tip-row .btn.tip-btn{flex:1 1 100%}}
+/* CRO 2026-11-06 R2: tips are not the primary action. Neutral buttons keep the teal fill for the buy button. 48 px targets. */
+.tip-row .btn.tip-btn{background:#fff;color:var(--t1);border:1px solid #9aa3a7}
+.tip-row .btn.tip-btn:hover{background:var(--row-head);color:var(--t1)}
+.tip-foot .tip-row .btn.tip-btn{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
+.tip-foot .tip-row .btn.tip-btn:hover{background:rgba(255,255,255,.08)}
+.tip-btn,.tip-gh,.tip-not,.tip-sec{min-height:48px}
+.tip-why{display:inline-flex;align-items:center;min-height:48px;padding:0 4px}
+.tip-not{color:var(--t2)}
 </style>

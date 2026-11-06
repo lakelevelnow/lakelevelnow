@@ -70,8 +70,8 @@ const ld = [articleLd, breadcrumbLd([
       <p>
         Each Glen Canyon ramp carries its own minimum lake elevation, published by the Park Service.
         This site holds that table, read on {asOf ?? 'an unknown date'}, and compares the live USGS
-        surface elevation against every row at build time. Current surface:
-        {elev == null ? 'no reading.' : ` ${fmtNum(elev, 2)} ft.`}
+        surface elevation against every row at build time. Current surface is
+        {elev == null ? 'not available.' : ` ${fmtNum(elev, 2)} ft.`}
       </p>
       <div class="def-table">
         <div class="row">
@@ -92,7 +92,7 @@ const ld = [articleLd, breadcrumbLd([
         </div>
       </div>
       <p class="mut" style="font-size:12px;">
-        Source: <a href={POWELL_RAMPS_SOURCE} rel="nofollow noopener">NPS Glen Canyon, changing lake levels</a>.
+        Data from <a href={POWELL_RAMPS_SOURCE} rel="nofollow noopener">NPS Glen Canyon, changing lake levels</a>.
         The row-by-row table with the agency status for each ramp is on the
         <a href="/lake/lake-powell/boat-ramps/">Lake Powell boat ramp page</a>.
       </p>
@@ -114,7 +114,7 @@ const ld = [articleLd, breadcrumbLd([
         the surface is above the dam's own operating floors.
       </p>
       <p>
-        If you are comparing this number with another site's, check the datum first:
+        If you are comparing this number with another site's, check the datum first.
         <a href="/guides/why-lake-elevations-differ/">why two sites show a different lake elevation</a>.
       </p>
       <p class="mut" style="font-size:12px;">Updated {UPDATED}.</p>

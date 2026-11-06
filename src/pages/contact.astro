@@ -5,7 +5,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../consts';
 import { breadcrumbLd } from '../lib/seo';
 const title = 'Contact LakeLevelNow: data fixes, new lakes, sponsors';
-const description = `Email the developer behind ${SITE.name}: report a wrong reading, ask for a new lake or reservoir, ask about a sponsor slot, or ask a privacy question.`;
+const description = `Email the developer behind ${SITE.name} to report a wrong reading, ask for a new lake or reservoir, ask about a sponsor slot, or ask a privacy question.`;
 const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Contact', path: '/contact' }])];
 const EMAIL = 'support@zovo.one';
 const mail = (subject: string) => `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}`;

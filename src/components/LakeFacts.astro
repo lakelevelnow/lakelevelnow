@@ -159,7 +159,7 @@ const recParts: string[] = [];
 if (stale) {
   recParts.push('There is no current reading, so there is no level-based launch read. Check the operator before you go.');
 } else {
-  recParts.push(`Status: ${st.label}.`);
+  recParts.push(`Status is ${st.label}.`);
   const pct = reading.pct_full;
   if (pct != null) {
     recParts.push(pct >= 60
@@ -181,7 +181,7 @@ if (stale) {
 }
 ---
 <section class="section lake-facts">
-  <h2 style="margin-bottom:10px;">{lake.name} today: level, trend, source and access</h2>
+  <h2 style="margin-bottom:10px;">{lake.name} today, with level, trend, source and access</h2>
   {stale && <p style="font-size:14px;color:var(--t2);max-width:660px;">The newest reading below is more than seven days old; the feed may be delayed.</p>}
   {levelParts.length > 0 && (
     <>
@@ -201,14 +201,14 @@ if (stale) {
       <p style="font-size:14px;color:var(--t2);max-width:660px;margin-top:8px;">
         {sea.curve.interp === 'step'
           ? 'Each value holds from its date until the next date in the table; the operator publishes this curve as steps, not as a gradual line.'
-          : 'Between two dates the target moves in a straight line, as the published curve does.'}{sea.curve.precision ? ` ${sea.curve.precision}` : ''} Source: <a href={sea.curve.source.url} rel="noopener">{sea.curve.source.label}</a>, read on Oct 26, 2026.{sea.curve.operator ? <> Operator page: <a href={sea.curve.operator.url} rel="noopener">{sea.curve.operator.label}</a>.</> : null} The operator can deviate from its curve for floods, droughts or dam work.
+          : 'Between two dates the target moves in a straight line, as the published curve does.'}{sea.curve.precision ? ` ${sea.curve.precision}` : ''} Data from <a href={sea.curve.source.url} rel="noopener">{sea.curve.source.label}</a>, read on Oct 26, 2026.{sea.curve.operator ? <> Operator page: <a href={sea.curve.operator.url} rel="noopener">{sea.curve.operator.label}</a>.</> : null} The operator can deviate from its curve for floods, droughts or dam work.
       </p>
     </div>
   )}
   {!sea && seaEntry && seaEntry.kind === 'note' && (
     <div id="seasonal-target">
       <h3 style="font-size:16px;margin-top:12px;">Seasonal guide curve</h3>
-      <p style="font-size:15px;color:var(--t1);max-width:660px;">{seaEntry.text} Source: <a href={seaEntry.source.url} rel="noopener">{seaEntry.source.label}</a>.</p>
+      <p style="font-size:15px;color:var(--t1);max-width:660px;">{seaEntry.text} Data from <a href={seaEntry.source.url} rel="noopener">{seaEntry.source.label}</a>.</p>
     </div>
   )}
   {trendParts.length > 0 && (
