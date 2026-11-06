@@ -32,9 +32,9 @@ const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
       </div>
     </div>
     <div class="tip-row">
-      <a class="btn ghost tip-btn" href={`${PAYPAL}/5USD`} target="_blank" rel="noopener" data-rail="paypal"><span>Buy me a coffee · $5 <small>via PayPal</small></span></a>
-      <a class="tip-btn tip-sec" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><Fragment set:html={cup} /><span>Card, any amount or monthly</span></a>
-      <a class="tip-gh" href={GH} target="_blank" rel="noopener" data-rail="github">Sponsor on GitHub <small>monthly or one-time</small></a>
+      <a class="btn ghost tip-btn" href={`${PAYPAL}/5USD`} target="_blank" rel="noopener" data-rail="paypal" data-cta="tip_result_paypal"><span>Buy me a coffee · $5 <small>via PayPal</small></span></a>
+      <a class="tip-btn tip-sec" href={BMC} target="_blank" rel="noopener" data-rail="bmc" data-cta="tip_result_bmc"><Fragment set:html={cup} /><span>Card, any amount or monthly</span></a>
+      <a class="tip-gh" href={GH} target="_blank" rel="noopener" data-rail="github" data-cta="tip_result_github">Sponsor on GitHub <small>monthly or one-time</small></a>
       <button type="button" class="tip-not" data-sct-dismiss>Not now</button>
     </div>
   </aside>
@@ -46,9 +46,9 @@ const cup = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
     </div>
     <p class="tip-fb">If LakeLevelNow has helped you, you can buy me a coffee. It honestly makes my day, and I read every note that comes with one.</p>
     <div class="tip-row">
-      <a class="btn tip-btn" href={`${PAYPAL}/5USD`} target="_blank" rel="noopener" data-rail="paypal"><span>Buy me a coffee · $5 <small>via PayPal</small></span></a>
-      <a class="btn tip-btn tip-alt" href={BMC} target="_blank" rel="noopener" data-rail="bmc"><Fragment set:html={cup} /><span>Card, any amount or monthly</span></a>
-      <a class="tip-gh tip-fgh" href={GH} target="_blank" rel="noopener" data-rail="github">Sponsor on GitHub <small>monthly or one-time</small></a>
+      <a class="btn tip-btn" href={`${PAYPAL}/5USD`} target="_blank" rel="noopener" data-rail="paypal" data-cta="tip_footer_paypal"><span>Buy me a coffee · $5 <small>via PayPal</small></span></a>
+      <a class="btn tip-btn tip-alt" href={BMC} target="_blank" rel="noopener" data-rail="bmc" data-cta="tip_footer_bmc"><Fragment set:html={cup} /><span>Card, any amount or monthly</span></a>
+      <a class="tip-gh tip-fgh" href={GH} target="_blank" rel="noopener" data-rail="github" data-cta="tip_footer_github">Sponsor on GitHub <small>monthly or one-time</small></a>
       <a class="tip-why" href="/support/">Why I ask</a>
     </div>
   </div>

@@ -344,3 +344,15 @@ nav.main a { display: inline-flex; align-items: center; min-height: 48px; }
 /* CRO 2026-11-06 R3: 48 px targets for the secondary offer links. */
 .alm-home-alt, .alm-home-sample, .alm-ctx-more a, .spon-body a, .alm-sample a, .alm-terms a { display: inline-flex; align-items: center; min-height: 48px; }
 .table-wrap { overflow-x: auto; max-width: 100%; }
+/* CRO 2026-11-06 R4: at 200 % text the header wraps instead of widening the page. */
+.site-header .container { flex-wrap: wrap; height: auto; min-height: 54px; }
+.hdr-cta { white-space: normal; text-align: center; }
+.lake-alm-line { margin: 10px 0 0; max-width: 660px; font-size: 14px; line-height: 1.5; color: var(--t1); }
+.lake-alm-line a { display: inline-flex; align-items: center; min-height: 48px; margin-left: 4px; font-weight: 600; text-decoration: underline; }
+.lake-alm-micro { color: var(--t2); font-size: 13px; margin-left: 4px; }
+/* CRO 2026-11-06 R4: nothing may force the page wider than the screen at 200 % text. */
+svg { max-width: 100%; }
+.grid > *, .tw, .table-wrap { min-width: 0; }
+.lake-card, .gauge-card, .alm-card { min-width: 0; }
+.lake-card .top { flex-wrap: wrap; gap: 4px 16px; }
+.crumbs { flex-wrap: wrap; }

@@ -268,7 +268,7 @@ const faqs = [
       <h2>How long the usable ramps last at this rate</h2>
       {ratePerDay != null ? (
         <>
-          <p class="readable">Across the {spanDays != null ? fmtNum(spanDays, 0) : ''} days of readings on this page the lake has {change30dWord} {fmtNum(Math.abs(change30d ?? 0), 2)} ft, an average of {fmtNum(Math.abs(ratePerDay), 3)} ft per day. Carrying that same rate forward gives a rough countdown for every ramp the water still clears.</p>
+          <p class="readable">Across the {spanDays != null ? fmtNum(spanDays, 0) : ''} days of readings on this page the lake has {change30dWord} {fmtNum(Math.abs(change30d ?? 0), 2)} ft, an average of {fmtNum(Math.abs(ratePerDay), 3)} ft per day. Carrying that same rate forward gives a rough date for every ramp the water still clears.</p>
           {countdowns.length > 0 ? (
             <div class="def-table" style="max-width:660px;margin-top:16px;">
               {countdowns.map((c) => (

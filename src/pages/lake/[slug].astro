@@ -213,6 +213,7 @@ const change30d = changeOverSeries(reading?.series);
 const elevM = elev != null ? Math.round(elev * 0.3048 * 10000) / 10000 : null;
 const calcFull = fullPool; // exposed to the inline calculator script
 
+import almPrice from '../../data/almanac.json';
 ---
 <BaseLayout title={title} description={description} path={`/lake/${slug}`} jsonLd={ld} brand={!datedTitle} noindex={noData} robots={noData ? 'noindex,follow' : undefined}>
   <div class="container">
@@ -230,6 +231,12 @@ const calcFull = fullPool; // exposed to the inline calculator script
       {live && <StatusStrip lake={lake} reading={reading!} slug={slug} />}
       <p style="font-size:14px;color:var(--t2);margin-top:8px;">{lake.river} · {stName} · operated by {lake.operator}</p>
       <p style="font-size:13px;color:var(--t2);margin-top:6px;">By <a href="/about/">{AUTHOR.name}</a>, independent developer behind <a href="https://zovo.one" rel="noopener">zovo.one</a>. Readings pulled live from the same {feedLabel(reading?.feed) || 'USGS'} feed the operator reports to.</p>
+      {/* CRO 2026-11-06 R4: the lake's own paid offer in the first phone screen, as one text link. */}
+      {alm && (
+        <p class="lake-alm-line" data-alm-place="lake-hero">The {lake.name} almanac shows the normal range for every date of the year.
+          <a href={import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? `${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=${slug}` : '/almanac/#pick'} rel="nofollow" data-lake={slug} data-cta="lake_hero_almanac">Get it for ${almPrice.priceSingleUsd}</a>
+          <span class="lake-alm-micro">One payment, 60-day refund.</span></p>
+      )}
     </div>
 
     {qas && <p class="qas" data-keyword={`${lake.name} water level`} style="font-size:15px;color:var(--t1);margin-top:14px;max-width:660px;font-weight:500;">{qas}</p>}

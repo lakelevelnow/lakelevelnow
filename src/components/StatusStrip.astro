@@ -84,7 +84,7 @@ const seaCell = sea
 </div>
 
 <style>
-  .status-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1px;
+  .status-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr)); gap: 1px;
     background: var(--border); border-radius: var(--r); overflow: hidden; margin: 12px 0 4px; max-width: 760px; }
   .ss-cell { background: var(--card); padding: 10px 12px; display: block; color: inherit; }
   .ss-link:hover { text-decoration: none; background: var(--row-head); }
