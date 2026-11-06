@@ -6,6 +6,7 @@ import { LAKES, freshLakes, byState, getReading, status, fmtNum, stateName } fro
 import { authorLd, breadcrumbLd } from '../lib/seo';
 import { levelStatus } from '../lib/seasonal';
 import almanacData from '../data/almanac.json';
+import { almanacContext, leadSentence } from '../lib/almanac';
 import SupportLine from '../components/SupportLine.astro';
 import ShortAnswer from '../components/ShortAnswer.astro';
 import { CONTENT_CHECKED } from '../consts';
@@ -45,6 +46,19 @@ const almFeature = [...almLakes].sort(
 )[0];
 const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
 
+// CRO 2026-11-06 (L07): the featured sentence came from the August snapshot in almanac.json and
+// contradicted the live lake page. Use the same live context as the lake page; with no fresh
+// reading, keep the snapshot sentence but name its date.
+function liveSentence(l: { slug: string; sentence: string; todayDate: string }) {
+  const r = getReading(l.slug);
+  const fresh = !!(r && r.fresh);
+  const ctx = fresh ? almanacContext(l.slug, r!.level_ft, r!.as_of) : null;
+  if (ctx) return leadSentence(ctx);
+  const d = new Date(l.todayDate + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  return `On ${d}, ${l.sentence.charAt(0).toLowerCase()}${l.sentence.slice(1)}`;
+}
+const almFeatureSentence = almFeature ? liveSentence(almFeature) : '';
+
 ---
 <BaseLayout title={title} description={description} path="/" jsonLd={ld}>
   <div class="container">
@@ -66,16 +80,16 @@ const ALMANAC_SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
     {almFeature && (
       <section class="alm-home">
         <p class="alm-home-k">Is that level normal?</p>
-        <p class="alm-home-lead">{almFeature.sentence}</p>
+        <p class="alm-home-lead">{almFeatureSentence}</p>
         <p class="alm-home-sub">
           Get daily normal ranges, a threshold explorer and CSV records for {almFeature.name}.
-          ${almanacData.priceSingleUsd} once. Instant download. No subscription.
+          ${almanacData.priceSingleUsd} once. Instant download. No subscription. 60-day refund, no questions.
         </p>
         <p class="alm-home-cta" data-alm-place="home">
-          <a class="alm-home-btn" href={ALMANAC_SINGLE ? `${ALMANAC_SINGLE}?client_reference_id=${almFeature.slug}` : '/almanac'} rel="nofollow" data-lake={almFeature.slug}>
+          <a class="alm-home-btn" href={ALMANAC_SINGLE ? `${ALMANAC_SINGLE}?client_reference_id=${almFeature.slug}` : '/almanac'} rel="nofollow" data-lake={almFeature.slug} data-cta="home_almanac_single">
             {almFeature.name} almanac, ${almanacData.priceSingleUsd}
           </a>
-          <a class="alm-home-alt" href="/almanac/">All {almanacData.lakeCount} lakes, ${almanacData.priceBundleUsd} &middot; see a free sample</a>
+          <a class="alm-home-alt" href="/almanac/" data-cta="home_almanac_page">All {almanacData.lakeCount} lakes, ${almanacData.priceBundleUsd} &middot; see a free sample</a>
           <a class="alm-home-sample" href="/almanac/sample/">Open the sample almanac (Lake Powell)</a>
         </p>
         <p class="alm-home-trust">Checkout runs on Stripe under our parent company, BeLikeNative (Autom8 LLC). That name appears on the receipt and card statement.</p>

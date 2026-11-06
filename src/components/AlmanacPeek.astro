@@ -15,7 +15,7 @@ const href = SINGLE ? `${SINGLE}?client_reference_id=${slug}` : '/almanac/';
   <p>{alm
     ? `The ${name} Almanac has daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} once. No subscription.`
     : `Plan visits to other lakes. Get daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} per lake. ${name} is not included.`}</p>
-  {alm ? <a class="alm-peek-buy" href={href} data-alm-cta="lake" data-lake={slug}
+  {alm ? <a class="alm-peek-buy" href={href} data-alm-cta="lake" data-cta="peek_almanac_single" data-lake={slug}
     rel="nofollow">Get {name} Almanac for ${PRICE_SINGLE}</a>
     : <a class="alm-peek-buy" href="/almanac/">See the {LAKE_COUNT} covered lakes at ${PRICE_SINGLE} each</a>}
   {alm && <a class="alm-peek-more" href={slug === 'pine-flat-lake' ? '#pine-flat-sample' : `#alm-h-${slug}`}>{slug === 'pine-flat-lake' ? 'See Pine Flat sample' : 'See what is included'}</a>}

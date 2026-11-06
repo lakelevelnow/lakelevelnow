@@ -17,12 +17,27 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import data from '../../data/almanac.json';
 import ShortAnswer from '../../components/ShortAnswer.astro';
 import { CONTENT_CHECKED } from '../../consts';
+import { getReading } from '../../lib/lakes';
+import { almanacContext, leadSentence } from '../../lib/almanac';
 
 const SINGLE_LINK = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
 const BUNDLE_LINK = import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE || '';
 
 const lakes = data.lakes;
 const featured = lakes.find((l) => l.slug === 'lake-powell') || lakes[0];
+
+// CRO 2026-11-06 (L07): the featured sentence came from the August snapshot in almanac.json and
+// contradicted the live lake page. Use the same live context as the lake page; with no fresh
+// reading, keep the snapshot sentence but name its date.
+function liveSentence(l: { slug: string; sentence: string; todayDate: string }) {
+  const r = getReading(l.slug);
+  const fresh = !!(r && r.fresh);
+  const ctx = fresh ? almanacContext(l.slug, r!.level_ft, r!.as_of) : null;
+  if (ctx) return leadSentence(ctx);
+  const d = new Date(l.todayDate + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  return `On ${d}, ${l.sentence.charAt(0).toLowerCase()}${l.sentence.slice(1)}`;
+}
+const featuredSentence = liveSentence(featured);
 const totalReadings = data.totalReadings.toLocaleString('en-US');
 const deepest = data.deepestRecordYears;
 
@@ -66,7 +81,7 @@ const ld = [{
         updated={CONTENT_CHECKED}
       />
 
-      <p class="alm-lede">{featured.sentence}</p>
+      <p class="alm-lede">{featuredSentence}</p>
       <p class="readable">That sentence took {featured.years} years of daily readings to write, and
       you will not find it on any other site. Not on the agency page the number comes from, not on
       a tracker, not in the search result you arrived from. The elevation is free everywhere. The
@@ -79,15 +94,15 @@ const ld = [{
         <div class="alm-buy-main">
           <div class="alm-price">${data.priceBundleUsd}<span>one time &middot; all {data.lakeCount} lakes
             &middot; {totalReadings} daily readings &middot; {deepest} years</span></div>
-          <a class="alm-btn" href={BUNDLE_LINK} data-alm-buy="bundle" rel="nofollow">
-            Get every lake
+          <a class="alm-btn" href={BUNDLE_LINK} data-alm-buy="bundle" data-cta="pricing_almanac_bundle" rel="nofollow">
+            Get every lake, ${data.priceBundleUsd}
           </a>
           <p class="alm-micro">For marinas, dock builders, agents, guides and anyone who reports
           on more than one lake.</p>
         </div>
         <div class="alm-buy-alt">
           <div class="alm-price small">${data.priceSingleUsd}<span>one time, one lake</span></div>
-          <a class="alm-btn ghost" href="#pick" data-alm-pick="hero">
+          <a class="alm-btn ghost" href="#pick" data-alm-pick="hero" data-cta="pricing_almanac_pick">
             Get one lake&rsquo;s almanac, ${data.priceSingleUsd}
           </a>
           <p class="alm-micro">Pick the lake below. Checkout also asks which lake.</p>
@@ -184,7 +199,7 @@ const ld = [{
                 <td>{l.obs.toLocaleString('en-US')}</td>
                 <td>{l.todayFt.toLocaleString('en-US', { minimumFractionDigits: 2 })} ft</td>
                 <td>{l.read.replace(' for this date', '')}</td>
-                <td><a class="alm-mini" data-alm-buy="single" data-lake={l.slug}
+                <td><a class="alm-mini" data-alm-buy="single" data-cta="pricing_table_single" data-lake={l.slug}
                        href={SINGLE_LINK ? `${SINGLE_LINK}?client_reference_id=${l.slug}` : ''}
                        rel="nofollow">${data.priceSingleUsd}</a></td>
               </tr>
@@ -193,7 +208,7 @@ const ld = [{
               <tr class="alm-bundle-row">
                 <td colspan="5"><strong>Every lake above</strong> <span class="mut">&middot; all
                   {d.lakeCount} lakes, {totalReadings} daily readings, one ZIP</span></td>
-                <td><a class="alm-mini" data-alm-buy="bundle" href={BUNDLE_LINK}
+                <td><a class="alm-mini" data-alm-buy="bundle" data-cta="pricing_table_bundle" href={BUNDLE_LINK}
                        rel="nofollow">${d.priceBundleUsd}</a></td>
               </tr>
             ))}
@@ -266,13 +281,13 @@ const ld = [{
     </section>
 
     <section class="section alm-close">
-      <h2>{featured.sentence}</h2>
+      <h2>{featuredSentence}</h2>
       <p class="readable">You can go and check that against the gage yourself. Working out what it
       means took {featured.obs.toLocaleString('en-US')} readings and a lot of arithmetic. That is
       what the ${data.priceSingleUsd} buys for one lake, and the ${data.priceBundleUsd} for all
       {data.lakeCount}.</p>
       <p class="alm-close-cta" data-alm-place="sales-close">
-        <a class="alm-btn" href={BUNDLE_LINK} data-alm-buy="bundle" rel="nofollow">
+        <a class="alm-btn" href={BUNDLE_LINK} data-alm-buy="bundle" data-cta="pricing_close_bundle" rel="nofollow">
           Get every lake, ${data.priceBundleUsd}</a>
         <a class="alm-close-alt" href="#pick" data-alm-pick="close">or one lake for ${data.priceSingleUsd}</a>
       </p>
