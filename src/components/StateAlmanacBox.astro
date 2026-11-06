@@ -15,7 +15,7 @@ const place = `state-${state.toLowerCase()}`;
 ---
 {lakes.length > 0 && (
   <section class="section st-alm" data-alm-place={place} aria-labelledby={`st-alm-h-${state}`}>
-    <h2 class="section-h" id={`st-alm-h-${state}`}>The full record for {lakes.length} {stateName} lakes</h2>
+    <h2 class="section-h" id={`st-alm-h-${state}`}>{`The full record for ${lakes.length} ${stateName} lakes`}</h2>
     <p class="readable">
       This page shows today. The Lake Level Almanac is the offline history of one lake, with {minYears} to {maxYears} years
       of daily readings and the normal range for all 366 days. It also tells you how often the lake was below your own
