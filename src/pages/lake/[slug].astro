@@ -5,6 +5,7 @@ import AlmanacContext from '../../components/AlmanacContext.astro';
 import AlmanacPeek from '../../components/AlmanacPeek.astro';
 import MeadAlmanacNote from '../../components/MeadAlmanacNote.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import AskAiCard from '../../components/AskAiCard.astro';
 import StatusStrip from '../../components/StatusStrip.astro';
 import SponsorSlot from '../../components/SponsorSlot.astro';
 import LakeFacts from '../../components/LakeFacts.astro';
@@ -426,6 +427,8 @@ import almPrice from '../../data/almanac.json';
 
     {/* "Where these numbers come from" was the same paragraph on every lake page; the exact
         station and method now sit in the LakeFacts "Data source" paragraph (adsense-1025). */}
+
+    {['lake-mead','medina-lake','nolin-river-lake','lake-cachuma','pine-flat-lake','lake-powell'].includes(slug) && <AskAiCard page={`lake/${slug}`} lake={lake.name} />}
 
     <section class="section">
       <h2 style="margin-bottom:4px;">Questions about {lake.name}</h2>

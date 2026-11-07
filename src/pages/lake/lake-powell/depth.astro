@@ -6,6 +6,7 @@
 // the sibling lake pages. Every displayed number is a deterministic transform of the
 // validated reading + published constants; nothing is typed by hand.
 import AdSlot from '../../../components/AdSlot.astro';
+import AskAiCard from '../../../components/AskAiCard.astro';
 import WaitlistTest from '../../../components/WaitlistTest.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import DepthGauge from '../../../components/DepthGauge.astro';
@@ -322,6 +323,8 @@ const faqs = [
         Treat the depth and the trend here as a starting point. The <a href="/lake/lake-powell/">live level page</a> has the full gauge, and the <a href="/lake/lake-powell/chart/">water level chart</a> ranks today against every daily reading Reclamation has published since 1963. If you are towing a boat, <a href="/lake/lake-powell/boat-ramps/">the published minimum elevation for each ramp</a> is the number that decides it. Then check the ramp itself with the people who run it, because these are point-in-time readings and they can lag real conditions.
       </p>
     </section>
+
+    <AskAiCard page="lake/lake-powell/depth" lake="Lake Powell" />
 
     <section class="section airy">
       <h2 style="margin-bottom:4px;">Questions about Lake Powell's depth</h2>

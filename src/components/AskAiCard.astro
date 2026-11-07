@@ -1,0 +1,23 @@
+---
+// s1107 XLINK: one card that sends a reader to the free lake level MCP server.
+// Shown only on the highest-impression lake pages (GSC 28 days), for lakes the server covers.
+// Tagged per the S150 scheme: utm_source and src = lakelevelnow, utm_medium=mcp,
+// utm_campaign=mcp-free-server, utm_content = page slug. Remove the import and tag to roll back.
+interface Props { page: string; lake: string; }
+const { page, lake } = Astro.props;
+const href = `https://www.mcpstamp.com/free-servers/lake-level-mcp/?utm_source=lakelevelnow&utm_medium=mcp&utm_campaign=mcp-free-server&utm_content=${encodeURIComponent(page)}&src=lakelevelnow`;
+---
+<section class="section">
+  <aside class="askai" aria-labelledby="askai-h" data-askai="lake-level">
+    <h2 id="askai-h">Ask Claude or ChatGPT this directly</h2>
+    <p>The gauge readings on this page also run as a free MCP server. Connect it once and ask something like "how far is {lake} below full pool, and how much has it moved in the last 7 days?" Your assistant reads the government gauge when you ask, so it won't quote a level from months ago. There's no account and no API key.</p>
+    <p class="askai-go"><a href={href} rel="noopener">See how to connect it</a></p>
+  </aside>
+</section>
+<style>
+  .askai { border: 1px solid rgba(127,127,127,.3); border-radius: 10px; padding: 16px 18px; background: rgba(127,127,127,.06); max-width: 72ch; box-sizing: border-box; }
+  .askai h2 { margin: 0 0 8px; font-size: 1.15rem; }
+  .askai p { margin: 0 0 10px; line-height: 1.6; }
+  .askai .askai-go { margin: 0; }
+  .askai a { font-weight: 600; }
+</style>
