@@ -1,0 +1,279 @@
+---
+// /posters/ — Lake Mead and Lake Powell water level posters, sku llp, $9 one time.
+// Mobile money run 2026-11-08. Every number on this page is read from src/data/posters.json,
+// which the poster generator wrote from the same data the PDFs were drawn from, so the page and
+// the files a buyer downloads always agree. Reference elevations are Reclamation's (FACTS.md).
+// The buy link goes straight to Stripe; Stripe returns the buyer to /posters/thanks/#s=...
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import posters from '../../data/posters.json';
+
+const BUY = posters.buyUrl;
+const PRICE = posters.priceUsd;
+const mead = (posters.lakes as any).mead;
+const powell = (posters.lakes as any).powell;
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const longDate = (iso: string) => { const [y, m, d] = iso.split('-').map(Number); return `${MONTHS[m - 1]} ${d}, ${y}`; };
+const monthYear = (iso: string) => { const [y, m] = iso.split('-').map(Number); return `${MONTHS[m - 1]} ${y}`; };
+const ft = (v: number, nd = 2) => `${v.toLocaleString('en-US', { minimumFractionDigits: nd, maximumFractionDigits: nd })} ft`;
+const yearOf = (iso: string) => Number(iso.slice(0, 4));
+const meadYears = yearOf(mead.latest[0]) - yearOf(mead.first[0]);
+
+const title = 'Lake Mead and Lake Powell water level posters, $9 printable PDFs';
+const description = `Every daily Bureau of Reclamation reading for Lake Mead since ${yearOf(mead.first[0])} and Lake Powell since ${yearOf(powell.first[0])}, drawn as print-ready posters. Three designs, light and dark, four sizes, plus a 2027 Lake Mead calendar. $${PRICE} one time.`;
+const ld = [{
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: 'Lake Mead and Lake Powell Water Level Posters',
+  description,
+  image: 'https://lakelevelnow.com/posters/img/lake-mead-light-1200.webp',
+  brand: { '@type': 'Brand', name: 'LakeLevelNow' },
+  offers: { '@type': 'Offer', price: PRICE, priceCurrency: 'USD', availability: 'https://schema.org/InStock', url: 'https://lakelevelnow.com/posters/' },
+  isBasedOn: [{ '@type': 'Dataset', name: 'Reclamation daily pool elevation, Lake Mead and Lake Powell', url: 'https://data.usbr.gov/catalog/2362/item/508' }],
+}];
+const previews = [
+  { slug: 'lake-mead-light', label: `Lake Mead, light. ${yearOf(mead.first[0])} to ${yearOf(mead.latest[0])}.` },
+  { slug: 'two-lakes-dark', label: 'Two Lakes, dark. Lake Powell above, Lake Mead below.' },
+  { slug: 'lake-powell-light', label: `Lake Powell, light. ${yearOf(powell.first[0])} to ${yearOf(powell.latest[0])}.` },
+];
+// The latest reading and the low after first filling, said the way the posters say them.
+const latestLine = (l: any) => l.low_after_first_fill[0] === l.latest[0]
+  ? `${l.lake} stood at ${ft(l.latest[1])} on ${longDate(l.latest[0])}, its lowest since ${monthYear(l.low_is_lowest_since)}.`
+  : `${l.lake} stood at ${ft(l.latest[1])} on ${longDate(l.latest[0])}. Its low after first filling was ${ft(l.low_after_first_fill[1])} on ${longDate(l.low_after_first_fill[0])}, the lowest since ${monthYear(l.low_is_lowest_since)}.`;
+// Seasonal gift copy. The site rebuilds at least daily, so the Christmas lines switch off on
+// December 25 without anyone touching the page. November 1 to December 24, UTC build date.
+const now = new Date();
+const christmas = now.getUTCMonth() === 10 || (now.getUTCMonth() === 11 && now.getUTCDate() <= 24);
+// Store facts, read on the stores' own pages on 2026-11-08 (FACTS.md in the llp lane).
+const STORES_CHECKED = 'November 8, 2026';
+---
+
+<BaseLayout title={title} description={description} path="/posters/" jsonLd={ld} brand={false}>
+  <div class="container pst-page">
+
+    <section class="pp-hero">
+      <p class="pp-eyebrow">{christmas ? 'Printable posters, a gift with nothing to ship' : 'Printable posters'}</p>
+      <h1>{meadYears} years of Lake Mead, ready for your wall</h1>
+      <p class="pp-lead">Every daily reading the Bureau of Reclamation has for Lake Mead and Lake Powell,
+      drawn as a quiet print you can frame.</p>
+
+      <div class="pp-hero-grid">
+      <figure class="pp-room">
+        <picture>
+          <source type="image/webp" srcset="/posters/img/room-600.webp 600w, /posters/img/room-1200.webp 1200w" sizes="(max-width: 860px) 100vw, 640px" />
+          <img class="pp-mock" src="/posters/img/room-1200.webp" width="1200" height="1000"
+               alt="Illustration drawn in code. The dark Lake Mead poster in a black frame with a white mat, hung above an oak sideboard with books and a vase of dried stems" fetchpriority="high" />
+        </picture>
+        <figcaption>Drawn in code, to scale. The 18 x 24 in poster, dark, with a 2.75 in mat.</figcaption>
+      </figure>
+
+      <div class="pp-buy" data-pp-place="posters-hero">
+        <p class="pp-price">${PRICE} <span>one time, instant download</span></p>
+        <a class="pp-btn" href={BUY} rel="nofollow" data-cta="posters_buy_hero" data-pp-buy>Get the posters, ${PRICE}</a>
+        {christmas && <p class="pp-gift-line">Nothing to ship. The files arrive the moment you pay, and a store near you can print them the same day.</p>}
+        <p class="pp-pay">Pay with Apple Pay or Google Pay, or any card. No account needed.</p>
+        <p class="pp-refund">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+        <p class="pp-fine">Checkout is handled by Stripe. The checkout page shows the name BeLikeNative and your card
+        statement shows AUTOM8 LLC. Both are the small company behind this site.</p>
+      </div>
+      </div>
+    </section>
+
+    <section class="pp-sec">
+      <h2>What you get</h2>
+      <ul class="pp-list">
+        <li><strong>Three posters.</strong> Lake Mead, Lake Powell, and Two Lakes with both lakes on one sheet.</li>
+        <li><strong>Light and dark.</strong> Each poster in a cream colorway and a deep night blue one.</li>
+        <li><strong>Four sizes.</strong> 18 x 24 in, 11 x 14 in, 8 x 10 in and A3. That makes {posters.posterFiles} poster files, each a vector PDF that stays sharp at any size.</li>
+        <li><strong>Photo counter copies.</strong> The 8 x 10 and 11 x 14 posters also come as 300 dpi JPG files ({posters.jpgFiles} in all), for stores that print from photos.</li>
+        <li><strong>A 2027 Lake Mead calendar.</strong> A cover and 12 US Letter pages. Each month has a date grid and a small chart of where the lake has stood at the end of that month since 1942.</li>
+        <li><strong>One ZIP.</strong> Everything in one download ({posters.zipMb} MB) with a short print guide.</li>
+      </ul>
+    </section>
+
+    <section class="pp-sec">
+      <h2>The three designs</h2>
+      <div class="pp-gallery">
+        {previews.map((p) => (
+          <figure>
+            <img src={`/posters/img/${p.slug}-600.webp`} srcset={`/posters/img/${p.slug}-600.webp 600w, /posters/img/${p.slug}-1200.webp 1200w`}
+                 sizes="(max-width: 760px) 100vw, 340px" width="600" height="800" loading="lazy" decoding="async"
+                 alt={`Preview of the ${p.label.split('.')[0]} poster`} />
+            <figcaption>{p.label}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+
+    <section class="pp-sec">
+      <h2>What is on each poster</h2>
+      <p class="pp-p">The line is the lake surface, one reading per day, with a soft fill below it. A few
+      marks are added, and each one is computed from the readings themselves.</p>
+      <ul class="pp-list">
+        <li>The record high with its date. Lake Mead reached {ft(mead.record_high[1])} on {longDate(mead.record_high[0])}. Lake Powell reached {ft(powell.record_high[1])} on {longDate(powell.record_high[0])}.</li>
+        <li>The first reading in the record, from the year each lake began to fill.</li>
+        <li>The latest reading in the file and the low since each lake first filled. {latestLine(mead)} {latestLine(powell)}</li>
+        <li>Two dashed lines at dead pool and minimum power pool, at the elevations Reclamation publishes. That is {ft(mead.reference.dead, 0)} and {ft(mead.reference.minpower, 0)} for Lake Mead, {ft(powell.reference.dead, 0)} and {ft(powell.reference.minpower, 0)} for Lake Powell.</li>
+      </ul>
+      <p class="pp-p">I make LakeLevelNow on my own. I drew these from the same Reclamation files that feed the charts on this site,
+      and I left out anything the data cannot show.</p>
+    </section>
+
+    <section class="pp-sec pp-gift" id="gift">
+      <h2>{christmas ? 'A Christmas gift with nothing to ship' : 'A gift for the lake lover in the family'}</h2>
+      <p class="pp-p">If someone in your family boats, fishes or camps on Lake Mead or Lake Powell, this is their lake
+      on the wall. There is no box to wait for. The files arrive the moment you pay{christmas ? ', so it still works in the last days before Christmas' : ''}.</p>
+      <ol class="pp-steps">
+        <li><strong>Buy and download.</strong> One ZIP holds every poster, size and colorway.</li>
+        <li><strong>Print it near you.</strong> Staples says it can have the 18 x 24 ready the same day if you order by noon. Walgreens prints the 8 x 10 and the 11 x 14. The steps for each store are below.</li>
+        <li><strong>Frame it.</strong> Each poster is a standard size, so a ready made frame of the same size fits.</li>
+      </ol>
+      <p class="pp-p">Family far away? Send them the ZIP. They print it at a store near them and you skip the postage.
+      You may print copies for gifts, so one purchase covers the whole family.</p>
+    </section>
+
+    <section class="pp-sec" id="print">
+      <h2>How to print it</h2>
+      <p class="pp-p">One rule matters most. Print at actual size or 100 percent, not fit to page. Each PDF is exactly the size in its name,
+      and all text and lines sit at least a quarter inch inside the edge, so a small trim never cuts anything. Matte paper suits both colorways.</p>
+      <div class="pp-stores">
+        <div class="pp-store">
+          <h3>Staples, for 18 x 24</h3>
+          <p>Order a custom paper poster in 18 x 24 and upload the 18 x 24 PDF. Staples takes JPG, PNG or PDF files.
+          Pick standard heavyweight matte or super heavyweight matte paper. Staples says eligible paper posters ordered by 12 pm
+          are ready for free same day pickup, and that pickup can vary by store.</p>
+        </div>
+        <div class="pp-store">
+          <h3>Walgreens, for 8 x 10 and 11 x 14</h3>
+          <p>Order an 8 x 10 photo print or an 11 x 14 poster and upload the matching JPG from the photo-counter-jpg folder.
+          Walgreens offers matte or glossy prints for same day pickup. Pick matte. Walgreens does not list 18 x 24, so use Staples or a print shop for the big size.</p>
+        </div>
+        <div class="pp-store">
+          <h3>CVS or another photo counter</h3>
+          <p>Upload the JPG that matches the size you choose, 8 x 10 or 11 x 14, and print at full size with no cropping.</p>
+        </div>
+        <div class="pp-store">
+          <h3>A local print shop</h3>
+          <p>Bring the PDF on your phone or a USB stick. Ask for it at 100 percent on matte paper with no scaling.
+          Outside the US, ask for the A3 file.</p>
+        </div>
+        <div class="pp-store">
+          <h3>At home</h3>
+          <p>The 8 x 10 PDF and the calendar print well on matte photo paper. The dark posters fill the sheet with color and most
+          home printers leave a thin white edge, so a store print suits them better.</p>
+        </div>
+      </div>
+      <p class="pp-note">Store details as listed on Staples and Walgreens pages on {STORES_CHECKED}. Stores change their options, so check the order screen.</p>
+    </section>
+
+    <section class="pp-sec">
+      <h2>Questions</h2>
+      <h3>Do you mail a printed poster?</h3>
+      <p class="pp-p">No. You get the files and print them where you like.</p>
+      <h3>Will the latest reading update itself?</h3>
+      <p class="pp-p">No. The posters show readings up to {longDate(mead.latest[0])}. The live level stays free
+      on the <a href="/lake/lake-mead/">Lake Mead page</a> and the <a href="/lake/lake-powell/">Lake Powell page</a>.</p>
+      <h3>Can I print more than one copy?</h3>
+      <p class="pp-p">Yes. Print as many as you like for your home, your family and gifts. Please do not resell the files.</p>
+      <h3>I lost my download page. What now?</h3>
+      <p class="pp-p">Open the <a href="/posters/thanks/">download page</a> and enter the email you paid with.</p>
+    </section>
+
+    <section class="pp-sec">
+      <div class="pp-buy pp-buy-end" data-pp-place="posters-end">
+        <p class="pp-price">${PRICE} <span>three posters, eight variations each, plus the calendar</span></p>
+        <a class="pp-btn" href={BUY} rel="nofollow" data-cta="posters_buy_end" data-pp-buy>Get the posters, ${PRICE}</a>
+        <p class="pp-pay">Pay with Apple Pay or Google Pay, or any card.</p>
+        <p class="pp-refund">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+        <p class="pp-fine">Checkout is handled by Stripe. Your statement shows AUTOM8 LLC.</p>
+      </div>
+      <p class="pp-src">Data from the U.S. Bureau of Reclamation daily pool elevation records for
+      <a href="https://data.usbr.gov/rise/api/result?itemId=6123" rel="noopener">Lake Mead</a> and
+      <a href="https://data.usbr.gov/rise/api/result?itemId=508" rel="noopener">Lake Powell</a>. Dead pool and minimum power pool
+      as listed in Reclamation's <a href="https://www.usbr.gov/lc/region/g4000/crss5Year.pdf" rel="noopener">5-year projections table</a>.</p>
+    </section>
+  </div>
+
+  <script is:inline>
+  (function () {
+    // Hold the Telegram corner card for this session on the sales page, the same session flag
+    // WaitlistTest sets (lln-ui reads lln.seen). Nothing else about it changes.
+    try { sessionStorage.setItem('lln.seen', '1'); } catch (_) {}
+    var boxes = document.querySelectorAll('[data-pp-place]');
+    function ga(name, params, anchor) {
+      if (typeof window.__siteGA4Event === 'function') { window.__siteGA4Event(name, params, anchor); return; }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+          if (typeof window.__siteGA4Event === 'function') window.__siteGA4Event(name, params, anchor);
+        }, { once: true });
+      }
+    }
+    for (var i = 0; i < boxes.length; i++) (function (box) {
+      var params = { sku: 'llp', placement: box.getAttribute('data-pp-place') };
+      if (window.IntersectionObserver) {
+        var io = new IntersectionObserver(function (es) {
+          for (var k = 0; k < es.length; k++) if (es[k].isIntersecting && es[k].intersectionRatio >= 0.5) { ga('mm_cta_view', params); io.disconnect(); }
+        }, { threshold: 0.5 });
+        io.observe(box);
+      }
+      var a = box.querySelector('a[data-pp-buy]');
+      // Stripe is another origin, so the click is sent as a beacon right away (no hand-over).
+      if (a) a.addEventListener('click', function () { ga('mm_cta_click', params); });
+    })(boxes[i]);
+  })();
+  </script>
+
+  <style>
+    .pst-page { max-width: 1000px; }
+    .pp-sec { max-width: 760px; }
+    .pp-hero { padding: 28px 0 0; }
+    .pp-eyebrow { margin: 0 0 8px; font-size: 16px; font-weight: 600; color: var(--teal); }
+    .pp-hero h1 { font-size: clamp(30px, 6vw, 44px); letter-spacing: -.035em; line-height: 1.08; margin: 0 0 12px; max-width: 18ch; }
+    .pp-lead { font-size: 18px; line-height: 1.55; color: var(--t2); max-width: 54ch; margin: 0 0 18px; }
+    .pp-room { margin: 0; }
+    .pp-mock { display: block; width: 100%; height: auto; aspect-ratio: 6 / 5; border-radius: var(--r); background: #d9d0c3;
+      box-shadow: 0 1px 2px rgba(22,40,47,.10), 0 12px 32px rgba(22,40,47,.12); }
+    .pp-room figcaption { margin-top: 8px; font-size: 16px; line-height: 1.4; color: var(--t2); }
+    .pp-hero-grid { display: block; }
+    @media (min-width: 860px) {
+      .pp-hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; align-items: start; }
+      .pp-hero-grid .pp-buy { margin-top: 0; position: sticky; top: 16px; }
+      .pp-hero { padding-top: 24px; }
+    }
+    .pp-buy { margin-top: 18px; padding: 20px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); }
+    .pp-price { margin: 0 0 12px; font-size: 34px; font-weight: 700; color: var(--t1); letter-spacing: -.03em; line-height: 1.1; }
+    .pp-price span { display: block; margin-top: 4px; font-size: 16px; font-weight: 500; color: var(--t2); letter-spacing: 0; }
+    .pp-btn { display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 22px; border-radius: var(--r-sm);
+      background: var(--teal); color: #fff; font-size: 18px; font-weight: 600; }
+    .pp-btn:hover { background: #0a6b5b; color: #fff; text-decoration: none; }
+    .pp-gift-line { margin: 12px 0 0; font-size: 16px; line-height: 1.5; color: var(--t1); }
+    .pp-pay { margin: 12px 0 4px; font-size: 16px; color: var(--t1); }
+    .pp-refund { margin: 0 0 8px; font-size: 16px; color: var(--t2); }
+    .pp-fine { margin: 0; font-size: 16px; line-height: 1.5; color: var(--t2); }
+    .pp-sec { padding-top: 40px; }
+    .pp-sec h2 { font-size: 22px; margin-bottom: 12px; }
+    .pp-sec h3 { font-size: 18px; margin: 18px 0 4px; }
+    .pp-p { font-size: 16px; line-height: 1.65; color: var(--t2); max-width: 64ch; }
+    .pp-list, .pp-steps { margin: 0; padding-left: 22px; font-size: 16px; line-height: 1.6; color: var(--t2); max-width: 64ch; }
+    .pp-list li, .pp-steps li { margin: 0 0 10px; }
+    .pp-list strong, .pp-steps strong { color: var(--t1); }
+    .pp-steps { margin: 4px 0 14px; }
+    .pp-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .pp-gallery figure { margin: 0; }
+    .pp-gallery img { display: block; width: 100%; height: auto; border-radius: 4px; box-shadow: 0 1px 2px rgba(22,40,47,.12), 0 8px 22px rgba(22,40,47,.10); }
+    .pp-gallery figcaption { margin-top: 10px; font-size: 16px; line-height: 1.4; color: var(--t2); }
+    .pp-stores { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+    .pp-store { padding: 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); }
+    .pp-store h3 { margin: 0 0 6px; font-size: 18px; }
+    .pp-store p { margin: 0; font-size: 16px; line-height: 1.55; color: var(--t2); }
+    .pp-note { margin: 12px 0 0; font-size: 16px; line-height: 1.5; color: var(--t2); }
+    .pp-buy-end { margin-top: 0; }
+    .pp-src { margin: 20px 0 8px; font-size: 16px; line-height: 1.55; color: var(--t2); }
+    .pp-sec a:not(.pp-btn), .pp-src a { text-decoration: underline; display: inline-block; min-height: 24px; }
+    @media (max-width: 640px) {
+      .container.pst-page { padding: 0 16px; }
+      .pp-gallery { grid-template-columns: 1fr; gap: 28px; }
+      .pp-gallery figure { max-width: 420px; }
+      .pp-stores { grid-template-columns: 1fr; }
+    }
+  </style>
+</BaseLayout>

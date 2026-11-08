@@ -5,7 +5,9 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
-const html = fs.readFileSync('dist/lake/lake-mead/index.html', 'utf8');
+// Lake Havasu: one of the lakes with all five offers (forecast included). Lake Mead shows the
+// poster card instead of the waitlist since 2026-11-08.
+const html = fs.readFileSync('dist/lake/lake-havasu/index.html', 'utf8');
 const src = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).find((s) => s.includes("'lln_wl_v'"));
 assert.ok(src, 'picker script in built page');
 const ids = [...html.matchAll(/class="wl-card" data-wl="([a-z0-9-]+)"/g)].map((m) => m[1]);

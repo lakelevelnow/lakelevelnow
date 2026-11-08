@@ -1,0 +1,92 @@
+---
+// Mobile money run 2026-11-08 (sku llp). One compact card right after the main chart on the
+// Lake Mead and Lake Powell pages: the visitor has just looked at the line, and this offers the
+// same line as a print. It is the only paid offer card on those pages (see the lane NOTES.md).
+// Links to /posters/, never straight to Stripe, so the visitor sees what they get first.
+// GA4 only, through window.__siteGA4Event (ga4.js returns early on DNT or GPC):
+//   mm_cta_view  when half the card is on screen, once per page
+//   mm_cta_click on the link, handed to /posters/ if gtag has not loaded yet
+import posters from '../data/posters.json';
+
+// fullChart: the page's main chart is the whole record (the /chart/ pages), so "this chart" is true.
+interface Props { lake: 'lake-mead' | 'lake-powell'; placement: string; cta: string; fullChart?: boolean }
+const { lake, placement, cta, fullChart = false } = Astro.props;
+const slug = lake === 'lake-mead' ? 'mead' : 'powell';
+const f = (posters.lakes as Record<string, any>)[slug];
+const name: string = f.lake;
+const firstYear = Number(String(f.first[0]).slice(0, 4));
+const years = Number(String(f.latest[0]).slice(0, 4)) - firstYear;
+const thumb = `/posters/img/${slug === 'mead' ? 'lake-mead' : 'lake-powell'}-light-600.webp`;
+const place = /^[a-z0-9-]{1,40}$/.test(placement) ? placement : 'lake';
+// Seasonal line, November 1 to December 24 by build date (the site rebuilds at least daily).
+const now = new Date();
+const christmas = now.getUTCMonth() === 10 || (now.getUTCMonth() === 11 && now.getUTCDate() <= 24);
+---
+
+<aside class="pst" aria-labelledby={`pst-h-${place}`} data-pst-place={place}>
+  <img class="pst-img" src={thumb} width="600" height="800" loading="lazy" decoding="async"
+       alt={`The ${name} poster, a cream print with the lake's level line from ${firstYear} to today`} />
+    <p class="pst-kick">Printable poster</p>
+    <h2 class="pst-h" id={`pst-h-${place}`}>{years} years of {name}, ready to frame</h2>
+    <p class="pst-txt">{fullChart ? 'This chart as a print' : `The whole ${name} record as a print`}, from every daily reading since {firstYear}.
+    Lake Mead, Lake Powell and both together, light or dark, in four sizes, plus a 2027 calendar.{christmas && ' It downloads the moment you pay, with nothing to ship, so it makes an easy Christmas gift.'}</p>
+    <p class="pst-row">
+      <span class="pst-price">${posters.priceUsd}</span>
+      <a class="pst-btn" href="/posters/" data-cta={cta} data-pst-link>See the posters</a>
+    </p>
+    <p class="pst-small">Pay with Apple Pay or Google Pay. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+</aside>
+
+<script is:inline>
+(function () {
+  // The card, plus the one-line first-screen pointer on /lake/lake-mead/ (data-pst-place on a <p>).
+  var cards = document.querySelectorAll('[data-pst-place]:not([data-pst-init])');
+  for (var i = 0; i < cards.length; i++) (function (card) {
+    card.setAttribute('data-pst-init', '1');
+    var params = { sku: 'llp', placement: card.getAttribute('data-pst-place') || 'lake' };
+    function ga(name, anchor) {
+      if (typeof window.__siteGA4Event === 'function') { window.__siteGA4Event(name, params, anchor); return; }
+      // ga4.js is deferred. It defines the wrapper before DOMContentLoaded unless DNT or GPC is on.
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+          if (typeof window.__siteGA4Event === 'function') window.__siteGA4Event(name, params, anchor);
+        }, { once: true });
+      }
+    }
+    if (window.IntersectionObserver) {
+      var io = new IntersectionObserver(function (entries) {
+        for (var k = 0; k < entries.length; k++) {
+          if (entries[k].isIntersecting && entries[k].intersectionRatio >= 0.5) { ga('mm_cta_view'); io.disconnect(); }
+        }
+      }, { threshold: 0.5 });
+      io.observe(card);
+    }
+    var link = card.querySelector('a[data-pst-link]');
+    if (link) link.addEventListener('click', function () { ga('mm_cta_click', link); });
+  })(cards[i]);
+})();
+</script>
+
+<style>
+  .pst { scroll-margin-top: 16px; display: grid; grid-template-columns: 96px 1fr; column-gap: 18px; align-items: start; margin-top: 18px;
+    grid-template-areas: "img kick" "img h" "img txt" "img row" "img small";
+    padding: 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); }
+  .pst-img { grid-area: img; display: block; width: 96px; height: 128px; object-fit: cover; border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(22,40,47,.12), 0 6px 16px rgba(22,40,47,.10); }
+  .pst-kick { grid-area: kick; margin: 0 0 4px; font-size: 16px; font-weight: 600; line-height: 1.35; color: var(--teal); }
+  .pst-h { grid-area: h; margin: 0 0 6px; font-size: 19px; line-height: 1.25; }
+  .pst-txt { grid-area: txt; margin: 0 0 10px; font-size: 16px; line-height: 1.5; color: var(--t2); max-width: 64ch; }
+  .pst-row { grid-area: row; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0 0 8px; }
+  .pst-price { font-size: 22px; font-weight: 700; color: var(--t1); letter-spacing: -.02em; }
+  .pst-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px;
+    border-radius: var(--r-sm); background: var(--teal); color: #fff; font-weight: 600; font-size: 16px; }
+  .pst-btn:hover { background: #0a6b5b; color: #fff; text-decoration: none; }
+  .pst-small { grid-area: small; margin: 0; font-size: 16px; line-height: 1.5; color: var(--t2); }
+  @media (max-width: 560px) {
+    .pst { grid-template-columns: 60px 1fr; column-gap: 14px; padding: 14px;
+      grid-template-areas: "img kick" "img h" "txt txt" "row row" "small small"; }
+    .pst-img { width: 60px; height: 80px; margin-bottom: 10px; }
+    .pst-h { font-size: 18px; }
+    .pst-row .pst-btn { flex: 1; }
+  }
+</style>

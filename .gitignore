@@ -24,3 +24,6 @@ npm-debug.log*
 
 # adsense-w2: written by fetch-levels.mjs, published with the site as the live cache
 public/data/levels.json
+
+# Paid poster downloads (sku llp) are never committed. They are served from the IngredientCalculator Pages upload.
+public/posters/d/

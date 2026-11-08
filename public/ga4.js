@@ -60,7 +60,7 @@
       sessionStorage.removeItem(HAND);
       var hs = JSON.parse(held);
       (Array.isArray(hs) ? hs : [hs]).forEach(function (h) {
-        if (h && (h.n === 'select_content' || h.n === 'cta_click') && h.p && Date.now() - h.t < 60000) event(h.n, h.p);
+        if (h && (h.n === 'select_content' || h.n === 'cta_click' || h.n === 'mm_cta_click') && h.p && Date.now() - h.t < 60000) event(h.n, h.p);
       });
     }
   } catch (_) {}
@@ -111,9 +111,11 @@
   // Waitlist fake-door test (WaitlistTest.astro). Three event names and four token params
   // only, so a caller can never send an email address or free text. Defined after the
   // DNT/GPC return above, so opted-out browsers never get it.
-  var promoNames = ['view_promotion', 'select_promotion', 'generate_lead'];
-  var promoKeys = ['offer_id', 'ab_variant', 'lake_slug', 'placement'];
-  window.__siteGA4Event = function (name, params) {
+  // Mobile money run 2026-11-08: mm_cta_view and mm_cta_click carry a product sku and a
+  // placement token (PosterOffer.astro, /posters/). Same allowlist rules, sku instead of offer_id.
+  var promoNames = ['view_promotion', 'select_promotion', 'generate_lead', 'mm_cta_view', 'mm_cta_click'];
+  var promoKeys = ['offer_id', 'ab_variant', 'lake_slug', 'placement', 'sku'];
+  window.__siteGA4Event = function (name, params, anchor) {
     if (promoNames.indexOf(name) < 0 || !params || typeof params !== 'object') return false;
     var clean = {};
     for (var i = 0; i < promoKeys.length; i++) {
@@ -121,8 +123,12 @@
       var v = Object.prototype.hasOwnProperty.call(params, k) ? params[k] : null;
       if (typeof v === 'string' && /^[a-z0-9_-]{1,40}$/.test(v)) clean[k] = v;
     }
-    if (!clean.offer_id) return false;
-    event(name, clean, name === 'generate_lead' ? null : name + ':' + clean.offer_id + ':' + (clean.placement || ''));
+    var mm = name.indexOf('mm_') === 0;
+    if (mm ? !clean.sku : !clean.offer_id) return false;
+    // A click that opens another page of this site is handed to that page, like cta_click.
+    if (name === 'mm_cta_click' && anchor && anchor.href) { sendOrHand(anchor, name, clean); return true; }
+    event(name, clean, name === 'generate_lead' || name === 'mm_cta_click' ? null :
+      name + ':' + (mm ? clean.sku : clean.offer_id) + ':' + (clean.placement || ''));
     return true;
   };
   document.dispatchEvent(new Event('site-ga4-ready'));
@@ -131,6 +137,7 @@
   tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
   document.head.appendChild(tag);
   var products = lake ? {
+    'eVqeVe6Eq4Jy5NP2st43S0L': { item_id: 'llp', item_name: 'Lake Mead and Lake Powell Water Level Posters', price: 9, quantity: 1 },
     '00w3cw2oafoc7VXgjj43S0q': { item_id: 'almanac_single', item_name: 'Lake Level Almanac single', price: 19, quantity: 1 },
     '4gM5kE1k63Fugst0kl43S0B': { item_id: 'almanac_bundle', item_name: 'Lake Level Almanac bundle', price: 79, quantity: 1 }
   } : {

@@ -25,11 +25,10 @@
 //     gives the closure date, only the year.
 //   - No factual claim about what other trackers plot or how far back their charts go.
 import AdSlot from '../../../components/AdSlot.astro';
-import WaitlistTest from '../../../components/WaitlistTest.astro';
+import PosterOffer from '../../../components/PosterOffer.astro';
 import SponsorSlot from '../../../components/SponsorSlot.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
-import MeadAlmanacNote from '../../../components/MeadAlmanacNote.astro';
 import {
   LAKES, getReading, fmtNum, POWELL_BAND, feedLabel,
   MEAD_HISTORY, MEAD_HISTORY_MONTHLY, MEAD_HISTORY_SOURCE, MEAD_HISTORY_CATALOG,
@@ -199,12 +198,12 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
       </figure>
     </section>
 
-    {/* a5-build 2026-11-03: waitlist fake-door test, right after the main data block. */}
-    <WaitlistTest slug={lake.slug} name={lake.name} placement="chart-waitlist" />
+    {/* Mobile money 2026-11-08 (llp): the poster card replaces the waitlist test and the
+        Powell Almanac box here, so the page keeps one paid offer card, right after the chart. */}
+    <PosterOffer lake="lake-mead" placement="mead-chart" cta="mead_chart_posters" fullChart />
 
 
     <AlmanacContext slug="lake-mead" level={live && reading ? reading.level_ft : null} asOf={live && reading ? reading.as_of : null} />
-    <MeadAlmanacNote place="mead-chart" />
 
     <section class="section airy">
       <h2>Where today sits in {yearsOfRecord} years of readings</h2>

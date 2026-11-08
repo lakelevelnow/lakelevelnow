@@ -1,0 +1,62 @@
+{
+ "_note": "Facts drawn on the llp posters (tools/gen_posters.py and tools/package.py in the mobile-money llp lane). Frozen with the poster files, so the sales page never disagrees with what a buyer downloads.",
+ "sku": "llp",
+ "priceUsd": 9,
+ "buyUrl": "https://buy.stripe.com/eVqeVe6Eq4Jy5NP2st43S0L",
+ "posterFiles": 24,
+ "jpgFiles": 12,
+ "totalMb": 22.0,
+ "zipMb": 10.6,
+ "lakes": {
+  "mead": {
+   "lake": "Lake Mead",
+   "first": [
+    "1935-02-02",
+    670.0
+   ],
+   "latest": [
+    "2026-11-07",
+    1039.55
+   ],
+   "record_high": [
+    "1983-07-24",
+    1225.83
+   ],
+   "low_after_first_fill": [
+    "2026-10-22",
+    1037.16
+   ],
+   "low_is_lowest_since": "1937-04-20",
+   "readings": 33517,
+   "reference": {
+    "minpower": 950.0,
+    "dead": 895.0
+   }
+  },
+  "powell": {
+   "lake": "Lake Powell",
+   "first": [
+    "1963-12-28",
+    3409.0
+   ],
+   "latest": [
+    "2026-11-07",
+    3538.56
+   ],
+   "record_high": [
+    "1983-07-14",
+    3708.34
+   ],
+   "low_after_first_fill": [
+    "2026-09-15",
+    3516.62
+   ],
+   "low_is_lowest_since": "1968-05-15",
+   "readings": 22961,
+   "reference": {
+    "minpower": 3490.0,
+    "dead": 3370.0
+   }
+  }
+ }
+}

@@ -356,3 +356,5 @@ svg { max-width: 100%; }
 .lake-card, .gauge-card, .alm-card { min-width: 0; }
 .lake-card .top { flex-wrap: wrap; gap: 4px 16px; }
 .crumbs { flex-wrap: wrap; }
+/* Mobile money F2 2026-11-08: the Lake Mead poster pointer and the moved Powell Almanac line read at 16px. */
+.lake-alm-line.lake-pst-line { font-size: 16px; }

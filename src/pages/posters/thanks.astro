@@ -1,0 +1,217 @@
+---
+// /posters/thanks/ — Stripe returns poster buyers here as /posters/thanks/#s={CHECKOUT_SESSION_ID}.
+// The page asks the shared unlock API (built by the run orchestrator, CORS open for this site)
+// whether the session paid for sku llp, then lists the files from its reply. The download folder
+// is never written into this page; it only arrives in the API reply. Restore by email uses the
+// same API. On localhost or 127.0.0.1 only, the session id cs_test_demo unlocks a demo list
+// with no network call, for local tests. noindex, and kept out of the sitemap.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const title = 'Your Lake Mead and Lake Powell posters';
+const description = 'Download the water level posters you bought. This page checks your Stripe payment and lists every file.';
+---
+
+<BaseLayout title={title} description={description} path="/posters/thanks/" noindex={true} brand={false}>
+  <div class="container pt-page">
+    <div class="pt-head">
+      <h1 id="pt-h">Getting your posters</h1>
+      <p id="pt-sub" class="pt-p">One moment. I am checking the payment with Stripe.</p>
+    </div>
+
+    <div id="pt-ok" hidden>
+      <p class="pt-p" id="pt-mail"></p>
+      <a id="pt-zip" class="pt-btn" href="#" download hidden>Download all, one ZIP</a>
+      <p class="pt-note">Or pick single files below. On a phone, the ZIP is easiest to open on a computer or to send to a print shop.</p>
+      <div id="pt-groups"></div>
+      <section class="pt-box pt-print" aria-labelledby="pt-print-h">
+        <h2 id="pt-print-h">Your next step, print it</h2>
+        <ul class="pt-steps">
+          <li><strong>18 x 24 at Staples.</strong> Order a custom paper poster in 18 x 24, upload the 18 x 24 PDF and pick heavyweight matte paper. Staples says eligible paper posters ordered by 12 pm are ready for same day pickup.</li>
+          <li><strong>8 x 10 or 11 x 14 at Walgreens or CVS.</strong> Upload the matching JPG from the photo counter list. At Walgreens pick a matte 8 x 10 print or an 11 x 14 poster.</li>
+          <li><strong>Any print shop.</strong> Bring the PDF and ask for it at 100 percent on matte paper with no scaling.</li>
+          <li><strong>At home.</strong> Print the 8 x 10 PDF or the calendar at actual size, never fit to page.</li>
+        </ul>
+        <p class="pt-p">Giving it as a gift? Send the ZIP to them and they can print it near home. The print guide in the ZIP has the same steps.</p>
+      </section>
+      <p class="pt-p pt-keep">Bookmark this page to download again later. You can also come back and enter your email below.</p>
+    </div>
+
+    <div id="pt-err" class="pt-box pt-err" role="alert" hidden>
+      <p class="pt-p" id="pt-reason"></p>
+      <p class="pt-p">If you paid and this keeps happening, email lipmichal@gmail.com with the email on your Stripe receipt and I will send the files by hand.</p>
+    </div>
+
+    <form id="pt-form" class="pt-box" novalidate>
+      <h2>Get your files again</h2>
+      <p class="pt-p">Enter the email you used at checkout.</p>
+      <label for="pt-email" class="pt-label">Your email address</label>
+      <input id="pt-email" name="email" type="email" autocomplete="email" inputmode="email" required />
+      <button type="submit" class="pt-btn pt-btn2">Find my posters</button>
+      <p id="pt-fmsg" class="pt-note" aria-live="polite"></p>
+    </form>
+
+    <p class="pt-note pt-refund">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+    <noscript><p class="pt-p">This page needs JavaScript to check your payment. Email lipmichal@gmail.com with your Stripe receipt and I will send the files.</p></noscript>
+  </div>
+
+  <script is:inline>
+  (function () {
+    var API = 'https://ingredientcalculator.com/api/unlock';
+    var $ = function (id) { return document.getElementById(id); };
+    var dev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+    function sessionFromUrl() {
+      var m = /[#&]s=(cs_(?:live|test)_[A-Za-z0-9]{1,200})/.exec(location.hash || '');
+      return m ? m[1] : '';
+    }
+    function mb(b) { return b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1e3)) + ' KB'; }
+    var NAMES = { 'lake-mead': 'Lake Mead', 'lake-powell': 'Lake Powell', 'two-lakes': 'Two Lakes' };
+    var SIZES = { '18x24': '18 x 24 in', '11x14': '11 x 14 in', '8x10': '8 x 10 in', 'a3': 'A3' };
+    function describe(name) {
+      var m = /^(lake-mead|lake-powell|two-lakes)-(light|dark)-(18x24|11x14|8x10|a3)\.pdf$/.exec(name);
+      if (m) return { group: NAMES[m[1]] + ', ' + m[2], label: SIZES[m[3]], kind: 'PDF', rank: 1 };
+      var j = /^(lake-mead|lake-powell|two-lakes)-(light|dark)-(11x14|8x10)\.jpg$/.exec(name);
+      if (j) return { group: 'Photo counter JPGs, for Walgreens or CVS', label: NAMES[j[1]] + ' ' + j[2] + ', ' + SIZES[j[3]], kind: 'JPG', rank: 3 };
+      if (/calendar-2027\.pdf$/.test(name)) return { group: 'Calendar', label: '2027 Lake Mead calendar, US Letter', kind: 'PDF', rank: 2 };
+      if (/\.txt$/.test(name)) return { group: 'Print guide', label: 'How to print, plain text', kind: 'Text', rank: 4 };
+      if (/\.zip$/.test(name)) return { group: 'zip', label: 'Everything', kind: 'ZIP', rank: 0 };
+      return { group: 'Other files', label: name, kind: 'File', rank: 5 };
+    }
+    // Only same-site paths or https URLs on this site are turned into links.
+    function safeUrl(u) {
+      if (typeof u !== 'string') return '';
+      if (/^\/posters\/[A-Za-z0-9._\/-]+$/.test(u) && u.indexOf('..') < 0) return u;
+      if (/^https:\/\/(www\.)?lakelevelnow\.com\/posters\/[A-Za-z0-9._\/-]+$/.test(u) && u.indexOf('..') < 0) return u;
+      return '';
+    }
+
+    function showError(reason) {
+      $('pt-h').textContent = 'I could not open your posters yet';
+      $('pt-sub').textContent = '';
+      $('pt-reason').textContent = reason || 'Something went wrong while checking the payment. Please try again in a minute.';
+      $('pt-err').hidden = false;
+    }
+
+    function render(reply) {
+      var files = Array.isArray(reply.files) ? reply.files : [];
+      if (!files.length) { showError('The payment checked out, but no files came back. Please reload this page in a minute.'); return; }
+      $('pt-h').textContent = 'Your posters are ready';
+      $('pt-sub').textContent = 'Thank you. Every file below is yours to print.';
+      if (typeof reply.email === 'string' && reply.email) $('pt-mail').textContent = 'Bought with ' + reply.email + '.';
+      $('pt-err').hidden = true;
+      var groups = {}, order = [], rank = {};
+      files.forEach(function (f) {
+        var url = safeUrl(f && f.url); var name = f && typeof f.name === 'string' ? f.name : '';
+        if (!url || !name) return;
+        var d = describe(name);
+        if (d.group === 'zip') {
+          var z = $('pt-zip'); z.href = url; z.setAttribute('download', name);
+          z.textContent = 'Download all, one ZIP (' + mb(Number(f.bytes) || 0) + ')'; z.hidden = false; return;
+        }
+        if (!groups[d.group]) { groups[d.group] = []; order.push(d.group); rank[d.group] = d.rank; }
+        groups[d.group].push({ url: url, name: name, label: d.label, kind: d.kind, bytes: Number(f.bytes) || 0 });
+      });
+      // Posters first, then the calendar, the photo counter JPGs and the guide, whatever order the API sends.
+      order.sort(function (a, b) { return rank[a] - rank[b] || (a < b ? -1 : a > b ? 1 : 0); });
+      var host = $('pt-groups'); host.textContent = '';
+      order.forEach(function (g) {
+        var sec = document.createElement('section'); sec.className = 'pt-group';
+        var h = document.createElement('h2'); h.textContent = g; sec.appendChild(h);
+        var ul = document.createElement('ul'); ul.className = 'pt-files';
+        groups[g].forEach(function (f) {
+          var li = document.createElement('li');
+          var a = document.createElement('a'); a.className = 'pt-file'; a.href = f.url; a.setAttribute('download', f.name);
+          var t = document.createElement('span'); t.textContent = f.label;
+          var s = document.createElement('span'); s.className = 'pt-size'; s.textContent = f.kind + ' ' + mb(f.bytes);
+          a.appendChild(t); a.appendChild(s); li.appendChild(a); ul.appendChild(li);
+        });
+        sec.appendChild(ul); host.appendChild(sec);
+      });
+      $('pt-ok').hidden = false;
+    }
+
+    function demoReply() {
+      // Local tests only. Points at the public preview images so nothing private is listed here.
+      return { ok: true, p: 'llp', email: 'demo@example.com', files: [
+        { name: 'demo-everything.zip', url: '/posters/img/room-1200.webp', bytes: 10600000 },
+        { name: 'lake-mead-light-11x14.jpg', url: '/posters/img/lake-mead-light-1200.webp', bytes: 600000 },
+        { name: 'lake-mead-light-18x24.pdf', url: '/posters/img/lake-mead-light-1200.webp', bytes: 210000 },
+        { name: 'lake-mead-dark-8x10.pdf', url: '/posters/img/lake-mead-light-600.webp', bytes: 150000 },
+        { name: 'two-lakes-dark-a3.pdf', url: '/posters/img/two-lakes-dark-1200.webp', bytes: 250000 },
+        { name: 'lake-mead-calendar-2027.pdf', url: '/posters/img/lake-powell-light-600.webp', bytes: 165000 }
+      ] };
+    }
+
+    function ask(query, done) {
+      var ctl = window.AbortController ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 20000);
+      fetch(API + '?p=llp&' + query, { method: 'GET', mode: 'cors', credentials: 'omit', cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+        .then(function (r) {
+          return r.json().catch(function () { return { ok: false, reason: 'The download check answered with status ' + r.status + '. Please try again in a minute.' }; });
+        })
+        .then(function (j) { clearTimeout(timer); done(j && typeof j === 'object' ? j : { ok: false }); })
+        .catch(function () { clearTimeout(timer); done({ ok: false, reason: 'I could not reach the download check. Check your connection and reload this page.' }); });
+    }
+
+    function handle(j) {
+      if (j && j.ok === true && (j.p === 'llp' || j.p === undefined)) render(j);
+      else showError(j && typeof j.reason === 'string' ? j.reason : '');
+    }
+
+    var s = sessionFromUrl();
+    if (dev && s === 'cs_test_demo') handle(demoReply());
+    else if (s) ask('s=' + encodeURIComponent(s), handle);
+    else {
+      $('pt-h').textContent = 'Your posters';
+      $('pt-sub').textContent = 'This page opens your files after checkout. If you already paid, enter your email below.';
+    }
+
+    $('pt-form').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var email = ($('pt-email').value || '').trim();
+      var msg = $('pt-fmsg');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 200) { msg.textContent = 'Please enter the email address you paid with.'; return; }
+      msg.textContent = 'Checking.';
+      ask('email=' + encodeURIComponent(email), function (j) {
+        msg.textContent = '';
+        if (j && j.ok === true) { render(j); $('pt-ok').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        else msg.textContent = j && typeof j.reason === 'string' && j.reason ? j.reason : 'No purchase found for that email.';
+      });
+    });
+  })();
+  </script>
+
+  <style is:global>
+    .pt-page { max-width: 720px; padding-bottom: 32px; }
+    .pt-head { padding: 32px 0 8px; }
+    .pt-head h1 { font-size: clamp(28px, 6vw, 36px); margin-bottom: 10px; }
+    .pt-p { font-size: 16px; line-height: 1.6; color: var(--t2); }
+    .pt-note { font-size: 16px; line-height: 1.5; color: var(--t2); margin: 10px 0 0; }
+    .pt-btn { display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 20px; border: 0; border-radius: var(--r-sm);
+      background: var(--teal); color: #fff; font: inherit; font-size: 17px; font-weight: 600; cursor: pointer; text-align: center; }
+    .pt-btn:hover { background: #0a6b5b; color: #fff; text-decoration: none; }
+    .pt-btn2 { width: 100%; margin-top: 12px; }
+    .pt-group { margin-top: 24px; }
+    .pt-group h2 { font-size: 18px; margin: 0 0 8px; }
+    .pt-files { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .pt-file { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 48px; padding: 8px 14px;
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--r-sm); font-size: 16px; font-weight: 600; color: var(--teal); }
+    .pt-file:hover { border-color: var(--teal); text-decoration: none; }
+    .pt-size { font-size: 16px; font-weight: 400; color: var(--t2); white-space: nowrap; }
+    .pt-keep { margin-top: 24px; }
+    .pt-steps { margin: 6px 0 10px; padding-left: 20px; font-size: 16px; line-height: 1.6; color: var(--t2); }
+    .pt-steps li { margin: 0 0 8px; }
+    .pt-steps strong { color: var(--t1); }
+    .pt-box { margin-top: 28px; padding: 18px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); }
+    .pt-box h2 { font-size: 20px; margin: 0 0 6px; }
+    .pt-err { border-color: var(--burnt); }
+    .pt-err .pt-p:first-child { color: var(--t1); font-weight: 600; }
+    .pt-label { display: block; font-size: 16px; font-weight: 600; color: var(--t1); margin: 4px 0 6px; }
+    #pt-email { width: 100%; min-height: 48px; padding: 10px 12px; font: inherit; font-size: 16px; color: var(--t1);
+      background: #fff; border: 1px solid #b9b3aa; border-radius: var(--r-sm); }
+    .pt-refund { margin-top: 24px; }
+    @media (max-width: 640px) {
+      .container.pt-page { padding: 0 16px 32px; }
+      .pt-files { grid-template-columns: 1fr; }
+    }
+  </style>
+</BaseLayout>

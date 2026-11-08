@@ -8,7 +8,7 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   X-XSS-Protection: 1; mode=block
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.adtrafficquality.google https://www.googletagservices.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://lakelevelnow.lipmichal.workers.dev https://*.googlesyndication.com https://*.adtrafficquality.google https://lake-level-almanac.lipmichal.workers.dev https://lake-level-almanac-test.lipmichal.workers.dev; base-uri 'self'; form-action 'self'; frame-src https://*.doubleclick.net https://*.googlesyndication.com https://*.google.com; frame-ancestors 'self'; object-src 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.adtrafficquality.google https://www.googletagservices.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://lakelevelnow.lipmichal.workers.dev https://*.googlesyndication.com https://*.adtrafficquality.google https://lake-level-almanac.lipmichal.workers.dev https://lake-level-almanac-test.lipmichal.workers.dev https://ingredientcalculator.com; base-uri 'self'; form-action 'self'; frame-src https://*.doubleclick.net https://*.googlesyndication.com https://*.google.com; frame-ancestors 'self'; object-src 'none'; upgrade-insecure-requests
   Cross-Origin-Opener-Policy: same-origin
 
 # Long-cache fingerprinted assets (Astro emits hashed filenames in /_astro/)
@@ -22,3 +22,8 @@
   Cache-Control: public, max-age=604800
 /*.png
   Cache-Control: public, max-age=604800
+
+# Poster downloads (sku llp): files for buyers only, never indexed.
+/posters/d/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, max-age=3600
