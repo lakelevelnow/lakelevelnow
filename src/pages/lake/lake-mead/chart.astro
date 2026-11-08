@@ -26,6 +26,7 @@
 //   - No factual claim about what other trackers plot or how far back their charts go.
 import AdSlot from '../../../components/AdSlot.astro';
 import PosterOffer from '../../../components/PosterOffer.astro';
+import WaitlistTest from '../../../components/WaitlistTest.astro';
 import SponsorSlot from '../../../components/SponsorSlot.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
@@ -202,9 +203,11 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
     <AlmanacContext slug="lake-mead" level={live && reading ? reading.level_ft : null} asOf={live && reading ? reading.as_of : null} />
     <MeadAlmanacNote place="mead-chart" />
 
-    {/* Mobile money 2026-11-08 (llp): the poster card takes the waitlist test's place and comes
-        after the owner's Powell Almanac box, which stays as it was. */}
+    {/* Mobile money 2026-11-08 (llp): the poster card comes after the owner's Powell Almanac box, which stays as it was.
+        The owner's waitlist test (a5-build 2026-11-03) moved from above the Almanac block to
+        right below the poster card. The Almanac blocks keep their own order. */}
     <PosterOffer lake="lake-mead" placement="mead-chart" cta="mead_chart_posters" fullChart />
+    <WaitlistTest slug={lake.slug} name={lake.name} placement="chart-waitlist" />
 
     <section class="section airy">
       <h2>Where today sits in {yearsOfRecord} years of readings</h2>

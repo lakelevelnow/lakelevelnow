@@ -73,7 +73,7 @@ const STORES_CHECKED = 'November 8, 2026';
         <p class="pp-pay">Pay with Apple Pay or Google Pay, or any card. No account needed.</p>
         <p class="pp-refund">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
         <p class="pp-fine">Checkout is handled by Stripe. The checkout page shows the name BeLikeNative and your card
-        statement shows AUTOM8 LLC. Both are the small company behind this site.</p>
+        statement shows AUTOM8 LLC. Both names belong to the small company behind this site.</p>
       </div>
       </div>
     </section>
@@ -175,7 +175,8 @@ const STORES_CHECKED = 'November 8, 2026';
       <h3>Can I print more than one copy?</h3>
       <p class="pp-p">Yes. Print as many as you like for your home, your family and gifts. Please do not resell the files.</p>
       <h3>I lost my download page. What now?</h3>
-      <p class="pp-p">Open the <a href="/posters/thanks/">download page</a> and enter the email you paid with.</p>
+      <p class="pp-p">Open the download page and enter the email you paid with. Your files come right back.</p>
+      <a class="pp-restore" href="/posters/thanks/">Open the download page</a>
     </section>
 
     <section class="pp-sec">
@@ -186,9 +187,9 @@ const STORES_CHECKED = 'November 8, 2026';
         <p class="pp-refund">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
         <p class="pp-fine">Checkout is handled by Stripe. Your statement shows AUTOM8 LLC.</p>
       </div>
-      <p class="pp-src">Data from the U.S. Bureau of Reclamation daily pool elevation records for
-      <a href="https://data.usbr.gov/rise/api/result?itemId=6123" rel="noopener">Lake Mead</a> and
-      <a href="https://data.usbr.gov/rise/api/result?itemId=508" rel="noopener">Lake Powell</a>. Dead pool and minimum power pool
+      <p class="pp-src">The posters are drawn from the U.S. Bureau of Reclamation daily elevation files for
+      <a href="https://www.usbr.gov/uc/water/hydrodata/reservoir_data/921/csv/49.csv" rel="noopener">Lake Mead</a> and
+      <a href="https://www.usbr.gov/uc/water/hydrodata/reservoir_data/919/csv/49.csv" rel="noopener">Lake Powell</a>. Dead pool and minimum power pool
       as listed in Reclamation's <a href="https://www.usbr.gov/lc/region/g4000/crss5Year.pdf" rel="noopener">5-year projections table</a>.</p>
     </section>
   </div>
@@ -268,7 +269,11 @@ const STORES_CHECKED = 'November 8, 2026';
     .pp-note { margin: 12px 0 0; font-size: 16px; line-height: 1.5; color: var(--t2); }
     .pp-buy-end { margin-top: 0; }
     .pp-src { margin: 20px 0 8px; font-size: 16px; line-height: 1.55; color: var(--t2); }
-    .pp-sec a:not(.pp-btn), .pp-src a { text-decoration: underline; display: inline-block; min-height: 24px; }
+    .pp-sec a:not(.pp-btn):not(.pp-restore), .pp-src a { text-decoration: underline; display: inline-block; min-height: 24px; }
+    /* H2: the restore path is a real button on phones, at least 44 px tall. */
+    .pp-restore { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px; margin: 4px 0 0;
+      border: 2px solid var(--teal); border-radius: var(--r-sm); background: var(--card); color: var(--teal); font-size: 16px; font-weight: 600; }
+    .pp-restore:hover { background: var(--teal); color: #fff; text-decoration: none; }
     @media (max-width: 640px) {
       .container.pst-page { padding: 0 16px; }
       .pp-gallery { grid-template-columns: 1fr; gap: 28px; }

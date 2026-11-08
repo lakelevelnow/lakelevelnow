@@ -199,6 +199,35 @@ const tick = () => new Promise((r) => setTimeout(r, 20));
   assert.equal(jpg.children[0].textContent, 'Lake Mead dark, 11 x 14 in');
   assert.equal(jpg.children[1].textContent, 'JPG 600 KB');
 }
+{
+  // H2: files came back but none is a safe link, so the page shows the error state, not success.
+  const files = [
+    { name: 'lake-mead-light-18x24.pdf', url: 'https://ingredientcalculator.com/posters-files/RENAMED-folder/lake-mead-light-18x24.pdf', bytes: 1 },
+    { name: 'lake-level-posters-all.zip', url: 'https://evil.example/a.zip', bytes: 1 },
+  ];
+  const ga = [];
+  const { els } = runThanks('lakelevelnow.com', '#s=cs_live_abc123', { body: { ok: true, p: 'llp', email: 'a@b.co', files, amount_total: 900, currency: 'usd' } },
+    { __siteGA4Purchase: (r, sid) => ga.push([r, sid]) });
+  await tick();
+  assert.equal(els['pt-ok'].hidden, true, 'no success block with zero links');
+  assert.equal(els['pt-err'].hidden, false, 'error shown with zero links');
+  assert.equal(els['pt-h'].textContent, 'I could not open your posters yet');
+  assert.equal(els['pt-groups'].children.length, 0, 'no empty list');
+  assert.equal(els['pt-help'].hidden, false, 'email line shown');
+  assert.equal(ga.length, 1, 'the payment itself is real, so the purchase still counts once');
+}
+{
+  // H2: within a group, sizes sort largest first whatever order the API sends.
+  const IC = 'https://ingredientcalculator.com/posters-files/0123456789abcdef0123/';
+  const files = ['lake-mead-light-11x14.pdf', 'lake-mead-light-18x24.pdf', 'lake-mead-light-8x10.pdf', 'lake-mead-light-a3.pdf',
+    'lake-powell-dark-8x10.jpg', 'lake-mead-light-8x10.jpg', 'lake-mead-light-11x14.jpg']
+    .map((name) => ({ name, url: IC + name, bytes: 1000 }));
+  const { els } = runThanks('lakelevelnow.com', '#s=cs_live_abc123', { body: { ok: true, p: 'llp', email: 'a@b.co', files } });
+  await tick();
+  const labels = (g) => els['pt-groups'].children[g].children[1].children.map((li) => li.children[0].children[0].textContent);
+  assert.deepEqual(labels(0), ['18 x 24 in', 'A3', '11 x 14 in', '8 x 10 in'], 'poster sizes largest first');
+  assert.deepEqual(labels(1), ['Lake Mead light, 11 x 14 in', 'Lake Mead light, 8 x 10 in', 'Lake Powell dark, 8 x 10 in'], 'JPGs by lake, then size');
+}
 console.log('PASS: thanks page script');
 
 // ---------- part 3: built pages
@@ -238,12 +267,20 @@ for (const [page, place, chartMark] of [
     assert.ok(at > 0, `${page} keeps Almanac CTA ${id}`);
     assert.ok(at < card, `${page} poster card after ${id}`);
   }
-  assert.ok(!main.includes('id="wl-test"'), `${page} waitlist test stands down next to the poster card`);
+  // H2: the owner's waitlist test stays on these pages, once, below the poster card.
+  assert.equal(main.split('id="wl-test"').length - 1, 1, `${page} keeps the waitlist test`);
+  assert.ok(main.indexOf('id="wl-test"') > card, `${page} waitlist test below the poster card`);
   assert.ok(main.slice(card).includes('within 14 days for a full refund'), `${page} refund line in the card`);
   assert.ok(!FOLDER_RE.test(h), `${page} does not name a download folder`);
-  // Footer names both paid things on these pages.
-  assert.ok(h.includes('data-cta="footer_almanac"') && h.includes('data-cta="footer_posters"'), `${page} footer lists the Almanac and the posters`);
-  assert.ok(!h.includes('is the paid tier'), `${page} footer no longer says the Almanac is the only paid thing`);
+  // H2: the owner's footer Almanac paragraph is word for word as in cce3d0b, and the poster line
+  // is its own paragraph after it.
+  const fo = h.indexOf('<p class="foffer">Live lake levels are free. The Lake Level Almanac is the paid tier, with the daily history of one lake for $');
+  assert.ok(fo > 0, `${page} owner footer line unchanged`);
+  const foEnd = h.indexOf('</p>', fo);
+  assert.ok(h.slice(fo, foEnd).includes('data-cta="footer_almanac">See the Almanac and a free sample</a>'), `${page} owner footer link`);
+  assert.ok(!h.slice(fo, foEnd).includes('footer_posters'), `${page} poster link is not inside the owner line`);
+  const fp = h.indexOf('<p class="foffer">Lake Mead and Lake Powell also come as posters to print. <a href="/posters/" data-cta="footer_posters">See the posters</a></p>');
+  assert.ok(fp > foEnd, `${page} poster footer line is a separate paragraph after the owner line`);
 }
 {
   // The Lake Mead first screen is the owner's Powell Almanac line, word for word, and nothing else paid.

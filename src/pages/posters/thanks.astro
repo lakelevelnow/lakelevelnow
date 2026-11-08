@@ -67,15 +67,20 @@ const description = 'Download the water level posters you bought. This page chec
     function mb(b) { return b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1e3)) + ' KB'; }
     var NAMES = { 'lake-mead': 'Lake Mead', 'lake-powell': 'Lake Powell', 'two-lakes': 'Two Lakes' };
     var SIZES = { '18x24': '18 x 24 in', '11x14': '11 x 14 in', '8x10': '8 x 10 in', 'a3': 'A3' };
+    // Within a group, files sort by paper size, largest first (A3 is 11.7 x 16.5 in). The JPG group
+    // holds every lake, so it sorts by lake, then colorway, then size.
+    var AREA = { '18x24': 432, 'a3': 193, '11x14': 154, '8x10': 80 };
+    var LAKE_ORD = { 'lake-mead': 0, 'lake-powell': 1, 'two-lakes': 2 };
     function describe(name) {
       var m = /^(lake-mead|lake-powell|two-lakes)-(light|dark)-(18x24|11x14|8x10|a3)\.pdf$/.exec(name);
-      if (m) return { group: NAMES[m[1]] + ', ' + m[2], label: SIZES[m[3]], kind: 'PDF', rank: 1 };
+      if (m) return { group: NAMES[m[1]] + ', ' + m[2], label: SIZES[m[3]], kind: 'PDF', rank: 1, ord: 1000 - AREA[m[3]] };
       var j = /^(lake-mead|lake-powell|two-lakes)-(light|dark)-(11x14|8x10)\.jpg$/.exec(name);
-      if (j) return { group: 'Photo counter JPGs, for Walgreens or CVS', label: NAMES[j[1]] + ' ' + j[2] + ', ' + SIZES[j[3]], kind: 'JPG', rank: 3 };
-      if (/calendar-2027\.pdf$/.test(name)) return { group: 'Calendar', label: '2027 Lake Mead calendar, US Letter', kind: 'PDF', rank: 2 };
-      if (/\.txt$/.test(name)) return { group: 'Print guide', label: 'How to print, plain text', kind: 'Text', rank: 4 };
-      if (/\.zip$/.test(name)) return { group: 'zip', label: 'Everything', kind: 'ZIP', rank: 0 };
-      return { group: 'Other files', label: name, kind: 'File', rank: 5 };
+      if (j) return { group: 'Photo counter JPGs, for Walgreens or CVS', label: NAMES[j[1]] + ' ' + j[2] + ', ' + SIZES[j[3]], kind: 'JPG', rank: 3,
+        ord: LAKE_ORD[j[1]] * 10000 + (j[2] === 'dark' ? 2000 : 0) + 1000 - AREA[j[3]] };
+      if (/calendar-2027\.pdf$/.test(name)) return { group: 'Calendar', label: '2027 Lake Mead calendar, US Letter', kind: 'PDF', rank: 2, ord: 0 };
+      if (/\.txt$/.test(name)) return { group: 'Print guide', label: 'How to print, plain text', kind: 'Text', rank: 4, ord: 0 };
+      if (/\.zip$/.test(name)) return { group: 'zip', label: 'Everything', kind: 'ZIP', rank: 0, ord: 0 };
+      return { group: 'Other files', label: name, kind: 'File', rank: 5, ord: 0 };
     }
     // Only files directly inside one 20-character folder under ingredientcalculator.com/posters-files/
     // become links. The demo list (local hosts only) may point at the public preview images.
@@ -94,32 +99,39 @@ const description = 'Download the water level posters you bought. This page chec
       $('pt-reason').textContent = reason;
       // The API's own reasons already end with the email line, so it is not said twice.
       $('pt-help').hidden = reason.indexOf('lipmichal@gmail.com') >= 0;
+      $('pt-ok').hidden = true;
       $('pt-err').hidden = false;
     }
 
     function render(reply) {
       var files = Array.isArray(reply.files) ? reply.files : [];
-      if (!files.length) { showError('The payment checked out, but no files came back. Please reload this page in a minute.'); return; }
-      $('pt-h').textContent = 'Your posters are ready';
-      $('pt-sub').textContent = 'Thank you. Every file below is yours to print.';
-      if (typeof reply.email === 'string' && reply.email) $('pt-mail').textContent = 'Bought with ' + reply.email + '.';
-      $('pt-err').hidden = true;
-      var groups = {}, order = [], rank = {};
+      if (!files.length) { showError('The payment checked out, but no files came back. Please reload this page in a minute.'); return false; }
+      var groups = {}, order = [], rank = {}, zip = null, links = 0;
       files.forEach(function (f) {
         var url = safeUrl(f && f.url); var name = f && typeof f.name === 'string' ? f.name : '';
         if (!url || !name) return;
         var d = describe(name);
-        if (d.group === 'zip') {
-          var z = $('pt-zip'); z.href = url;
-          z.textContent = 'Download all, one ZIP (' + mb(Number(f.bytes) || 0) + ')'; z.hidden = false; return;
-        }
+        links++;
+        if (d.group === 'zip') { zip = { url: url, bytes: Number(f.bytes) || 0 }; return; }
         if (!groups[d.group]) { groups[d.group] = []; order.push(d.group); rank[d.group] = d.rank; }
-        groups[d.group].push({ url: url, name: name, label: d.label, kind: d.kind, bytes: Number(f.bytes) || 0 });
+        groups[d.group].push({ url: url, name: name, label: d.label, kind: d.kind, ord: d.ord, bytes: Number(f.bytes) || 0 });
       });
+      // H2: files came back but none passed the URL check, so there is nothing to download. Say so
+      // instead of a success heading over an empty list.
+      if (!links) { showError('The payment checked out, but no download links came back. Please reload this page in a minute.'); return false; }
+      $('pt-h').textContent = 'Your posters are ready';
+      $('pt-sub').textContent = 'Thank you. Every file below is yours to print.';
+      if (typeof reply.email === 'string' && reply.email) $('pt-mail').textContent = 'Bought with ' + reply.email + '.';
+      $('pt-err').hidden = true;
+      if (zip) {
+        var z = $('pt-zip'); z.href = zip.url;
+        z.textContent = 'Download all, one ZIP (' + mb(zip.bytes) + ')'; z.hidden = false;
+      }
       // Posters first, then the calendar, the photo counter JPGs and the guide, whatever order the API sends.
       order.sort(function (a, b) { return rank[a] - rank[b] || (a < b ? -1 : a > b ? 1 : 0); });
       var host = $('pt-groups'); host.textContent = '';
       order.forEach(function (g) {
+        groups[g].sort(function (a, b) { return a.ord - b.ord || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0); });
         var sec = document.createElement('section'); sec.className = 'pt-group';
         var h = document.createElement('h2'); h.textContent = g; sec.appendChild(h);
         var ul = document.createElement('ul'); ul.className = 'pt-files';
@@ -133,6 +145,7 @@ const description = 'Download the water level posters you bought. This page chec
         sec.appendChild(ul); host.appendChild(sec);
       });
       $('pt-ok').hidden = false;
+      return true;
     }
 
     function demoReply() {
@@ -196,7 +209,7 @@ const description = 'Download the water level posters you bought. This page chec
       msg.textContent = 'Checking.';
       ask('email=' + encodeURIComponent(email), function (j) {
         msg.textContent = '';
-        if (j && j.ok === true) { render(j); $('pt-ok').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        if (j && j.ok === true) { $(render(j) ? 'pt-ok' : 'pt-err').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
         else msg.textContent = j && typeof j.reason === 'string' && j.reason ? j.reason : 'No purchase found for that email.';
       });
     });

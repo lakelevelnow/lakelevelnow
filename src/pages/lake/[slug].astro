@@ -25,7 +25,7 @@ export function getStaticPaths() {
 
 const { slug } = Astro.params;
 const lake = LAKES.find((l) => l.slug === slug)!;
-// Lakes with a printable poster (sku llp). The poster card sits after the Almanac CTAs, and the waitlist test stands down.
+// Lakes with a printable poster (sku llp). The poster card sits after the Almanac CTAs, and the waitlist test stays below it.
 const posterLake = slug === 'lake-mead' || slug === 'lake-powell' ? (slug as 'lake-mead' | 'lake-powell') : null;
 // California lakes with a long CDEC monthly record get a chart page (src/pages/lake/[slug]/chart.astro).
 const caChart = caChartFor(slug);
@@ -304,7 +304,7 @@ import almPrice from '../../data/almanac.json';
     {/* a5-build 2026-11-03: fake-door waitlist test (5 planned products, one per visitor).
         Below the gauge and the readings, above the first mid-page ad slot. Copy lives in
         src/data/waitlist.json. */}
-    {!posterLake && <WaitlistTest slug={slug} name={lake.name} />}
+    <WaitlistTest slug={slug} name={lake.name} />
 
     <AdSlot pos="mid" />
 

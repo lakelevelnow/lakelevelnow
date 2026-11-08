@@ -10,19 +10,8 @@ const lakeDir = 'dist/lake';
 const slugs = fs.readdirSync(lakeDir).filter((s) => fs.existsSync(path.join(lakeDir, s, 'index.html')));
 assert.ok(slugs.length >= 40, `expected 40+ lake pages, got ${slugs.length}`);
 const count = (html, needle) => html.split(needle).length - 1;
-// Mobile money 2026-11-08 (llp): the poster card is the one paid card on Lake Mead and Lake Powell,
-// their chart pages included, so the waitlist stands down there. Every other lake keeps it.
-const POSTER_LAKES = new Set(['lake-mead', 'lake-powell']);
-const POSTER_PAGES = new Set(['lake-mead', 'lake-powell', 'lake-mead/chart', 'lake-powell/chart']);
 let withMid = 0;
-let skipped = 0;
 for (const slug of slugs) {
-  if (POSTER_LAKES.has(slug)) {
-    const h = fs.readFileSync(path.join(lakeDir, slug, 'index.html'), 'utf8');
-    assert.equal(count(h, 'id="wl-test"'), 0, `${slug}: no waitlist next to the poster card`);
-    skipped++;
-    continue;
-  }
   const html = fs.readFileSync(path.join(lakeDir, slug, 'index.html'), 'utf8');
   assert.equal(count(html, 'id="wl-test"'), 1, `${slug}: component must appear exactly once`);
   const want = data.offers.filter((o) => !Array.isArray(o.lakes) || o.lakes.includes(slug)).map((o) => o.id);
@@ -50,11 +39,6 @@ for (const slug of slugs) {
     const html = fs.readFileSync(f, 'utf8');
     const want = PLACE[page];
     assert.ok(want, `${slug}/${page}: unknown sub-page type, add it to PLACE`);
-    if (POSTER_PAGES.has(`${slug}/${page}`)) {
-      assert.equal(count(html, 'id="wl-test"'), 0, `${slug}/${page}: no waitlist next to the poster card`);
-      skipped++;
-      continue;
-    }
     assert.equal(count(html, 'id="wl-test"'), 1, `${slug}/${page}: exactly once`);
     assert.ok(html.includes(`data-wl-place="${want}"`), `${slug}/${page}: placement ${want}`);
     assert.ok(html.includes(`data-wl-lake="${slug}"`), `${slug}/${page}: lake slug`);
@@ -81,6 +65,5 @@ const all = [];
   const f = path.join(d, e.name);
   if (e.isDirectory()) walk(f); else if (e.name.endsWith('.html') && fs.readFileSync(f, 'utf8').includes('id="wl-test"')) all.push(f);
 } })('dist');
-assert.equal(all.length, slugs.length - POSTER_LAKES.size + subs.length, 'no page outside /lake/ carries the card');
-assert.equal(skipped, POSTER_PAGES.size, 'the four poster pages were checked');
+assert.equal(all.length, slugs.length + subs.length, 'no page outside /lake/ carries the card');
 console.log(`PASS: waitlist on ${slugs.length} lake pages (lake-waitlist, ${withMid} with a mid ad, all above it, all below the gauge) + ${subs.length} sub-pages (${subs.join(', ')}); ${all.length} built HTML files in total; privacy paragraph present`);
