@@ -11,7 +11,6 @@ import SponsorSlot from '../../components/SponsorSlot.astro';
 import LakeFacts from '../../components/LakeFacts.astro';
 import WaitlistTest from '../../components/WaitlistTest.astro';
 import PosterOffer from '../../components/PosterOffer.astro';
-import posterData from '../../data/posters.json';
 // import RecreationAffiliates from '../../components/RecreationAffiliates.astro'; // enable with the box below
 import { almanacContext, descriptionClause } from '../../lib/almanac';
 import { SITE, AUTHOR } from '../../consts';
@@ -26,7 +25,7 @@ export function getStaticPaths() {
 
 const { slug } = Astro.params;
 const lake = LAKES.find((l) => l.slug === slug)!;
-// Lakes with a printable poster (sku llp). These pages show the poster card as their one paid card.
+// Lakes with a printable poster (sku llp). The poster card sits after the Almanac CTAs, and the waitlist test stands down.
 const posterLake = slug === 'lake-mead' || slug === 'lake-powell' ? (slug as 'lake-mead' | 'lake-powell') : null;
 // California lakes with a long CDEC monthly record get a chart page (src/pages/lake/[slug]/chart.astro).
 const caChart = caChartFor(slug);
@@ -242,13 +241,10 @@ import almPrice from '../../data/almanac.json';
           <a href={import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? `${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=${slug}` : '/almanac/#pick'} rel="nofollow" data-lake={slug} data-cta="lake_hero_almanac">Get it for ${almPrice.priceSingleUsd}</a>
           <span class="lake-alm-micro">One payment, 60-day refund.</span></p>
       )}
-      {/* Mobile money F2 2026-11-08: one offer per first screen. Lake Mead is not in the Almanac, so
-          the first-screen line points to Lake Mead's own product, the poster card further down, with
-          no price in the line (the card carries the price and the refund line). The owner's honest
-          Powell Almanac line (263a34f) moves below the poster card, see meadPowellLine. */}
       {slug === 'lake-mead' && (
-        <p class="lake-alm-line lake-pst-line" data-pst-place="mead-hero">Every daily Lake Mead reading since {posterData.lakes.mead.first[0].slice(0, 4)} is now a print you can frame.
-          <a href="/posters/" data-cta="mead_hero_posters" data-pst-link>See the posters</a></p>
+        <p class="lake-alm-line" data-alm-place="mead-hero">Lake Mead is not in the Almanac. Lake Powell, upstream on the same river, is.
+          <a href={import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? `${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=lake-powell` : '/almanac/#pick'} rel="nofollow" data-lake="lake-powell" data-cta="mead_hero_powell">Lake Powell almanac, ${almPrice.priceSingleUsd}</a>
+          <span class="lake-alm-micro">One payment, 60-day refund.</span></p>
       )}
     </div>
 
@@ -283,15 +279,7 @@ import almPrice from '../../data/almanac.json';
         screen; the visitor now gets the reading before the offer. */}
     {/* adsense-w2: the offer shows only on lakes the Almanac covers (it is about this lake).
         The "not included, see other lakes" cross-sell on uncovered lakes is removed. */}
-    {/* Mobile money 2026-11-08 (llp): on Lake Mead and Lake Powell the poster card sits right
-        after the gauge and chart and is the one paid offer card on the page. The Almanac keeps
-        its first-screen text link above and the header link; its cards stand down here. */}
-    {/* F2 2026-11-08: on Lake Mead the card stays right after the gauge and chart. On Lake Powell the
-        first screen sells the Powell Almanac ($19, owner CRO R4), so the poster card waits until after
-        the free "normal for the date" answer below, and the two prices never meet. */}
-    {posterLake === 'lake-mead' ? (
-      <PosterOffer lake="lake-mead" placement="mead-lake" cta="mead_lake_posters" />
-    ) : posterLake ? null : (alm && <AlmanacPeek slug={slug} name={lake.name} alm={alm} />)}
+    {alm && <AlmanacPeek slug={slug} name={lake.name} alm={alm} />}
 
     {/* Sponsor slot (owner apply #3): only lakes listed in src/data/sponsors.json (Lake Mead
         today). Below the gauge and chart, never in the first screen, and well above the
@@ -302,15 +290,12 @@ import almPrice from '../../data/almanac.json';
         immediately above this; the one question the number leaves open is whether it is
         normal, and this answers it before asking for anything. Renders nothing for a lake
         with no long record, so all 44 pages are safe to wrap. */}
-    <AlmanacContext slug={slug} level={live ? reading!.level_ft : null} asOf={live ? reading!.as_of : null} showCta={!posterLake} />
-    {slug === 'lake-mead' && !posterLake && <MeadAlmanacNote place="mead" />}
-    {posterLake === 'lake-powell' && <PosterOffer lake="lake-powell" placement="powell-lake" cta="powell_lake_posters" />}
-    {/* The owner's Powell Almanac pointer for Lake Mead visitors (263a34f), kept with its words and its
-        cta id, now below the poster card and without a price, so this page shows one price. */}
-    {slug === 'lake-mead' && (
-      <p class="lake-alm-line lake-pst-line" data-alm-place="mead-powell-line">Lake Mead is not in the Almanac. Lake Powell, upstream on the same river, is.
-        <a href="/almanac/" data-lake="lake-powell" data-cta="mead_hero_powell">See the Lake Powell almanac</a></p>
-    )}
+    <AlmanacContext slug={slug} level={live ? reading!.level_ft : null} asOf={live ? reading!.as_of : null} />
+    {slug === 'lake-mead' && <MeadAlmanacNote place="mead" />}
+    {/* Mobile money 2026-11-08 (llp): the owner's Almanac funnel above stays exactly as it was.
+        The poster card comes after it, on Lake Mead after the Powell Almanac box and on Lake
+        Powell after the Almanac answer and its buy links. Order in lanes/G2/NOTES.md. */}
+    {posterLake && <PosterOffer lake={posterLake} placement={posterLake === 'lake-mead' ? 'mead-lake' : 'powell-lake'} cta={posterLake === 'lake-mead' ? 'mead_lake_posters' : 'powell_lake_posters'} />}
 
     {/* Unique, data-derived facts for this lake (adsense-1025): level vs full pool, trend,
         exact source station, recreation status. Only where a reading exists. */}

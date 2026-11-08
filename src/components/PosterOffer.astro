@@ -1,7 +1,7 @@
 ---
-// Mobile money run 2026-11-08 (sku llp). One compact card right after the main chart on the
-// Lake Mead and Lake Powell pages: the visitor has just looked at the line, and this offers the
-// same line as a print. It is the only paid offer card on those pages (see the lane NOTES.md).
+// Mobile money run 2026-11-08 (sku llp). One compact card on the Lake Mead and Lake Powell pages,
+// after the main chart and after the owner's Almanac calls to action, which stay as they were
+// (order in lanes/G2/NOTES.md). The visitor has just looked at the line; this offers it as a print.
 // Links to /posters/, never straight to Stripe, so the visitor sees what they get first.
 // GA4 only, through window.__siteGA4Event (ga4.js returns early on DNT or GPC):
 //   mm_cta_view  when half the card is on screen, once per page
@@ -39,8 +39,7 @@ const christmas = now.getUTCMonth() === 10 || (now.getUTCMonth() === 11 && now.g
 
 <script is:inline>
 (function () {
-  // The card, plus the one-line first-screen pointer on /lake/lake-mead/ (data-pst-place on a <p>).
-  var cards = document.querySelectorAll('[data-pst-place]:not([data-pst-init])');
+  var cards = document.querySelectorAll('aside.pst[data-pst-place]:not([data-pst-init])');
   for (var i = 0; i < cards.length; i++) (function (card) {
     card.setAttribute('data-pst-init', '1');
     var params = { sku: 'llp', placement: card.getAttribute('data-pst-place') || 'lake' };

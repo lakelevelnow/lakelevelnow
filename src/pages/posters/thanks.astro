@@ -1,9 +1,10 @@
 ---
 // /posters/thanks/ — Stripe returns poster buyers here as /posters/thanks/#s={CHECKOUT_SESSION_ID}.
 // The page asks the shared unlock API (built by the run orchestrator, CORS open for this site)
-// whether the session paid for sku llp, then lists the files from its reply. The download folder
-// is never written into this page; it only arrives in the API reply. Restore by email uses the
-// same API. On localhost or 127.0.0.1 only, the session id cs_test_demo unlocks a demo list
+// whether the session paid for sku llp, then lists the files from its reply. The files live on the
+// IngredientCalculator Pages upload (https://ingredientcalculator.com/posters-files/<folder>/), never
+// in this repo, and the folder name only arrives in the API reply. Restore by email uses the same API.
+// A paid session is reported to GA4 once through window.__siteGA4Purchase (ga4.js). On localhost or 127.0.0.1 only, the session id cs_test_demo unlocks a demo list
 // with no network call, for local tests. noindex, and kept out of the sitemap.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 const title = 'Your Lake Mead and Lake Powell posters';
@@ -19,7 +20,7 @@ const description = 'Download the water level posters you bought. This page chec
 
     <div id="pt-ok" hidden>
       <p class="pt-p" id="pt-mail"></p>
-      <a id="pt-zip" class="pt-btn" href="#" download hidden>Download all, one ZIP</a>
+      <a id="pt-zip" class="pt-btn" href="#" hidden>Download all, one ZIP</a>
       <p class="pt-note">Or pick single files below. On a phone, the ZIP is easiest to open on a computer or to send to a print shop.</p>
       <div id="pt-groups"></div>
       <section class="pt-box pt-print" aria-labelledby="pt-print-h">
@@ -37,7 +38,7 @@ const description = 'Download the water level posters you bought. This page chec
 
     <div id="pt-err" class="pt-box pt-err" role="alert" hidden>
       <p class="pt-p" id="pt-reason"></p>
-      <p class="pt-p">If you paid and this keeps happening, email lipmichal@gmail.com with the email on your Stripe receipt and I will send the files by hand.</p>
+      <p class="pt-p" id="pt-help">If you paid and this keeps happening, email lipmichal@gmail.com with the email on your Stripe receipt and I will send the files by hand.</p>
     </div>
 
     <form id="pt-form" class="pt-box" novalidate>
@@ -76,18 +77,23 @@ const description = 'Download the water level posters you bought. This page chec
       if (/\.zip$/.test(name)) return { group: 'zip', label: 'Everything', kind: 'ZIP', rank: 0 };
       return { group: 'Other files', label: name, kind: 'File', rank: 5 };
     }
-    // Only same-site paths or https URLs on this site are turned into links.
+    // Only files directly inside one 20-character folder under ingredientcalculator.com/posters-files/
+    // become links. The demo list (local hosts only) may point at the public preview images.
+    var FILES_URL = /^https:\/\/ingredientcalculator\.com\/posters-files\/[a-f0-9]{20}\/[A-Za-z0-9][A-Za-z0-9._-]{0,120}$/;
     function safeUrl(u) {
-      if (typeof u !== 'string') return '';
-      if (/^\/posters\/[A-Za-z0-9._\/-]+$/.test(u) && u.indexOf('..') < 0) return u;
-      if (/^https:\/\/(www\.)?lakelevelnow\.com\/posters\/[A-Za-z0-9._\/-]+$/.test(u) && u.indexOf('..') < 0) return u;
+      if (typeof u !== 'string' || u.indexOf('..') >= 0) return '';
+      if (FILES_URL.test(u)) return u;
+      if (dev && /^\/posters\/img\/[a-z0-9-]+\.webp$/.test(u)) return u;
       return '';
     }
 
     function showError(reason) {
       $('pt-h').textContent = 'I could not open your posters yet';
       $('pt-sub').textContent = '';
-      $('pt-reason').textContent = reason || 'Something went wrong while checking the payment. Please try again in a minute.';
+      reason = reason || 'Something went wrong while checking the payment. Please try again in a minute.';
+      $('pt-reason').textContent = reason;
+      // The API's own reasons already end with the email line, so it is not said twice.
+      $('pt-help').hidden = reason.indexOf('lipmichal@gmail.com') >= 0;
       $('pt-err').hidden = false;
     }
 
@@ -104,7 +110,7 @@ const description = 'Download the water level posters you bought. This page chec
         if (!url || !name) return;
         var d = describe(name);
         if (d.group === 'zip') {
-          var z = $('pt-zip'); z.href = url; z.setAttribute('download', name);
+          var z = $('pt-zip'); z.href = url;
           z.textContent = 'Download all, one ZIP (' + mb(Number(f.bytes) || 0) + ')'; z.hidden = false; return;
         }
         if (!groups[d.group]) { groups[d.group] = []; order.push(d.group); rank[d.group] = d.rank; }
@@ -119,7 +125,7 @@ const description = 'Download the water level posters you bought. This page chec
         var ul = document.createElement('ul'); ul.className = 'pt-files';
         groups[g].forEach(function (f) {
           var li = document.createElement('li');
-          var a = document.createElement('a'); a.className = 'pt-file'; a.href = f.url; a.setAttribute('download', f.name);
+          var a = document.createElement('a'); a.className = 'pt-file'; a.href = f.url;
           var t = document.createElement('span'); t.textContent = f.label;
           var s = document.createElement('span'); s.className = 'pt-size'; s.textContent = f.kind + ' ' + mb(f.bytes);
           a.appendChild(t); a.appendChild(s); li.appendChild(a); ul.appendChild(li);
@@ -153,13 +159,30 @@ const description = 'Download the water level posters you bought. This page chec
     }
 
     function handle(j) {
-      if (j && j.ok === true && (j.p === 'llp' || j.p === undefined)) render(j);
-      else showError(j && typeof j.reason === 'string' ? j.reason : '');
+      if (j && j.ok === true && (j.p === 'llp' || j.p === undefined)) { render(j); return true; }
+      showError(j && typeof j.reason === 'string' ? j.reason : '');
+      return false;
+    }
+
+    // GA4 purchase, once per paid live session (ga4.js also refuses repeats and other paths).
+    // The unlock reply carries amount_total in minor units and currency. The $9 link has no tax or
+    // shipping lines, so they count as 0 unless the reply ever sends them.
+    function trackPurchase(j, sid) {
+      if (!/^cs_live_[A-Za-z0-9]+$/.test(sid)) return;
+      var minor = function (v) { return Number.isSafeInteger(v) && v >= 0 ? v : 0; };
+      var receipt = { transaction_id: sid, payment_status: 'paid', amount_unit: 'stripe_minor', item_id: 'llp',
+        amount_total: j.amount_total, amount_tax: minor(j.amount_tax), amount_shipping: minor(j.amount_shipping),
+        currency: typeof j.currency === 'string' ? j.currency : '' };
+      var send = function () {
+        if (typeof window.__siteGA4Purchase === 'function') window.__siteGA4Purchase(receipt, sid);
+        else document.addEventListener('site-ga4-ready', send, { once: true });
+      };
+      send();
     }
 
     var s = sessionFromUrl();
     if (dev && s === 'cs_test_demo') handle(demoReply());
-    else if (s) ask('s=' + encodeURIComponent(s), handle);
+    else if (s) ask('s=' + encodeURIComponent(s), function (j) { if (handle(j)) trackPurchase(j, s); });
     else {
       $('pt-h').textContent = 'Your posters';
       $('pt-sub').textContent = 'This page opens your files after checkout. If you already paid, enter your email below.';

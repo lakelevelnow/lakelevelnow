@@ -14,6 +14,9 @@ const fpath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 // adsense-w2: no tip ask in the footer of lake pages (the same self-promotion text on every
 // lake page); /support/ and the footer Support link keep it reachable.
 // CRO 2026-11-06 R3: no tip ask on the two pages that sell the Almanac (/ and /almanac).
+// Mobile money 2026-11-08 (llp): Lake Mead and Lake Powell pages and /posters/ also sell posters,
+// so "the paid tier" would be incomplete there. Other pages keep the owner's line word for word.
+const posterPage = /^\/lake\/lake-(mead|powell)(\/|$)/.test(fpath) || fpath === '/posters';
 const showTip = fpath !== '/support' && fpath !== '/' && fpath !== '/almanac' && !fpath.startsWith('/almanac/thanks') && !fpath.startsWith('/lake/');
 ---
 <footer class="site-footer">
@@ -37,7 +40,11 @@ const showTip = fpath !== '/support' && fpath !== '/' && fpath !== '/almanac' &&
       </div>
     </div>
     {/* CRO 2026-11-06 R2: one plain offer line in the footer of every page. */}
-    <p class="foffer">Live lake levels are free. The Lake Level Almanac is the paid tier, with the daily history of one lake for ${alm.priceSingleUsd}, or all {alm.lakeCount} Almanac lakes for ${alm.priceBundleUsd}. <a href="/almanac/" data-cta="footer_almanac">See the Almanac and a free sample</a></p>
+    {posterPage ? (
+      <p class="foffer">Live lake levels are free. The Lake Level Almanac has the daily history of one lake for ${alm.priceSingleUsd}, or all {alm.lakeCount} Almanac lakes for ${alm.priceBundleUsd}. <a href="/almanac/" data-cta="footer_almanac">See the Almanac and a free sample</a> Lake Mead and Lake Powell also come as posters to print. <a href="/posters/" data-cta="footer_posters">See the posters</a></p>
+    ) : (
+      <p class="foffer">Live lake levels are free. The Lake Level Almanac is the paid tier, with the daily history of one lake for ${alm.priceSingleUsd}, or all {alm.lakeCount} Almanac lakes for ${alm.priceBundleUsd}. <a href="/almanac/" data-cta="footer_almanac">See the Almanac and a free sample</a></p>
+    )}
     {/* sprint2 2026-11-03: crawl path. The four chart pages and three guides had no link from the
         53 pages Google has indexed, so Google never crawled them (URL Inspection: "unknown to Google").
         Bing finds them through IndexNow, and the Lake Mead chart is now the top Bing landing page. */}

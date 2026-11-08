@@ -81,12 +81,15 @@
   // Invoked only by the return page after its existing paid-verification response.
   // Persist the transaction identifier alone; never pass licenses or customer fields.
   var paidSeen = new Set();
+  // Each return page may report only its own items. /posters/thanks (sku llp) since 2026-11-08.
+  var purchasePages = lake ? { '/almanac/thanks': ['almanac_single', 'almanac_bundle'], '/posters/thanks': ['llp'] }
+    : { '/welcome': ['ingredientcalculator_pro'] };
   window.__siteGA4Purchase = function (receipt, requestedSession) {
-    if (path !== (lake ? '/almanac/thanks' : '/welcome') || !receipt ||
+    var allowed = Object.prototype.hasOwnProperty.call(purchasePages, path) ? purchasePages[path] : null;
+    if (!allowed || !receipt ||
         !/^cs_live_[A-Za-z0-9]+$/.test(requestedSession || '') ||
         receipt.transaction_id !== requestedSession || receipt.payment_status !== 'paid' ||
         receipt.amount_unit !== 'stripe_minor') return;
-    var allowed = lake ? ['almanac_single', 'almanac_bundle'] : ['ingredientcalculator_pro'];
     if (allowed.indexOf(receipt.item_id) < 0 || paidSeen.has(requestedSession)) return;
     var key = 'ga4_purchase_' + site + '_' + requestedSession;
     try { if (localStorage.getItem(key)) return; } catch (_) {}

@@ -1,5 +1,4 @@
-# lakelevelnow.com, all pages public and indexable, except the poster download folder.
-# Disallow /posters/d/ sits in every group: a crawler that matches a named group obeys only that group.
+# lakelevelnow.com, all pages public and indexable.
 # AI crawlers are explicitly allowed here. When competitors block GPTBot/PerplexityBot,
 # our content stays in the retrieval/citation pool and theirs doesn't.
 # Every group below is Allow: /, so no group here changes what a crawler may fetch:
@@ -9,63 +8,44 @@
 # Bytespider, Meta-ExternalAgent, Amazonbot) keep the allow policy this site already had.
 User-agent: *
 Allow: /
-Disallow: /posters/d/
 
 User-agent: GPTBot
 Allow: /
-Disallow: /posters/d/
 User-agent: ChatGPT-User
 Allow: /
-Disallow: /posters/d/
 User-agent: OAI-SearchBot
 Allow: /
-Disallow: /posters/d/
 User-agent: Google-Extended
 Allow: /
-Disallow: /posters/d/
 User-agent: Googlebot
 Allow: /
-Disallow: /posters/d/
 User-agent: Bingbot
 Allow: /
-Disallow: /posters/d/
 User-agent: PerplexityBot
 Allow: /
-Disallow: /posters/d/
 User-agent: Perplexity-User
 Allow: /
-Disallow: /posters/d/
 User-agent: ClaudeBot
 Allow: /
-Disallow: /posters/d/
 User-agent: Claude-Web
 Allow: /
-Disallow: /posters/d/
 User-agent: Claude-SearchBot
 Allow: /
-Disallow: /posters/d/
 User-agent: Claude-User
 Allow: /
-Disallow: /posters/d/
 # Applebot-Extended is the training opt-out for Apple. It stays before Applebot so the
 # pair reads Disallow-style first, then the search crawler.
 User-agent: Applebot-Extended
 Allow: /
-Disallow: /posters/d/
 User-agent: Applebot
 Allow: /
-Disallow: /posters/d/
 User-agent: cohere-ai
 Allow: /
-Disallow: /posters/d/
 User-agent: Bytespider
 Allow: /
-Disallow: /posters/d/
 User-agent: Meta-ExternalAgent
 Allow: /
-Disallow: /posters/d/
 User-agent: Amazonbot
 Allow: /
-Disallow: /posters/d/
 
 Sitemap: https://lakelevelnow.com/sitemap-index.xml

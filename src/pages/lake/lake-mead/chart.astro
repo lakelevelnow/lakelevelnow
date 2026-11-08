@@ -29,6 +29,7 @@ import PosterOffer from '../../../components/PosterOffer.astro';
 import SponsorSlot from '../../../components/SponsorSlot.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
+import MeadAlmanacNote from '../../../components/MeadAlmanacNote.astro';
 import {
   LAKES, getReading, fmtNum, POWELL_BAND, feedLabel,
   MEAD_HISTORY, MEAD_HISTORY_MONTHLY, MEAD_HISTORY_SOURCE, MEAD_HISTORY_CATALOG,
@@ -198,12 +199,12 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
       </figure>
     </section>
 
-    {/* Mobile money 2026-11-08 (llp): the poster card replaces the waitlist test and the
-        Powell Almanac box here, so the page keeps one paid offer card, right after the chart. */}
-    <PosterOffer lake="lake-mead" placement="mead-chart" cta="mead_chart_posters" fullChart />
-
-
     <AlmanacContext slug="lake-mead" level={live && reading ? reading.level_ft : null} asOf={live && reading ? reading.as_of : null} />
+    <MeadAlmanacNote place="mead-chart" />
+
+    {/* Mobile money 2026-11-08 (llp): the poster card takes the waitlist test's place and comes
+        after the owner's Powell Almanac box, which stays as it was. */}
+    <PosterOffer lake="lake-mead" placement="mead-chart" cta="mead_chart_posters" fullChart />
 
     <section class="section airy">
       <h2>Where today sits in {yearsOfRecord} years of readings</h2>

@@ -36,7 +36,7 @@ export default defineConfig({
     sitemap({
       // /almanac/thanks/ is a post-purchase page whose URL carries a live Stripe session
       // id. It must never be indexed; it also carries noindex, and this is the second lock.
-      filter: (page) => !page.includes('/404') && !page.includes('/almanac/thanks') && !page.includes('/posters/thanks') && !page.includes('/posters/d/') && !page.includes('/support/') && !isNoDataLake(page),
+      filter: (page) => !page.includes('/404') && !page.includes('/almanac/thanks') && !page.includes('/posters/thanks') && !page.includes('/support/') && !isNoDataLake(page),
       changefreq: 'weekly',
       priority: 0.7,
       // sprint2 2026-11-03: lake, chart and badge pages show a new reading on every daily build,

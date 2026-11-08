@@ -2,7 +2,9 @@
 // Part 1 runs public/ga4.js in a VM: mm_cta_view / mm_cta_click are sent with sku and placement,
 // junk is refused, DNT turns everything off, the llp Stripe link counts as a product.
 // Part 2 runs the /posters/thanks/ script with stub DOM: the cs_test_demo branch works on
-// localhost with no network and does not exist on lakelevelnow.com; the API reason is shown.
+// localhost with no network and does not exist on lakelevelnow.com; the API reason is shown;
+// only ingredientcalculator.com/posters-files/ URLs become links; a paid live session is sent
+// to GA4 as a purchase once.
 // Part 3 (after `npm run build`) checks the built pages.
 // Run: node scripts/tests/posters-llp.mjs
 import vm from 'node:vm';
@@ -60,12 +62,44 @@ function loadGa4({ dnt = false, path = '/lake/lake-mead/chart/' } = {}) {
   const src = fs.readFileSync('public/ga4.js', 'utf8');
   assert.ok(src.includes("'eVqeVe6Eq4Jy5NP2st43S0L': { item_id: 'llp'"), 'llp product in ga4.js');
 }
-console.log('PASS: ga4.js mm events');
+{
+  // G2: /posters/thanks may report sku llp as a purchase, nothing else, and nowhere else.
+  const sid = 'cs_live_a1B2c3';
+  const receipt = { transaction_id: sid, payment_status: 'paid', amount_unit: 'stripe_minor', item_id: 'llp',
+    amount_total: 900, amount_tax: 0, amount_shipping: 0, currency: 'usd' };
+  {
+    const { window, events } = loadGa4({ path: '/posters/thanks/' });
+    window.__siteGA4Purchase(receipt, sid);
+    window.__siteGA4Purchase(receipt, sid);
+    const p = events().filter((e) => e[1] === 'purchase');
+    assert.equal(p.length, 1, 'one purchase per session');
+    assert.equal(p[0][2].value, 9); assert.equal(p[0][2].currency, 'USD');
+    assert.equal(p[0][2].revenue_status, 'verified');
+    assert.deepEqual(JSON.parse(JSON.stringify(p[0][2].items)), [{ item_id: 'llp', price: 9, quantity: 1 }]);
+  }
+  {
+    const { window, events } = loadGa4({ path: '/posters/thanks/' });
+    window.__siteGA4Purchase({ ...receipt, item_id: 'almanac_single' }, sid);
+    window.__siteGA4Purchase(receipt, 'cs_test_demo');
+    assert.equal(events().filter((e) => e[1] === 'purchase').length, 0, 'other items and test sessions refused');
+  }
+  for (const path of ['/almanac/thanks/', '/posters/', '/lake/lake-mead/']) {
+    const { window, events } = loadGa4({ path });
+    window.__siteGA4Purchase(receipt, sid);
+    assert.equal(events().filter((e) => e[1] === 'purchase').length, 0, `llp refused on ${path}`);
+  }
+  {
+    const { window, events } = loadGa4({ path: '/almanac/thanks/' });
+    window.__siteGA4Purchase({ ...receipt, item_id: 'almanac_single', amount_total: 1900 }, sid);
+    assert.equal(events().filter((e) => e[1] === 'purchase').length, 1, 'Almanac purchase still works');
+  }
+}
+console.log('PASS: ga4.js mm events and llp purchase');
 
 // ---------- part 2: thanks page script
 const thanksSrc = fs.readFileSync('src/pages/posters/thanks.astro', 'utf8');
 const script = /<script is:inline>([\s\S]*?)<\/script>/.exec(thanksSrc)[1];
-function runThanks(hostname, hash, fetchReply) {
+function runThanks(hostname, hash, fetchReply, win = {}) {
   const els = {};
   const el = (id) => (els[id] ??= { id, textContent: '', hidden: id !== 'pt-form', value: '', href: '', attrs: {}, children: [],
     setAttribute(k, v) { this.attrs[k] = v; }, appendChild(c) { this.children.push(c); return c; },
@@ -74,7 +108,7 @@ function runThanks(hostname, hash, fetchReply) {
     setAttribute(k, v) { this.attrs[k] = v; }, appendChild(c) { this.children.push(c); return c; } }) };
   const calls = [];
   const fetch = (url) => { calls.push(url); return Promise.resolve({ status: fetchReply.status || 200, json: () => Promise.resolve(fetchReply.body) }); };
-  vm.runInNewContext(script, { document, location: { hostname, hash }, fetch, window: {}, setTimeout, clearTimeout, encodeURIComponent, Array, Number, AbortController });
+  vm.runInNewContext(script, { document, location: { hostname, hash }, fetch, window: win, setTimeout, clearTimeout, encodeURIComponent, Array, Number, AbortController });
   return { els, calls };
 }
 const tick = () => new Promise((r) => setTimeout(r, 20));
@@ -94,29 +128,68 @@ const tick = () => new Promise((r) => setTimeout(r, 20));
   await tick();
   assert.equal(els['pt-err'].hidden, false);
   assert.equal(els['pt-reason'].textContent, 'This payment has not been completed.');
+  assert.equal(els['pt-help'].hidden, false, 'own email line shown when the reason has none');
 }
 {
+  // G2: the API reason already ends with the email line, so the page does not repeat it.
+  const reason = 'No completed payment matches this link. If you paid, email lipmichal@gmail.com and I will sort it out.';
+  const { els } = runThanks('lakelevelnow.com', '#s=cs_live_abc123', { status: 404, body: { ok: false, reason } });
+  await tick();
+  assert.equal(els['pt-reason'].textContent, reason);
+  assert.equal(els['pt-help'].hidden, true, 'email line said once');
+}
+{
+  // G2: files come from the IngredientCalculator upload. Any other host, path, folder shape,
+  // sub-folder, relative path or scheme is dropped. 0123... is a test folder, not the real one.
+  const IC = 'https://ingredientcalculator.com/posters-files/0123456789abcdef0123/';
   const files = [
-    { name: 'lake-level-posters-all.zip', url: '/posters/d/x/lake-level-posters-all.zip', bytes: 4200000 },
-    { name: 'lake-mead-light-18x24.pdf', url: '/posters/d/x/lake-mead-light-18x24.pdf', bytes: 210000 },
-    { name: 'evil.pdf', url: 'javascript:alert(1)', bytes: 1 },
+    { name: 'lake-level-posters-all.zip', url: IC + 'lake-level-posters-all.zip', bytes: 4200000 },
+    { name: 'lake-mead-light-18x24.pdf', url: IC + 'lake-mead-light-18x24.pdf', bytes: 210000 },
+    { name: 'lake-mead-dark-18x24.pdf', url: 'javascript:alert(1)', bytes: 1 },
+    { name: 'lake-mead-dark-11x14.pdf', url: 'https://evil.example/posters-files/0123456789abcdef0123/a.pdf', bytes: 1 },
+    { name: 'lake-mead-dark-8x10.pdf', url: 'https://ingredientcalculator.com.evil.example/posters-files/0123456789abcdef0123/a.pdf', bytes: 1 },
+    { name: 'lake-mead-dark-a3.pdf', url: 'http://ingredientcalculator.com/posters-files/0123456789abcdef0123/a.pdf', bytes: 1 },
+    { name: 'lake-powell-dark-a3.pdf', url: 'https://www.ingredientcalculator.com/posters-files/0123456789abcdef0123/a.pdf', bytes: 1 },
+    { name: 'lake-powell-dark-8x10.pdf', url: 'https://ingredientcalculator.com/other/0123456789abcdef0123/a.pdf', bytes: 1 },
+    { name: 'lake-powell-dark-11x14.pdf', url: IC + 'sub/a.pdf', bytes: 1 },
+    { name: 'lake-powell-dark-18x24.pdf', url: IC + '../a.pdf', bytes: 1 },
+    { name: 'two-lakes-dark-a3.pdf', url: 'https://ingredientcalculator.com/posters-files/short/a.pdf', bytes: 1 },
+    { name: 'two-lakes-dark-8x10.pdf', url: '/posters/img/room-600.webp', bytes: 1 },
   ];
-  const { els } = runThanks('lakelevelnow.com', '#s=cs_live_abc123', { body: { ok: true, p: 'llp', email: 'a@b.co', files } });
+  const ga = [];
+  const win = { __siteGA4Purchase: (r, sid) => ga.push([r, sid]) };
+  const { els } = runThanks('lakelevelnow.com', '#s=cs_live_abc123', { body: { ok: true, p: 'llp', email: 'a@b.co', files, amount_total: 900, currency: 'usd' } }, win);
   await tick();
   assert.equal(els['pt-zip'].hidden, false);
-  assert.equal(els['pt-zip'].href, '/posters/d/x/lake-level-posters-all.zip');
+  assert.equal(els['pt-zip'].href, IC + 'lake-level-posters-all.zip');
+  assert.equal(els['pt-zip'].attrs.download, undefined, 'plain cross-origin link');
   const groups = els['pt-groups'].children;
-  assert.equal(groups.length, 1, 'unsafe URL dropped, one group left');
+  assert.equal(groups.length, 1, 'unsafe URLs dropped, one group left');
   assert.equal(groups[0].children[0].textContent, 'Lake Mead, light');
+  assert.equal(groups[0].children[1].children.length, 1, 'one safe file');
+  // GA4 purchase from the unlock reply.
+  assert.equal(ga.length, 1, 'purchase sent once');
+  assert.equal(ga[0][1], 'cs_live_abc123');
+  assert.deepEqual(JSON.parse(JSON.stringify(ga[0][0])), { transaction_id: 'cs_live_abc123', payment_status: 'paid', amount_unit: 'stripe_minor',
+    item_id: 'llp', amount_total: 900, amount_tax: 0, amount_shipping: 0, currency: 'usd' });
+}
+{
+  // No purchase for a refused session, for the demo, or for an email restore.
+  const ga = [];
+  const win = { __siteGA4Purchase: (r, sid) => ga.push([r, sid]) };
+  runThanks('lakelevelnow.com', '#s=cs_live_abc123', { status: 402, body: { ok: false, reason: 'Not paid.' } }, win);
+  runThanks('localhost', '#s=cs_test_demo', { body: {} }, win);
+  await tick();
+  assert.equal(ga.length, 0, 'no purchase without a paid live session');
 }
 {
   // F2: JPGs for photo counters get their own group, and groups follow a fixed order
   // (posters, calendar, JPGs, guide) whatever order the API sends.
   const files = [
-    { name: 'PRINT-GUIDE.txt', url: '/posters/d/x/PRINT-GUIDE.txt', bytes: 3000 },
-    { name: 'lake-mead-dark-11x14.jpg', url: '/posters/d/x/lake-mead-dark-11x14.jpg', bytes: 600000 },
-    { name: 'lake-mead-calendar-2027.pdf', url: '/posters/d/x/lake-mead-calendar-2027.pdf', bytes: 165000 },
-    { name: 'two-lakes-dark-a3.pdf', url: '/posters/d/x/two-lakes-dark-a3.pdf', bytes: 250000 },
+    { name: 'PRINT-GUIDE.txt', url: 'https://ingredientcalculator.com/posters-files/0123456789abcdef0123/PRINT-GUIDE.txt', bytes: 3000 },
+    { name: 'lake-mead-dark-11x14.jpg', url: 'https://ingredientcalculator.com/posters-files/0123456789abcdef0123/lake-mead-dark-11x14.jpg', bytes: 600000 },
+    { name: 'lake-mead-calendar-2027.pdf', url: 'https://ingredientcalculator.com/posters-files/0123456789abcdef0123/lake-mead-calendar-2027.pdf', bytes: 165000 },
+    { name: 'two-lakes-dark-a3.pdf', url: 'https://ingredientcalculator.com/posters-files/0123456789abcdef0123/two-lakes-dark-a3.pdf', bytes: 250000 },
   ];
   const { els } = runThanks('lakelevelnow.com', '#s=cs_live_abc123', { body: { ok: true, p: 'llp', email: 'a@b.co', files } });
   await tick();
@@ -134,7 +207,19 @@ if (!fs.existsSync('dist/posters/index.html')) {
   process.exit(0);
 }
 const read = (p) => fs.readFileSync(p, 'utf8');
-const FOLDER = fs.readdirSync('public/posters/d')[0];
+// The paid files are not in this repo or its build. Any 20-hex folder under posters-files/ would be
+// the download folder, so no built text file may name one.
+const FOLDER_RE = /posters-files\/[a-f0-9]{20}|posters\/d\/[a-f0-9]{20}/;
+assert.ok(!fs.existsSync('dist/posters/d'), 'no download folder in dist');
+assert.ok(/^public\/posters\/d\/$/m.test(read('.gitignore')), '.gitignore keeps public/posters/d/ out');
+// G2: the owner's Almanac CTAs on these pages are all present (the base cce3d0b set), and the poster
+// card comes after the last of them.
+const ALMANAC = {
+  'dist/lake/lake-mead/index.html': ['mead_hero_powell', 'mead_almanac_powell', 'mead_almanac_all'],
+  'dist/lake/lake-mead/chart/index.html': ['mead_chart_almanac_powell', 'mead_chart_almanac_all'],
+  'dist/lake/lake-powell/index.html': ['lake_hero_almanac', 'peek_almanac_single', 'lake_almanac_single', 'lake_almanac_bundle'],
+  'dist/lake/lake-powell/chart/index.html': ['lake_almanac_single', 'lake_almanac_bundle'],
+};
 for (const [page, place, chartMark] of [
   ['dist/lake/lake-mead/chart/index.html', 'mead-chart', '<figure'],
   ['dist/lake/lake-mead/index.html', 'mead-lake', 'class="chartcard"'],
@@ -145,71 +230,55 @@ for (const [page, place, chartMark] of [
   const main = h.slice(h.indexOf('<main'), h.indexOf('</main>'));
   const cards = main.match(/<aside class="pst"/g) || [];
   assert.equal(cards.length, 1, `${page} one poster card`);
+  const card = main.indexOf('<aside class="pst"');
   assert.ok(main.includes(`data-pst-place="${place}"`), `${page} placement`);
-  assert.ok(main.indexOf(chartMark) < main.indexOf('<aside class="pst"'), `${page} card after the chart`);
-  // F2: one price per page view for the visitor. The only other dollar figure allowed is the owner's
-  // labelled advertiser slot on Lake Mead ($25 a month, for marinas), and on Lake Powell the owner's
-  // first-screen Almanac line, which is kept and sits two screens above the poster card.
-  const text = main.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, '').replace(/<[^>]+>/g, ' ');
-  const prices = [...new Set(text.match(/\$\d+/g) || [])].sort();
-  const allowed = page.includes('lake-mead') ? ['$25', '$9'] : page === 'dist/lake/lake-powell/index.html' ? ['$19', '$9'] : ['$9'];
-  assert.ok(prices.includes('$9') && prices.every((p) => allowed.includes(p)), `${page} prices ${prices}`);
-  if (page.includes('lake-mead')) assert.ok(/\$25\/month/.test(text), `${page} $25 is the advertiser slot`);
-  for (const paid of ['class="mead-alm"', 'id="wl-test"', 'class="alm-peek"', 'class="alm-ctx-cta"']) {
-    assert.ok(!main.includes(paid), `${page} has no second paid card (${paid})`);
+  assert.ok(main.indexOf(chartMark) < card, `${page} card after the chart`);
+  for (const id of ALMANAC[page]) {
+    const at = main.indexOf(`data-cta="${id}"`);
+    assert.ok(at > 0, `${page} keeps Almanac CTA ${id}`);
+    assert.ok(at < card, `${page} poster card after ${id}`);
   }
-  assert.ok(main.includes('within 14 days for a full refund'), `${page} refund line`);
-  assert.ok(!h.includes(FOLDER), `${page} does not name the download folder`);
+  assert.ok(!main.includes('id="wl-test"'), `${page} waitlist test stands down next to the poster card`);
+  assert.ok(main.slice(card).includes('within 14 days for a full refund'), `${page} refund line in the card`);
+  assert.ok(!FOLDER_RE.test(h), `${page} does not name a download folder`);
+  // Footer names both paid things on these pages.
+  assert.ok(h.includes('data-cta="footer_almanac"') && h.includes('data-cta="footer_posters"'), `${page} footer lists the Almanac and the posters`);
+  assert.ok(!h.includes('is the paid tier'), `${page} footer no longer says the Almanac is the only paid thing`);
 }
-// F2: Lake Mead's first screen points to the posters with no price, and the owner's Powell Almanac
-// line sits below the poster card with no price.
 {
+  // The Lake Mead first screen is the owner's Powell Almanac line, word for word, and nothing else paid.
   const h = read('dist/lake/lake-mead/index.html');
   const main = h.slice(h.indexOf('<main'), h.indexOf('</main>'));
-  const hero = main.indexOf('data-pst-place="mead-hero"');
-  assert.ok(hero > 0 && hero < main.indexOf('class="chartcard"'), 'mead-hero pointer above the gauge');
-  const heroP = main.slice(hero, main.indexOf('</p>', hero));
-  assert.ok(heroP.includes('href="/posters/"') && !/\$\d/.test(heroP), 'mead-hero links to /posters/ without a price');
-  const pl = main.indexOf('data-alm-place="mead-powell-line"');
-  assert.ok(pl > main.indexOf('<aside class="pst"'), 'Powell Almanac line below the poster card');
-  assert.ok(main.slice(pl, main.indexOf('</p>', pl)).includes('data-cta="mead_hero_powell"'), 'owner cta id kept');
+  const hero = main.indexOf('data-alm-place="mead-hero"');
+  assert.ok(hero > 0 && hero < main.indexOf('class="chartcard"'), 'owner hero line above the gauge');
+  assert.ok(main.slice(hero, main.indexOf('</p>', hero)).includes('One payment, 60-day refund.'), 'owner hero line unchanged');
+  assert.ok(!main.includes('data-pst-place="mead-hero"'), 'no poster pointer in the first screen');
 }
-// F2: on Lake Powell the owner's first-screen Almanac line is unchanged and the poster card comes
-// after the free "normal for the date" answer.
-{
-  const h = read('dist/lake/lake-powell/index.html');
-  const main = h.slice(h.indexOf('<main'), h.indexOf('</main>'));
-  assert.ok(main.includes('data-alm-place="lake-hero"') && main.includes('data-cta="lake_hero_almanac"'), 'Powell Almanac first-screen line kept');
-  assert.ok(main.indexOf('alm-ctx') > 0 && main.indexOf('alm-ctx') < main.indexOf('<aside class="pst"'), 'Powell card after the free answer');
-}
-// Other lakes keep their offers.
-assert.ok(read('dist/lake/pine-flat-lake/index.html').includes('id="wl-test"'), 'waitlist stays on other lakes');
-assert.ok(!read('dist/lake/pine-flat-lake/index.html').includes('class="pst"'), 'no poster card on other lakes');
+// Other lakes keep their offers and the owner's footer line.
+const pine = read('dist/lake/pine-flat-lake/index.html');
+assert.ok(pine.includes('id="wl-test"'), 'waitlist stays on other lakes');
+assert.ok(!pine.includes('class="pst"'), 'no poster card on other lakes');
+assert.ok(pine.includes('The Lake Level Almanac is the paid tier') && !pine.includes('footer_posters'), 'other footers unchanged');
 const landing = read('dist/posters/index.html');
 for (const s of ['https://buy.stripe.com/eVqeVe6Eq4Jy5NP2st43S0L', 'Apple Pay or Google Pay', 'AUTOM8 LLC', 'BeLikeNative',
   'Not useful? Email lipmichal@gmail.com within 14 days for a full refund.', 'If someone in your family boats',
   'Staples takes JPG, PNG or PDF files', 'Walgreens does not list 18 x 24', '/posters/img/room-1200.webp', 'Drawn in code, to scale']) {
   assert.ok(landing.includes(s), `/posters/ has ${s}`);
 }
-assert.ok(!landing.includes(FOLDER), '/posters/ does not name the download folder');
 const thanks = read('dist/posters/thanks/index.html');
 assert.ok(/<meta name="robots" content="noindex/.test(thanks), 'thanks is noindex');
-assert.ok(!thanks.includes(FOLDER), 'thanks does not name the download folder');
-for (const f of fs.readdirSync('dist').filter((n) => n.endsWith('.html') || n.endsWith('.xml') || n.endsWith('.txt'))) {
-  assert.ok(!read('dist/' + f).includes(FOLDER), `dist/${f} does not name the folder`);
-}
-const robots = read('dist/robots.txt');
-assert.equal((robots.match(/^User-agent:/gm) || []).length, (robots.match(/^Disallow: \/posters\/d\/$/gm) || []).length, 'Disallow in every group');
+assert.ok(thanks.includes('https:\\/\\/ingredientcalculator\\.com\\/posters-files\\/[a-f0-9]{20}\\/'), 'thanks accepts the IC files prefix');
+let scanned = 0;
+(function walk(d) { for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+  const f = d + '/' + e.name;
+  if (e.isDirectory()) walk(f);
+  else if (/\.(html|xml|txt|js|json|css|webmanifest)$/.test(e.name) || e.name === '_headers' || e.name === '_redirects') {
+    assert.ok(!FOLDER_RE.test(read(f)), `${f} does not name a download folder`); scanned++;
+  }
+  else assert.ok(!/\.(pdf|zip)$/i.test(e.name) && !(f.startsWith('dist/posters/') && /\.jpe?g$/i.test(e.name)), `${f} is a paid file type`);
+} })('dist');
 const sm = fs.readdirSync('dist').filter((f) => /^sitemap-\d+\.xml$/.test(f)).map((f) => read('dist/' + f)).join('');
 assert.ok(sm.includes('https://lakelevelnow.com/posters/</loc>'), 'sitemap has /posters/');
 assert.ok(!sm.includes('/posters/thanks'), 'sitemap has no thanks page');
-assert.ok(!sm.includes('/posters/d/'), 'sitemap has no download folder');
-assert.ok(read('dist/_headers').includes('https://ingredientcalculator.com'), 'CSP allows the unlock API');
-// Every file in the download folder is built into dist, and the set stays under 40 MB.
-const dl = fs.readdirSync('public/posters/d/' + FOLDER);
-let bytes = 0;
-for (const f of dl) { assert.ok(fs.existsSync(`dist/posters/d/${FOLDER}/${f}`), `download built ${f}`); bytes += fs.statSync(`dist/posters/d/${FOLDER}/${f}`).size; }
-assert.equal(dl.length, 39, '24 posters, 12 photo counter JPGs, calendar, print guide, zip');
-assert.equal(dl.filter((f) => f.endsWith('.jpg')).length, 12, '12 JPGs');
-assert.ok(bytes < 40e6, 'downloads under 40 MB');
-console.log('PASS: built pages');
+assert.ok(/connect-src[^;]* https:\/\/ingredientcalculator\.com[ ;]/.test(read('dist/_headers')), 'CSP connect-src allows the unlock API host');
+console.log(`PASS: built pages (${scanned} text files scanned for a download folder)`);

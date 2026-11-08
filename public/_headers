@@ -22,8 +22,3 @@
   Cache-Control: public, max-age=604800
 /*.png
   Cache-Control: public, max-age=604800
-
-# Poster downloads (sku llp): files for buyers only, never indexed.
-/posters/d/*
-  X-Robots-Tag: noindex, nofollow
-  Cache-Control: private, max-age=3600
