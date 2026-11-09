@@ -32,6 +32,10 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      # A broken paid listing in directory.json fails a push here. The daily cron still builds and skips it.
+      - name: Check paid listings
+        if: github.event_name == 'push'
+        run: node -e "const d=JSON.parse(require('fs').readFileSync('src/data/directory.json','utf8'));import('./src/lib/directory.mjs').then(m=>{for(const s of m.DIRECTORY_LAKES)m.listingsFor(d,s)})"
       - name: Fetch live data (USGS + CDEC)
         run: npm run fetch
       - name: Build
