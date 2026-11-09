@@ -25,12 +25,16 @@ export function validListing(l, today) {
   return !listingProblem(l) && l.start <= today && today <= l.end;
 }
 /** Listings for one lake page, in file order. The page shows at most maxShown of them.
- *  A paid listing that is broken throws, so the build fails instead of hiding it (review V25 P1-4).
- *  Expired or not started yet only hides it. */
-export function listingsFor(data, slug, today = new Date().toISOString().slice(0, 10)) {
+ *  A paid listing that is broken throws by default, so the test (directory-lld.mjs) fails loudly.
+ *  The site build passes strict = false. It logs the error and skips only that listing, so one typo
+ *  never stops the daily level update. Expired or not started yet only hides it. */
+export function listingsFor(data, slug, today = new Date().toISOString().slice(0, 10), strict = true) {
   for (const l of data.listings || []) {
     const why = listingProblem(l);
-    if (why) throw new Error(`src/data/directory.json listing ${JSON.stringify(l && l.id)} is broken, ${why}. Fix it, a paid listing must not vanish.`);
+    if (!why) continue;
+    const msg = `src/data/directory.json listing ${JSON.stringify(l && l.id)} is broken, ${why}. Fix it, a paid listing must not vanish.`;
+    if (strict) throw new Error(msg);
+    console.error(msg);
   }
   return (data.listings || [])
     .filter((l) => validListing(l, today) && l.lakes.includes(slug))

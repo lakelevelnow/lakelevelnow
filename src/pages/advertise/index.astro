@@ -3,11 +3,11 @@
 // A $199 listing in the local business directory under the level on /lake/lake-mead/,
 // /lake/lake-mead/chart/ and /lake/lake-powell/, for 12 months, paid once, no auto renew.
 // Every number comes from src/data/directory.json "audience", pulled read only from GA4 and
-// Search Console by lanes/LD/pull_numbers.py, with its period. Never round them up.
+// Search Console, with its period. Never round them up.
 // The buy link is the live Stripe Payment Link. It collects business name, website or phone and
 // one line, then redirects to /advertise/thanks/. The listing is added by hand.
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { SITE } from '../../consts';
+import { SITE, CHECKOUT_NAME } from '../../consts';
 import { breadcrumbLd } from '../../lib/seo';
 import data from '../../data/directory.json';
 
@@ -24,7 +24,7 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
 <BaseLayout title={title} description={description} path="/advertise" jsonLd={ld}>
   <div class="container">
     <article class="adv">
-      <h1>Put your business under the Lake Mead or Lake Powell water level</h1>
+      <h1>Your business under the Lake Mead and Lake Powell level</h1>
       <p class="adv-lead">People open these pages before a trip to the lake. Your listing sits right under the number they came for.</p>
 
       <div class="adv-nums" aria-label={`Measured audience, ${period}`}>
@@ -32,17 +32,17 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
         <div class="adv-num"><span class="adv-n">{a.usPct}%</span><span class="adv-l">of visits from the US</span></div>
         <div class="adv-num"><span class="adv-n">{a.phonePct}%</span><span class="adv-l">of visits on a phone</span></div>
       </div>
-      <p class="adv-src">Measured in Google Analytics for {period}. The three pages that show listings had {n(a.pageViewsListingPages)} page views, Lake Mead {n(meadViews)} and Lake Powell {n(a.pageViewsPowellLevel)}. The whole site had {n(a.pageViews)}. Visitors from Google search were {a.googlePhonePct}% on a phone (Search Console, same 30 days).</p>
+      <p class="adv-src">Measured in Google Analytics for {period}. The three pages that show listings had {n(a.pageViewsListingPages)} page views, Lake Mead {n(meadViews)} and Lake Powell {n(a.pageViewsPowellLevel)}. The whole site had {n(a.pageViews)}. Visitors from Google search were {a.googlePhonePct}% on a phone (Search Console, 30 days to November 7).</p>
 
       <div class="adv-buy" data-mm-sku="lld" data-mm-place="advertise-top">
         <p class="adv-price">${data.priceUsd} <span>for 12 months, paid once</span></p>
         <a class="adv-btn" href={BUY} rel="nofollow" data-mm-link>List my business, ${data.priceUsd}</a>
-        <p class="adv-small">No auto renew. Checkout is handled by Stripe. The checkout page shows the name BeLikeNative and your statement shows AUTOM8 LLC. Both belong to the small company behind this site. Pay by card, Apple Pay or Google Pay. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+        <p class="adv-small">No auto renew. {CHECKOUT_NAME} Pay by card, Apple Pay or Google Pay. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
       </div>
 
       <h2>What you get</h2>
       <ul>
-        <li>Your business name, one line you write, and a Call button or a Website button (send me both and you get both).</li>
+        <li>Your business name, one line you write, and a Call button or a Website button. Want both? Email me the other one and you get both.</li>
         <li>It shows right under the live level on the <a href="/lake/lake-mead/">Lake Mead page</a>, the <a href="/lake/lake-mead/chart/">Lake Mead chart page</a> and the <a href="/lake/lake-powell/">Lake Powell page</a>. It shows on both lakes unless you tell me otherwise.</li>
         <li>Up to 3 listings show at a time. If more businesses join, the 3 you see change on each visit, so everyone gets a fair share.</li>
         <li>12 months from the day it goes live. Then it comes down by itself. Nothing renews and nothing is charged again.</li>
@@ -75,9 +75,9 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
       <div class="adv-buy" data-mm-sku="lld" data-mm-place="advertise-end">
         <p class="adv-price">${data.priceUsd} <span>for 12 months, paid once</span></p>
         <a class="adv-btn" href={BUY} rel="nofollow" data-mm-link>List my business, ${data.priceUsd}</a>
-        <p class="adv-small">No auto renew. Checkout is handled by Stripe. The checkout page shows the name BeLikeNative and your statement shows AUTOM8 LLC. Both belong to the small company behind this site. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+        <p class="adv-small">No auto renew. {CHECKOUT_NAME} Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
       </div>
-      <p>Questions first? Email me at <a href="mailto:lipmichal@gmail.com?subject=Lake%20directory%20listing">lipmichal@gmail.com</a>.</p>
+      <p class="adv-ask">Questions first? Email me at <a href="mailto:lipmichal@gmail.com?subject=Lake%20directory%20listing">lipmichal@gmail.com</a>.</p>
       <p>Michael Lip, {SITE.name}</p>
     </article>
   </div>
@@ -107,6 +107,7 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
   .adv-demo-b { display: flex; gap: 10px; margin: 0; }
   .adv-demo-b span { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 112px; padding: 0 18px;
     border-radius: var(--r-sm); border: 1px solid var(--teal); color: var(--teal); font-weight: 600; }
+  .adv-ask a { padding: 12px 0; }
   .adv-note { font-size: 16px !important; color: var(--t2); }
   @media (max-width: 520px) {
     .adv-nums { grid-template-columns: 1fr; gap: 8px; }

@@ -201,10 +201,12 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
     </section>
 
     {/* Lane LD 2026-11-09: local business directory right under the level chart (intel N4). */}
-    <LocalDirectory slug="lake-mead" lakeName="Lake Mead" placement="mead-chart-dir" />
+    <LocalDirectory part="listings" slug="lake-mead" lakeName="Lake Mead" placement="mead-chart-dir" />
 
     <AlmanacContext slug="lake-mead" level={live && reading ? reading.level_ft : null} asOf={live && reading ? reading.as_of : null} />
     <MeadAlmanacNote place="mead-chart" />
+    {/* With no listings, the small invite to businesses comes after the Almanac block. */}
+    <LocalDirectory part="invite" slug="lake-mead" lakeName="Lake Mead" placement="mead-chart-dir" />
 
     {/* Mobile money 2026-11-08 (llp): the poster card comes after the owner's Powell Almanac box, which stays as it was.
         The owner's waitlist test (a5-build 2026-11-03) moved from above the Almanac block to

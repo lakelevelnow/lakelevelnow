@@ -81,3 +81,8 @@ export const CONTENT_CHECKED_ADVERTISE = 'October 28, 2026';
 // Freshness window (days). Readings older than this are flagged "may be delayed",
 // never silently passed off as current. Must match scripts/fetch-levels.mjs FRESH_DAYS.
 export const FRESH_DAYS = 7;
+
+// One wording for the checkout name on every paid offer. The Stripe account display name is
+// BeLikeNative and its statement descriptor is AUTOM8 LLC.
+export const CHECKOUT_NAME =
+  'Checkout is handled by Stripe. The checkout page shows the name BeLikeNative and your statement shows AUTOM8 LLC. Both belong to the small company behind this site.';

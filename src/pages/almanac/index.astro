@@ -16,7 +16,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import data from '../../data/almanac.json';
 import ShortAnswer from '../../components/ShortAnswer.astro';
-import { CONTENT_CHECKED } from '../../consts';
+import { CONTENT_CHECKED, CHECKOUT_NAME } from '../../consts';
 import { getReading } from '../../lib/lakes';
 import { almanacContext, leadSentence } from '../../lib/almanac';
 
@@ -118,7 +118,7 @@ const ld = [{
       almanac</a>, free and with no email.</p>
       <p class="alm-micro alm-terms">Instant download &middot; no account, no password &middot;
       60-day refund, no questions &middot; <a href="#questions" data-cta="pricing_questions">Questions and answers</a></p>
-      <p class="alm-micro alm-trust">Checkout runs on Stripe under our parent company, BeLikeNative (Autom8 LLC). That name appears on the receipt and card statement.</p>
+      <p class="alm-micro alm-trust">{CHECKOUT_NAME}</p>
       <ShortAnswer
         question="What is the Lake Level Almanac?"
         answer={`Live levels on every lake page stay free. The Almanac is the paid tier. $${data.priceSingleUsd} buys it for one lake and $${data.priceBundleUsd} buys all ${data.lakeCount} reservoirs. Each one turns ${shallowest} to ${deepest} years of daily record into day-of-year normal ranges, monthly climatology and how often the lake has been below your own ramp or dock elevation.`}
@@ -233,7 +233,7 @@ const ld = [{
           </tbody>
         </table>
       </div>
-      <p class="alm-micro">Checkout runs on Stripe under our parent company, BeLikeNative (Autom8 LLC). That name appears on the receipt and card statement.</p>
+      <p class="alm-micro">{CHECKOUT_NAME}</p>
     </section>
 
     <section class="section">
@@ -309,7 +309,7 @@ const ld = [{
           Get every lake, ${data.priceBundleUsd}</a>
         <a class="alm-close-alt" href="#pick" data-alm-pick="close">or one lake for ${data.priceSingleUsd}</a>
       </p>
-      <p class="alm-micro">Checkout runs on Stripe under our parent company, BeLikeNative (Autom8 LLC). That name appears on the receipt and card statement.</p>
+      <p class="alm-micro">{CHECKOUT_NAME}</p>
     </section>
 
   </div>

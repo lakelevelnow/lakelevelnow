@@ -277,7 +277,7 @@ import almPrice from '../../data/almanac.json';
     {/* Lane LD 2026-11-09: local business directory directly under the level and its trend
         (intel N4). Lake Mead and Lake Powell only. Paid listings from src/data/directory.json,
         or one small honest line inviting businesses when there are none. */}
-    {(slug === 'lake-mead' || slug === 'lake-powell') && <LocalDirectory slug={slug} lakeName={lake.name} placement={slug === 'lake-mead' ? 'mead-lake-dir' : 'powell-lake-dir'} />}
+    {(slug === 'lake-mead' || slug === 'lake-powell') && <LocalDirectory part="listings" slug={slug} lakeName={lake.name} placement={slug === 'lake-mead' ? 'mead-lake-dir' : 'powell-lake-dir'} />}
 
     {/* The $19 Almanac offer sits below the gauge and its trend chart (2026-10-20, owner
         apply #5). Above them it pushed the ramp read and the trend out of the first phone
@@ -293,6 +293,8 @@ import almPrice from '../../data/almanac.json';
         with no long record, so all 44 pages are safe to wrap. */}
     <AlmanacContext slug={slug} level={live ? reading!.level_ft : null} asOf={live ? reading!.as_of : null} />
     {slug === 'lake-mead' && <MeadAlmanacNote place="mead" />}
+    {/* With no listings, the small invite to businesses comes after the Almanac block. */}
+    {(slug === 'lake-mead' || slug === 'lake-powell') && <LocalDirectory part="invite" slug={slug} lakeName={lake.name} placement={slug === 'lake-mead' ? 'mead-lake-dir' : 'powell-lake-dir'} />}
     {/* Mobile money 2026-11-08 (llp): the owner's Almanac funnel above stays exactly as it was.
         The poster card comes after it, on Lake Mead after the Powell Almanac box and on Lake
         Powell after the Almanac answer and its buy links. Order in lanes/G2/NOTES.md. */}

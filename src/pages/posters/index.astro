@@ -6,6 +6,7 @@
 // The buy link goes straight to Stripe; Stripe returns the buyer to /posters/thanks/#s=...
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import posters from '../../data/posters.json';
+import { CHECKOUT_NAME } from '../../consts';
 
 const BUY = posters.buyUrl;
 const PRICE = posters.priceUsd;
@@ -72,8 +73,7 @@ const STORES_CHECKED = 'November 8, 2026';
         {christmas && <p class="pp-gift-line">Nothing to ship. The files arrive the moment you pay, and a store near you can print them the same day.</p>}
         <p class="pp-pay">Pay with Apple Pay or Google Pay, or any card. No account needed.</p>
         <p class="pp-refund">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
-        <p class="pp-fine">Checkout is handled by Stripe. The checkout page shows the name BeLikeNative and your card
-        statement shows AUTOM8 LLC. Both names belong to the small company behind this site.</p>
+        <p class="pp-fine">{CHECKOUT_NAME}</p>
       </div>
       </div>
     </section>
@@ -186,7 +186,7 @@ const STORES_CHECKED = 'November 8, 2026';
         <a class="pp-btn" href={BUY} rel="nofollow" data-cta="posters_buy_end" data-pp-buy>Get the posters, ${PRICE}</a>
         <p class="pp-pay">Pay with Apple Pay or Google Pay, or any card.</p>
         <p class="pp-refund">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
-        <p class="pp-fine">Checkout is handled by Stripe. Your statement shows AUTOM8 LLC.</p>
+        <p class="pp-fine">{CHECKOUT_NAME}</p>
       </div>
       <p class="pp-src">The posters are drawn from the U.S. Bureau of Reclamation daily elevation files. Dead pool
       and minimum power pool are as listed in Reclamation's 5-year projections table.</p>

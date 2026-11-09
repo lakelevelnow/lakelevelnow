@@ -6,7 +6,7 @@
   "maxShown": 3,
   "listings": [],
   "audience": {
-    "source": "GA4 property 555976683 (30daysAgo to yesterday) and Search Console sc https://lakelevelnow.com/, pulled read only by lanes/LD/pull_numbers.py on 2026-11-09",
+    "source": "Google Analytics and Search Console, read on 2026-11-09",
     "periodStart": "2026-10-10",
     "periodEnd": "2026-11-08",
     "pageViews": 3609,

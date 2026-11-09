@@ -68,7 +68,7 @@ nav.main a:hover { color: #fff; text-decoration: none; }
   .nav-m[open] .bars i:nth-child(2) { opacity: 0; }
   .nav-m[open] .bars i:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
   .nav-m nav { position: absolute; left: 0; right: 0; top: 100%; background: var(--ink); border-bottom: 1px solid rgba(255,255,255,.1); box-shadow: 0 12px 24px rgba(22,40,47,.25); }
-  .nav-m nav a { display: flex; align-items: center; min-height: 48px; padding: 0 max(20px, env(safe-area-inset-left)); color: rgba(255,255,255,.85); font-size: 15px; font-weight: 500; border-top: 1px solid rgba(255,255,255,.08); }
+  .nav-m nav a { display: flex; align-items: center; min-height: 48px; padding: 0 max(20px, env(safe-area-inset-left)); color: rgba(255,255,255,.85); font-size: 16px; font-weight: 500; border-top: 1px solid rgba(255,255,255,.08); }
   .nav-m nav a:hover, .nav-m nav a:focus-visible { color: #fff; background: rgba(255,255,255,.06); text-decoration: none; }
 }
 

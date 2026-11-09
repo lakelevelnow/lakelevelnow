@@ -1,4 +1,4 @@
-// Lane H15 2026-11-09. Fixes from review V25 for the $199 lake listing (sku lld).
+// Lane H15 2026-11-09. Fixes for the $199 lake listing (sku lld).
 // Part 1 checks src/lib/directory.mjs and the source CSS. Part 2 (after `npm run build`) checks
 // the built pages. Every check here failed at 05ee346.
 // Run: node scripts/tests/advertise-fix-h15.mjs
@@ -74,7 +74,7 @@ else {
 
   check('P2-4 and P2-5 no unsourced behaviour claim, Call or Website matches the one checkout field', () => {
     assert.ok(!advT.includes('then they look for a boat'), 'unsourced claim');
-    assert.ok(advT.includes('a Call button or a Website button (send me both and you get both)'), 'button line');
+    assert.ok(advT.includes('a Call button or a Website button. Want both? Email me the other one and you get both.'), 'button line');
     assert.ok(!/Call and Website buttons/.test(adv), 'description says both buttons');
   });
 
@@ -105,4 +105,4 @@ else {
 }
 
 if (fails.length) { console.log(`FAIL ${fails.length} check(s)`); process.exit(1); }
-console.log('PASS: all V25 fixes hold');
+console.log('PASS: all listing page fixes hold');

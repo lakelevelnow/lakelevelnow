@@ -3,6 +3,7 @@
 // Almanac does not cover Mead. This box says so plainly and offers the nearest true match,
 // Lake Powell upstream on the same river, or the full set. No claim about Mead itself.
 import alm from '../data/almanac.json';
+import { CHECKOUT_NAME } from '../consts';
 interface Props { place: 'mead' | 'mead-chart'; }
 const { place } = Astro.props;
 const SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
@@ -17,7 +18,7 @@ const id = place.replace('-', '_');
       <a class="mead-alm-btn" href={SINGLE ? `${SINGLE}?client_reference_id=lake-powell` : '/almanac/#pick'} rel="nofollow" data-lake="lake-powell" data-cta={`${id}_almanac_powell`}>Lake Powell almanac, ${alm.priceSingleUsd}</a>
       <a class="mead-alm-alt" href="/almanac/" data-cta={`${id}_almanac_all`}>All {alm.lakeCount} lakes, ${alm.priceBundleUsd}, with a free sample</a>
     </div>
-    <p class="mead-alm-micro">One payment, no subscription. 60-day refund, no questions. Checkout runs on Stripe under our parent company, BeLikeNative (Autom8 LLC).</p>
+    <p class="mead-alm-micro">One payment, no subscription. 60-day refund, no questions. {CHECKOUT_NAME}</p>
   </aside>
 )}
 <style>

@@ -4,6 +4,7 @@
 // added by hand within 2 business days and how to ask for a refund. noindex, out of the sitemap.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import data from '../../data/directory.json';
+import { CHECKOUT_NAME } from '../../consts';
 const title = 'Thank you, your lake listing is on its way';
 ---
 <BaseLayout title={title} description="Your lake directory listing is paid. I add it by hand within 2 business days." path="/advertise/thanks/" noindex={true}>
@@ -17,13 +18,13 @@ const title = 'Thank you, your lake listing is on its way';
       <ul>
         <li>Your listing runs for {data.months} months from the day it goes live.</li>
         <li>Then it comes down by itself. Nothing renews and you are not charged again.</li>
-        <li>Your card statement shows AUTOM8 LLC. That is the company behind this site. Stripe emails you the receipt.</li>
+        <li>{CHECKOUT_NAME} Stripe emails you the receipt.</li>
       </ul>
       <h2>Refunds</h2>
       <p>Not useful? Email <a href="mailto:lipmichal@gmail.com?subject=Lake%20listing%20refund">lipmichal@gmail.com</a> within 14 days for a full refund. Tell me the business name and I refund it to the same card.</p>
       <p>Want to change your line later? Email the same address and I update it.</p>
       <p class="advt-back"><a href="/lake/lake-mead/">Back to the Lake Mead water level</a></p>
-      <p>Michael Lip, Warsaw, Poland</p>
+      <p>Michael Lip, LakeLevelNow</p>
     </article>
   </div>
 </BaseLayout>
@@ -31,5 +32,6 @@ const title = 'Thank you, your lake listing is on its way';
 <style>
   .advt { max-width: 680px; padding: 24px 0 48px; }
   .advt p, .advt li { font-size: 16px; line-height: 1.55; }
+  .advt a[href^="mailto"] { padding: 12px 0; }
   .advt-back a { display: inline-block; padding: 10px 0; font-weight: 600; }
 </style>

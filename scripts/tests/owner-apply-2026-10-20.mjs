@@ -16,11 +16,11 @@ for (const slug of slugs) {
   const title = decode((/<title>([^<]*)<\/title>/.exec(html) || [])[1] || '');
   assert.ok(title.length > 0 && title.length <= 60, `${slug}: title length ${title.length}: ${title}`);
   assert.ok(/water level/i.test(title), `${slug}: title lacks "water level"`);
-  const strip = /<div class="status-strip"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>|<div class="status-strip"[\s\S]{0,1500}/.exec(html);
+  const strip = /<div class="status-strip[^"]*"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>|<div class="status-strip[^"]*"[\s\S]{0,1500}/.exec(html);
   if (!strip) continue;
   live++;
   const h1 = html.indexOf('<h1');
-  const s = html.indexOf('class="status-strip"');
+  const s = html.indexOf('class="status-strip');
   assert.ok(h1 > 0 && s > h1 && s - html.indexOf('</h1>', h1) < 120, `${slug}: strip is not right under the H1`);
   // Title, strip and JSON-LD carry the same percent.
   const pctTitle = (/, ([\d.]+)% Full|\): ([\d.]+)% Full|Water Level ([\d.]+)%/.exec(title) || []).slice(1).find(Boolean);

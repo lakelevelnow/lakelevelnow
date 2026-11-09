@@ -24,6 +24,7 @@
 // If the live reading is missing or stale, the block falls back to the snapshot figure and
 // says which date it belongs to, rather than implying the stale number is today's.
 import data from '../data/almanac.json';
+import { CHECKOUT_NAME } from '../consts';
 import sample from '../data/pine-flat-sample.json';
 import { almanacContext, leadSentence } from '../lib/almanac';
 
@@ -102,7 +103,7 @@ const fmt = (n: number, d = 2) =>
           <a href={bundle} data-alm-cta="bundle" data-cta={ctaBundle} rel="nofollow">or all {data.lakeCount} lakes
           for ${data.priceBundleUsd}</a>
         </span>
-        <span class="alm-ctx-trust">Checkout runs on Stripe under our parent company, BeLikeNative (Autom8 LLC). That name appears on the receipt and card statement.</span>
+        <span class="alm-ctx-trust">{CHECKOUT_NAME}</span>
       </div>
     )}
 

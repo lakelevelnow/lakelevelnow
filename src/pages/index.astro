@@ -1,7 +1,7 @@
 ---
 import AdSlot from '../components/AdSlot.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE } from '../consts';
+import { SITE, CHECKOUT_NAME } from '../consts';
 import { LAKES, freshLakes, byState, getReading, status, fmtNum, stateName } from '../lib/lakes';
 import { authorLd, breadcrumbLd } from '../lib/seo';
 import { levelStatus } from '../lib/seasonal';
@@ -119,7 +119,7 @@ const almFeatureSentence = almFeature ? liveSentence(almFeature) : '';
           <a class="alm-home-alt" href="/almanac/" data-cta="home_almanac_page">All {almanacData.lakeCount} lakes, ${almanacData.priceBundleUsd} &middot; see a free sample</a>
           <a class="alm-home-sample" href="/almanac/sample/">Open the sample almanac (Lake Powell)</a>
         </p>
-        <p class="alm-home-trust">Checkout runs on Stripe under our parent company, BeLikeNative (Autom8 LLC). That name appears on the receipt and card statement.</p>
+        <p class="alm-home-trust">{CHECKOUT_NAME}</p>
       </section>
     )}
 
