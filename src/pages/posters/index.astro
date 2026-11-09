@@ -171,7 +171,8 @@ const STORES_CHECKED = 'November 8, 2026';
       <p class="pp-p">No. You get the files and print them where you like.</p>
       <h3>Will the latest reading update itself?</h3>
       <p class="pp-p">No. The posters show readings up to {longDate(mead.latest[0])}. The live level stays free
-      on the <a href="/lake/lake-mead/">Lake Mead page</a> and the <span class="pp-nw"><a href="/lake/lake-powell/">Lake Powell page</a>.</span></p>
+      on the lake pages.</p>
+      <p class="pp-links"><a href="/lake/lake-mead/">Lake Mead page</a><a href="/lake/lake-powell/">Lake Powell page</a></p>
       <h3>Can I print more than one copy?</h3>
       <p class="pp-p">Yes. Print as many as you like for your home, your family and gifts. Please do not resell the files.</p>
       <h3>I lost my download page. What now?</h3>
@@ -187,10 +188,13 @@ const STORES_CHECKED = 'November 8, 2026';
         <p class="pp-refund">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
         <p class="pp-fine">Checkout is handled by Stripe. Your statement shows AUTOM8 LLC.</p>
       </div>
-      <p class="pp-src">The posters are drawn from the U.S. Bureau of Reclamation daily elevation files for
-      <a href="https://www.usbr.gov/uc/water/hydrodata/reservoir_data/921/csv/49.csv" rel="noopener">Lake Mead</a> and
-      <a href="https://www.usbr.gov/uc/water/hydrodata/reservoir_data/919/csv/49.csv" rel="noopener">Lake Powell</a>. Dead pool and minimum power pool
-      as listed in Reclamation's <a href="https://www.usbr.gov/lc/region/g4000/crss5Year.pdf" rel="noopener">5-year projections table</a>.</p>
+      <p class="pp-src">The posters are drawn from the U.S. Bureau of Reclamation daily elevation files. Dead pool
+      and minimum power pool are as listed in Reclamation's 5-year projections table.</p>
+      <p class="pp-links pp-links-src">
+        <a href="https://www.usbr.gov/uc/water/hydrodata/reservoir_data/921/csv/49.csv" rel="noopener">Lake Mead daily file</a>
+        <a href="https://www.usbr.gov/uc/water/hydrodata/reservoir_data/919/csv/49.csv" rel="noopener">Lake Powell daily file</a>
+        <a href="https://www.usbr.gov/lc/region/g4000/crss5Year.pdf" rel="noopener">5-year projections table</a>
+      </p>
     </section>
   </div>
 
@@ -268,13 +272,16 @@ const STORES_CHECKED = 'November 8, 2026';
     .pp-store p { margin: 0; font-size: 16px; line-height: 1.55; color: var(--t2); }
     .pp-note { margin: 12px 0 0; font-size: 16px; line-height: 1.5; color: var(--t2); }
     .pp-buy-end { margin-top: 0; }
-    .pp-src { margin: 20px 0 8px; font-size: 16px; line-height: 1.55; color: var(--t2); }
-    .pp-sec a:not(.pp-btn):not(.pp-restore), .pp-src a { text-decoration: underline; display: inline-block; min-height: 24px; }
+    .pp-src { margin: 20px 0 0; font-size: 16px; line-height: 1.55; color: var(--t2); }
+    .pp-sec a:not(.pp-btn):not(.pp-restore) { text-decoration: underline; }
+    /* H6: text links sit in a row of their own, each at least 44 px tall, so a thumb hits one link. */
+    .pp-links { display: flex; flex-wrap: wrap; gap: 0 24px; margin: 2px 0 0; font-size: 16px; line-height: 1.4; }
+    .pp-links a { display: inline-flex; align-items: center; min-height: 44px; }
+    .pp-links-src { margin-bottom: 8px; }
+    .pp-p + .pp-links { margin-top: -8px; }
     /* H2: the restore path is a real button on phones, at least 44 px tall. */
     .pp-restore { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px; margin: 4px 0 0;
       border: 2px solid var(--teal); border-radius: var(--r-sm); background: var(--card); color: var(--teal); font-size: 16px; font-weight: 600; }
-    /* H4: keeps the last link and its full stop together so the stop never wraps alone. */
-    .pp-nw { white-space: nowrap; }
     .pp-restore:hover { background: var(--teal); color: #fff; text-decoration: none; }
     @media (max-width: 640px) {
       .container.pst-page { padding: 0 16px; }
