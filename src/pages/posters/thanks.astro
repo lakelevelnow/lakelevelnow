@@ -16,6 +16,7 @@ const description = 'Download the water level posters you bought. This page chec
     <div class="pt-head">
       <h1 id="pt-h">Getting your posters</h1>
       <p id="pt-sub" class="pt-p">One moment. I am checking the payment with Stripe.</p>
+      <button id="pt-retry" class="pt-btn pt-retry" type="button" hidden>Try again</button>
     </div>
 
     <div id="pt-ok" hidden>
@@ -165,10 +166,11 @@ const description = 'Download the water level posters you bought. This page chec
       var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 20000);
       fetch(API + '?p=llp&' + query, { method: 'GET', mode: 'cors', credentials: 'omit', cache: 'no-store', signal: ctl ? ctl.signal : undefined })
         .then(function (r) {
-          return r.json().catch(function () { return { ok: false, reason: 'The download check answered with status ' + r.status + '. Please try again in a minute.' }; });
+          return r.json().catch(function () { return { ok: false, reason: 'The download check answered with status ' + r.status + '. Please try again in a minute.' }; })
+            .then(function (j) { return { j: j, status: r.status }; });
         })
-        .then(function (j) { clearTimeout(timer); done(j && typeof j === 'object' ? j : { ok: false }); })
-        .catch(function () { clearTimeout(timer); done({ ok: false, reason: 'I could not reach the download check. Check your connection and reload this page.' }); });
+        .then(function (x) { clearTimeout(timer); done(x.j && typeof x.j === 'object' ? x.j : { ok: false }, x.status); })
+        .catch(function () { clearTimeout(timer); done({ ok: false, reason: 'I could not reach the download check. Check your connection and reload this page.' }, 0); });
     }
 
     function handle(j) {
@@ -194,13 +196,42 @@ const description = 'Download the water level posters you bought. This page chec
       send();
     }
 
+    // A 429 with retry true means Stripe has not told the shop about the payment yet. That is not a
+    // failure, so the page says so calmly and asks again by itself, every 3 s, up to 4 more times.
+    // After that it keeps the calm heading and offers Try again.
+    var TRIES = 4, WAIT_MS = 3000;
+    function showWaiting(reason, last) {
+      $('pt-h').textContent = last ? 'Almost there' : 'Your payment is coming through';
+      $('pt-sub').textContent = last ? (reason || 'Your payment is still coming through. Please try again in a minute.') : 'One moment. This page checks again by itself.';
+      $('pt-retry').hidden = !last;
+      $('pt-ok').hidden = true;
+      $('pt-err').hidden = true;
+    }
+    function checkSession(sid, n) {
+      ask('s=' + encodeURIComponent(sid), function (j, status) {
+        if (status === 429 && j && j.retry === true) {
+          if (n < TRIES) { showWaiting('', false); setTimeout(function () { checkSession(sid, n + 1); }, WAIT_MS); }
+          else showWaiting(typeof j.reason === 'string' ? j.reason : '', true);
+          return;
+        }
+        if (handle(j)) trackPurchase(j, sid);
+      });
+    }
+
     var s = sessionFromUrl();
     if (dev && s === 'cs_test_demo') handle(demoReply());
-    else if (s) ask('s=' + encodeURIComponent(s), function (j) { if (handle(j)) trackPurchase(j, s); });
+    else if (s) checkSession(s, 0);
     else {
       $('pt-h').textContent = 'Your posters';
       $('pt-sub').textContent = 'This page opens your files after checkout. If you already paid, enter your email below.';
     }
+
+    $('pt-retry').addEventListener('click', function () {
+      $('pt-retry').hidden = true;
+      $('pt-h').textContent = 'Getting your posters';
+      $('pt-sub').textContent = 'One moment. I am checking the payment with Stripe.';
+      if (s) checkSession(s, 0);
+    });
 
     $('pt-form').addEventListener('submit', function (ev) {
       ev.preventDefault();
@@ -227,6 +258,8 @@ const description = 'Download the water level posters you bought. This page chec
       background: var(--teal); color: #fff; font: inherit; font-size: 17px; font-weight: 600; cursor: pointer; text-align: center; }
     .pt-btn:hover { background: #0a6b5b; color: #fff; text-decoration: none; }
     .pt-btn2 { width: 100%; margin-top: 12px; }
+    .pt-retry { width: 100%; margin-top: 16px; }
+    .pt-btn[hidden] { display: none; }
     .pt-group { margin-top: 24px; }
     .pt-group h2 { font-size: 18px; margin: 0 0 8px; }
     .pt-files { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }

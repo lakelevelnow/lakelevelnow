@@ -99,16 +99,22 @@ console.log('PASS: ga4.js mm events and llp purchase');
 // ---------- part 2: thanks page script
 const thanksSrc = fs.readFileSync('src/pages/posters/thanks.astro', 'utf8');
 const script = /<script is:inline>([\s\S]*?)<\/script>/.exec(thanksSrc)[1];
-function runThanks(hostname, hash, fetchReply, win = {}) {
+// fetchReply may be an array, answered in order (the last one repeats). opts.timer replaces the page's
+// setTimeout, so the 3 s wait between 429 retries can be shortened. opts.seen records every heading.
+function runThanks(hostname, hash, fetchReply, win = {}, opts = {}) {
   const els = {};
-  const el = (id) => (els[id] ??= { id, textContent: '', hidden: id !== 'pt-form', value: '', href: '', attrs: {}, children: [],
+  const seen = opts.seen || [];
+  const el = (id) => (els[id] ??= { id, _t: '', hidden: id !== 'pt-form', value: '', href: '', attrs: {}, children: [], on: {},
+    get textContent() { return this._t; }, set textContent(v) { this._t = v; if (id === 'pt-h') seen.push(v); },
     setAttribute(k, v) { this.attrs[k] = v; }, appendChild(c) { this.children.push(c); return c; },
-    addEventListener() {}, scrollIntoView() {} });
+    addEventListener(t, f) { this.on[t] = f; }, scrollIntoView() {} });
   const document = { getElementById: el, createElement: (t) => ({ tag: t, textContent: '', attrs: {}, children: [], className: '',
     setAttribute(k, v) { this.attrs[k] = v; }, appendChild(c) { this.children.push(c); return c; } }) };
   const calls = [];
-  const fetch = (url) => { calls.push(url); return Promise.resolve({ status: fetchReply.status || 200, json: () => Promise.resolve(fetchReply.body) }); };
-  vm.runInNewContext(script, { document, location: { hostname, hash }, fetch, window: win, setTimeout, clearTimeout, encodeURIComponent, Array, Number, AbortController });
+  const replies = Array.isArray(fetchReply) ? fetchReply : [fetchReply];
+  const fetch = (url) => { const r = replies[Math.min(calls.length, replies.length - 1)]; calls.push(url);
+    return Promise.resolve({ status: r.status || 200, json: () => Promise.resolve(r.body) }); };
+  vm.runInNewContext(script, { document, location: { hostname, hash }, fetch, window: win, setTimeout: opts.timer || setTimeout, clearTimeout, encodeURIComponent, Array, Number, AbortController });
   return { els, calls };
 }
 const tick = () => new Promise((r) => setTimeout(r, 20));
@@ -229,6 +235,59 @@ const tick = () => new Promise((r) => setTimeout(r, 20));
   assert.deepEqual(labels(0), ['18 x 24 in', 'A3', '11 x 14 in', '8 x 10 in'], 'poster sizes largest first');
   assert.deepEqual(labels(1), ['Lake Mead light, 11 x 14 in', 'Lake Mead light, 8 x 10 in', 'Lake Powell dark, 8 x 10 in'], 'JPGs by lake, then size');
 }
+{
+  // H8 (V12 P1-1): a 429 with retry true means the payment is still on its way. The page never calls it
+  // a failure and asks again by itself, then shows the files with no tap.
+  const pend = { status: 429, body: { ok: false, retry: true, reason: 'Your payment is still coming through. Please try again in a minute. Email lipmichal@gmail.com with your receipt and I will sort it out.' } };
+  const IC = 'https://ingredientcalculator.com/posters-files/0123456789abcdef0123/';
+  const paid = { body: { ok: true, p: 'llp', email: 'a@b.co', amount_total: 900, currency: 'usd',
+    files: [{ name: 'lake-mead-light-18x24.pdf', url: IC + 'lake-mead-light-18x24.pdf', bytes: 210000 }] } };
+  const waits = [];
+  const timer = (f, ms) => { if (ms === 3000) waits.push(ms); return setTimeout(f, ms === 3000 ? 1 : ms); };
+  const seen = [];
+  const ga = [];
+  const { els, calls } = runThanks('lakelevelnow.com', '#s=cs_live_abc123', [pend, pend, paid], { __siteGA4Purchase: (r, sid) => ga.push(sid) }, { timer, seen });
+  await tick(); await tick();
+  assert.equal(calls.length, 3, 'asked again by itself after each 429');
+  assert.deepEqual(waits, [3000, 3000], 'waited 3 s before each retry');
+  assert.ok(seen.includes('Your payment is coming through'), 'calm heading while it waits');
+  assert.ok(!seen.includes('I could not open your posters yet'), 'a late payment is never called a failure');
+  assert.equal(els['pt-err'].hidden, true, 'no error box while it waits');
+  assert.equal(els['pt-h'].textContent, 'Your posters are ready', 'files open with no tap');
+  assert.equal(els['pt-ok'].hidden, false);
+  assert.equal(els['pt-retry'].hidden, true);
+  assert.deepEqual(ga, ['cs_live_abc123'], 'purchase sent once, after the files show');
+}
+{
+  // H8: after 4 retries the page stays calm, shows the API reason and a Try again button that asks again.
+  const pend = { status: 429, body: { ok: false, retry: true, reason: 'Your payment is still coming through. Please try again in a minute.' } };
+  const timer = (f, ms) => setTimeout(f, ms === 3000 ? 1 : ms);
+  const seen = [];
+  const replies = [pend, pend, pend, pend, pend, { body: { ok: true, p: 'llp', files: [{ name: 'x.txt', url: 'https://ingredientcalculator.com/posters-files/0123456789abcdef0123/x.txt', bytes: 10 }] } }];
+  const { els, calls } = runThanks('lakelevelnow.com', '#s=cs_live_abc123', replies, { __siteGA4Purchase() {} }, { timer, seen });
+  for (let i = 0; i < 6; i++) await tick();
+  assert.equal(calls.length, 5, 'one ask and 4 retries, then it stops');
+  assert.equal(els['pt-h'].textContent, 'Almost there');
+  assert.equal(els['pt-sub'].textContent, 'Your payment is still coming through. Please try again in a minute.');
+  assert.equal(els['pt-retry'].hidden, false, 'Try again button shown');
+  assert.equal(els['pt-err'].hidden, true, 'no error box');
+  assert.ok(!seen.includes('I could not open your posters yet'));
+  els['pt-retry'].on.click();
+  assert.equal(els['pt-retry'].hidden, true, 'button hides while it checks');
+  await tick();
+  assert.equal(calls.length, 6, 'Try again asks again');
+  assert.equal(els['pt-h'].textContent, 'Your posters are ready');
+  // H8: .pt-btn sets display flex, which beats the hidden attribute unless a [hidden] rule says otherwise.
+  assert.match(thanksSrc, /\.pt-btn\[hidden\] \{ display: none; \}/, 'a hidden Try again button or ZIP link stays hidden');
+}
+{
+  // H8: a 429 without retry true is still an error, as before.
+  const { els, calls } = runThanks('lakelevelnow.com', '#s=cs_live_abc123', { status: 429, body: { ok: false, reason: 'Too many tries.' } });
+  await tick();
+  assert.equal(calls.length, 1, 'no automatic retry');
+  assert.equal(els['pt-h'].textContent, 'I could not open your posters yet');
+  assert.equal(els['pt-reason'].textContent, 'Too many tries.');
+}
 console.log('PASS: thanks page script');
 
 // ---------- part 3: built pages
@@ -320,4 +379,12 @@ const sm = fs.readdirSync('dist').filter((f) => /^sitemap-\d+\.xml$/.test(f)).ma
 assert.ok(sm.includes('https://lakelevelnow.com/posters/</loc>'), 'sitemap has /posters/');
 assert.ok(!sm.includes('/posters/thanks'), 'sitemap has no thanks page');
 assert.ok(/connect-src[^;]* https:\/\/ingredientcalculator\.com[ ;]/.test(read('dist/_headers')), 'CSP connect-src allows the unlock API host');
+{
+  // H8: the privacy page says what poster buyers' checkout records hold, where, for how long and how to remove them.
+  const pv = read('dist/privacy/index.html');
+  assert.ok(pv.includes('id="posters"'), 'privacy has a poster buyers section');
+  for (const s of ['the checkout reference, the product, the email you typed at checkout, the amount, the currency and the time in a Cloudflare database',
+    'no automatic end date', 'mailto:lipmichal@gmail.com', 'Updated 9 November 2026']) assert.ok(pv.includes(s), `privacy says ${s}`);
+  assert.ok(!pv.includes('The only form on the site is an optional waitlist'), 'privacy no longer says the waitlist is the only form');
+}
 console.log(`PASS: built pages (${scanned} text files scanned for a download folder)`);
