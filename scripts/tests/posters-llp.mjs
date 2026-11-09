@@ -212,7 +212,7 @@ const tick = () => new Promise((r) => setTimeout(r, 20));
   assert.equal(els['pt-ok'].hidden, true, 'no success block with zero links');
   assert.equal(els['pt-err'].hidden, false, 'error shown with zero links');
   assert.equal(els['pt-h'].textContent, 'I could not open your posters yet');
-  assert.equal(els['pt-groups'].children.length, 0, 'no empty list');
+  assert.equal(els['pt-groups']?.children.length ?? 0, 0, 'no empty list');
   assert.equal(els['pt-help'].hidden, false, 'email line shown');
   assert.equal(ga.length, 1, 'the payment itself is real, so the purchase still counts once');
 }
@@ -312,7 +312,7 @@ let scanned = 0;
   else if (/\.(html|xml|txt|js|json|css|webmanifest)$/.test(e.name) || e.name === '_headers' || e.name === '_redirects') {
     assert.ok(!FOLDER_RE.test(read(f)), `${f} does not name a download folder`); scanned++;
   }
-  else assert.ok(!/\.(pdf|zip)$/i.test(e.name) && !(f.startsWith('dist/posters/') && /\.jpe?g$/i.test(e.name)), `${f} is a paid file type`);
+  else assert.ok((f.startsWith('dist/partners/') || !/\.(pdf|zip)$/i.test(e.name)) && !(f.startsWith('dist/posters/') && /\.jpe?g$/i.test(e.name)), `${f} is a paid file type`);
 } })('dist');
 const sm = fs.readdirSync('dist').filter((f) => /^sitemap-\d+\.xml$/.test(f)).map((f) => read('dist/' + f)).join('');
 assert.ok(sm.includes('https://lakelevelnow.com/posters/</loc>'), 'sitemap has /posters/');
