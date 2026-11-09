@@ -16,22 +16,23 @@ const fmtDay = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-
 const period = `${fmtDay(a.periodStart)} to ${fmtDay(a.periodEnd)}, ${a.periodEnd.slice(0, 4)}`;
 const n = (x: number) => x.toLocaleString('en-US');
 const BUY = data.buyUrl;
+const meadViews = a.pageViewsMeadChart + a.pageViewsMeadLevel;
 const title = `List your Lake Mead business for $${data.priceUsd} a year`;
-const description = `A listing under the live Lake Mead and Lake Powell water level, with Call and Website buttons. ${n(a.pageViews)} page views in 30 days, ${a.usPct}% from the US. $${data.priceUsd} for 12 months, paid once.`;
+const description = `A listing under the live Lake Mead and Lake Powell water level, with a Call or Website button. ${n(a.pageViewsListingPages)} page views in 30 days on the 3 pages that show listings, ${a.usPct}% of visits from the US. $${data.priceUsd} for 12 months, paid once.`;
 const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path: '/advertise' }])];
 ---
 <BaseLayout title={title} description={description} path="/advertise" jsonLd={ld}>
   <div class="container">
     <article class="adv">
       <h1>Put your business under the Lake Mead water level</h1>
-      <p class="adv-lead">People open these pages right before a trip to the lake. They check the level, then they look for a boat, a guide or a place to stay. Your listing sits right there, under the number they came for.</p>
+      <p class="adv-lead">People open these pages before a trip to the lake. Your listing sits right under the number they came for.</p>
 
       <div class="adv-nums" aria-label={`Measured audience, ${period}`}>
-        <div class="adv-num"><span class="adv-n">{n(a.pageViews)}</span><span class="adv-l">page views in 30 days</span></div>
+        <div class="adv-num"><span class="adv-n">{n(a.pageViewsListingPages)}</span><span class="adv-l">page views in 30 days where listings show</span></div>
         <div class="adv-num"><span class="adv-n">{a.usPct}%</span><span class="adv-l">of visits from the US</span></div>
         <div class="adv-num"><span class="adv-n">{a.phonePct}%</span><span class="adv-l">of visits on a phone</span></div>
       </div>
-      <p class="adv-src">Measured in Google Analytics for {period}. Of those page views, {n(a.pageViewsListingPages)} were on the three pages that show listings. Visitors from Google search were {a.googlePhonePct}% on a phone (Search Console, same 30 days).</p>
+      <p class="adv-src">Measured in Google Analytics for {period}. The three pages that show listings had {n(a.pageViewsListingPages)} page views, Lake Mead {n(meadViews)} and Lake Powell {n(a.pageViewsPowellLevel)}. The whole site had {n(a.pageViews)}. Visitors from Google search were {a.googlePhonePct}% on a phone (Search Console, same 30 days).</p>
 
       <div class="adv-buy" data-mm-sku="lld" data-mm-place="advertise-top">
         <p class="adv-price">${data.priceUsd} <span>for 12 months, paid once</span></p>
@@ -41,8 +42,8 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
 
       <h2>What you get</h2>
       <ul>
-        <li>Your business name, one line you write, and a Call button, a Website button or both.</li>
-        <li>It shows right under the live level on the <a href="/lake/lake-mead/">Lake Mead page</a>, the <a href="/lake/lake-mead/chart/">Lake Mead chart page</a> and the <a href="/lake/lake-powell/">Lake Powell page</a>. You pick Lake Mead, Lake Powell or both.</li>
+        <li>Your business name, one line you write, and a Call button or a Website button (send me both and you get both).</li>
+        <li>It shows right under the live level on the <a href="/lake/lake-mead/">Lake Mead page</a>, the <a href="/lake/lake-mead/chart/">Lake Mead chart page</a> and the <a href="/lake/lake-powell/">Lake Powell page</a>. It shows on both lakes unless you tell me otherwise.</li>
         <li>Up to 3 listings show at a time. If more businesses join, the 3 you see change on each visit, so everyone gets a fair share.</li>
         <li>12 months from the day it goes live. Then it comes down by itself. Nothing renews and nothing is charged again.</li>
       </ul>
@@ -90,22 +91,27 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
   .adv-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 8px; }
   .adv-num { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 12px; }
   .adv-n { display: block; font-size: 26px; font-weight: 700; color: var(--t1); letter-spacing: -.02em; }
-  .adv-l { display: block; font-size: 14px; line-height: 1.35; color: var(--t2); margin-top: 2px; }
-  .adv-src { font-size: 14px !important; color: var(--t2); margin: 6px 0 0; }
+  .adv-l { display: block; font-size: 16px; line-height: 1.35; color: var(--t2); margin-top: 2px; }
+  .adv-src { font-size: 16px !important; color: var(--t2); margin: 6px 0 0; }
   .adv-buy { background: var(--teal-bg); border-radius: var(--r); padding: 16px; margin: 20px 0; }
   .adv-price { margin: 0 0 10px; font-size: 26px !important; font-weight: 700; color: var(--t1); }
   .adv-price span { font-size: 16px; font-weight: 500; color: var(--t2); }
   .adv-btn { display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 20px; border-radius: var(--r-sm);
     background: var(--teal); color: #fff; font-weight: 700; font-size: 17px; max-width: 360px; }
   .adv-btn:hover { background: #0a6b5b; color: #fff; text-decoration: none; }
-  .adv-small { margin: 10px 0 0; font-size: 14px !important; color: var(--t2); }
+  .adv-small { margin: 10px 0 0; font-size: 16px !important; color: var(--t2); }
   .adv-demo { background: var(--card); border: 1px dashed var(--border); border-radius: var(--r); padding: 12px 16px 14px; margin: 10px 0 6px; }
-  .adv-demo-l { margin: 0 0 4px; font-size: 13px !important; letter-spacing: .06em; text-transform: uppercase; color: var(--t2); font-weight: 600; }
+  .adv-demo-l { margin: 0 0 4px; font-size: 16px !important; letter-spacing: .06em; text-transform: uppercase; color: var(--t2); font-weight: 600; }
   .adv-demo-n { margin: 0 0 2px; font-size: 18px !important; font-weight: 700; color: var(--t1); }
   .adv-demo-t { margin: 0 0 10px; color: var(--t2); }
   .adv-demo-b { display: flex; gap: 10px; margin: 0; }
   .adv-demo-b span { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 112px; padding: 0 18px;
     border-radius: var(--r-sm); border: 1px solid var(--teal); color: var(--teal); font-weight: 600; }
-  .adv-note { font-size: 14px !important; color: var(--t2); }
-  @media (max-width: 420px) { .adv-n { font-size: 22px; } .adv-num { padding: 10px; } }
+  .adv-note { font-size: 16px !important; color: var(--t2); }
+  @media (max-width: 520px) {
+    .adv-nums { grid-template-columns: 1fr; gap: 8px; }
+    .adv-num { display: flex; align-items: baseline; gap: 10px; padding: 10px 14px; }
+    .adv-n { font-size: 24px; min-width: 76px; }
+    .adv-l { margin-top: 0; }
+  }
 </style>

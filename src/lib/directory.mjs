@@ -9,21 +9,31 @@ export function cleanPhone(p) {
 export function fmtPhone(d) {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 }
-export function validListing(l, today) {
-  if (!l || typeof l !== 'object') return false;
-  if (!/^[a-z0-9-]{1,40}$/.test(l.id || '')) return false;
-  if (typeof l.name !== 'string' || !l.name.trim() || l.name.length > 60) return false;
-  if (typeof l.line !== 'string' || !l.line.trim() || l.line.length > 90) return false;
+/** Why a listing in directory.json is broken, or '' when it is complete. Dates in range are not checked here. */
+export function listingProblem(l) {
+  if (!l || typeof l !== 'object') return 'not an object';
+  if (!/^[a-z0-9-]{1,40}$/.test(l.id || '')) return 'id must be a-z, 0-9 and dashes';
+  if (typeof l.name !== 'string' || !l.name.trim() || l.name.length > 60) return 'name missing or over 60 characters';
+  if (typeof l.line !== 'string' || !l.line.trim() || l.line.length > 90) return 'line missing or over 90 characters';
   const web = typeof l.website === 'string' && /^https:\/\/[^\s"'<>]+$/.test(l.website);
-  const tel = !!cleanPhone(l.phone);
-  if (!web && !tel) return false;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(l.start || '') || !/^\d{4}-\d{2}-\d{2}$/.test(l.end || '')) return false;
-  return l.start <= today && today <= l.end;
+  if (!web && !cleanPhone(l.phone)) return 'needs an https website or a 10 digit US phone';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(l.start || '') || !/^\d{4}-\d{2}-\d{2}$/.test(l.end || '')) return 'start and end must be YYYY-MM-DD';
+  if (!Array.isArray(l.lakes) || !l.lakes.length || l.lakes.some((k) => !DIRECTORY_LAKES.includes(k))) return 'lakes must be lake-mead and/or lake-powell';
+  return '';
 }
-/** Listings for one lake page, in file order. The page shows at most maxShown of them. */
+export function validListing(l, today) {
+  return !listingProblem(l) && l.start <= today && today <= l.end;
+}
+/** Listings for one lake page, in file order. The page shows at most maxShown of them.
+ *  A paid listing that is broken throws, so the build fails instead of hiding it (review V25 P1-4).
+ *  Expired or not started yet only hides it. */
 export function listingsFor(data, slug, today = new Date().toISOString().slice(0, 10)) {
+  for (const l of data.listings || []) {
+    const why = listingProblem(l);
+    if (why) throw new Error(`src/data/directory.json listing ${JSON.stringify(l && l.id)} is broken, ${why}. Fix it, a paid listing must not vanish.`);
+  }
   return (data.listings || [])
-    .filter((l) => validListing(l, today) && Array.isArray(l.lakes) && l.lakes.includes(slug))
+    .filter((l) => validListing(l, today) && l.lakes.includes(slug))
     .map((l) => ({ id: l.id, name: l.name.trim(), line: l.line.trim(),
       website: /^https:\/\//.test(l.website || '') ? l.website : '',
       phone: cleanPhone(l.phone) }));

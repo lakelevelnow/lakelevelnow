@@ -15,7 +15,7 @@ const EMAIL = 'support@zovo.one';
   <div class="container">
     <article class="prose">
       <h1>Privacy policy</h1>
-      <p>Updated 9 November 2026. {SITE.name} (lakelevelnow.com) is run by Michael, an independent developer who also runs <a href="https://zovo.one" rel="noopener">zovo.one</a>. This page says what the site collects and what third parties collect when you visit. There are no accounts and no comment boxes. Two forms ask for an email address, the optional waitlist and the poster download page for people who bought the posters (see below). We never ask for your name.</p>
+      <p>Updated 9 November 2026. {SITE.name} (lakelevelnow.com) is run by Michael, an independent developer who also runs <a href="https://zovo.one" rel="noopener">zovo.one</a>. This page says what the site collects and what third parties collect when you visit. There are no accounts and no comment boxes. Two forms ask for an email address, the optional waitlist and the poster download page for people who bought the posters (see below). A business that buys a listing gives its business name at checkout (see below). Otherwise we never ask for your name.</p>
 
       <h2 id="ads">Advertising (Google AdSense)</h2>
       <p>Lake pages and the main overview pages can show ads served by Google AdSense. Third-party vendors, including Google, use cookies to serve ads based on a user's prior visits to this website or other websites. Google's use of advertising cookies enables it and its partners to serve ads to you based on your visit to this site and/or other sites on the Internet.</p>
@@ -30,6 +30,9 @@ const EMAIL = 'support@zovo.one';
 
       <h2 id="posters">Poster buyers</h2>
       <p>If you buy the Lake Mead and Lake Powell posters, Stripe takes the payment on its own site and tells our download service when it has gone through. That service runs on ingredientcalculator.com, another site Michael runs. It keeps the checkout reference, the product, the email you typed at checkout, the amount, the currency and the time in a Cloudflare database. We use them only to list your files and to let you get them again on the download page with that email. We do not send you mail and we do not share the record. It has no automatic end date. To have it removed, email <a href="mailto:lipmichal@gmail.com">lipmichal@gmail.com</a> from the address you paid with.</p>
+
+      <h2 id="listings">Business listings</h2>
+      <p>If you buy a listing for your business, Stripe takes the payment on its own site. At checkout it asks for your business name, your website or phone and one line about your business. We publish those three things on the Lake Mead and Lake Powell pages for the 12 months the listing runs. Stripe also gives us the email you paid with. We use it only to tell you the listing is live and to talk about that listing. We do not add it to any list or share it. To change or remove a listing, or to have your details deleted, email <a href="mailto:lipmichal@gmail.com">lipmichal@gmail.com</a>.</p>
 
       <h2 id="waitlist">Waitlist email</h2>
       <p>Some lake pages show a planned feature with a "Get early access" button. If you leave your email address there, our Cloudflare Worker stores it in Cloudflare KV with the feature you picked, the lake page, the time and your country. We use it once, to tell you when that feature is ready. We do not sell or share it and we add it to no other list. To limit abuse, the Worker also keeps a one-way hash of your IP address for two days. To have your address deleted, ask on the <a href="/contact/">contact page</a>.</p>

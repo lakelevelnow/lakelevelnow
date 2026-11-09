@@ -45,6 +45,9 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,input:focus-visible,sele
 nav.main { display: flex; gap: 28px; align-items: center; }
 nav.main a { color: rgba(255,255,255,.55); font-size: 13px; font-weight: 500; }
 nav.main a:hover { color: #fff; text-decoration: none; }
+/* Lane H15: with "Posters $9" the inline nav wrapped to 2 rows from 768 to 899 px (review V25 P2-1). */
+@media (min-width: 768px) and (max-width: 899px) { nav.main { gap: 14px; } }
+@media (min-width: 768px) and (max-width: 819px) { nav.main { gap: 8px; } .site-header .hdr-cta { margin-left: 8px; } }
 
 /* Mobile menu (<768px). The desktop inline nav overflows any phone width (4 links at
    28px gaps + brand + 64px container padding needs ~600px), so below 768px the links
