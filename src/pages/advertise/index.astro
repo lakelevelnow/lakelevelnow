@@ -17,14 +17,14 @@ const period = `${fmtDay(a.periodStart)} to ${fmtDay(a.periodEnd)}, ${a.periodEn
 const n = (x: number) => x.toLocaleString('en-US');
 const BUY = data.buyUrl;
 const meadViews = a.pageViewsMeadChart + a.pageViewsMeadLevel;
-const title = `List your Lake Mead business for $${data.priceUsd} a year`;
+const title = `List your lake business for $${data.priceUsd} a year`;
 const description = `A listing under the live Lake Mead and Lake Powell water level, with a Call or Website button. ${n(a.pageViewsListingPages)} page views in 30 days on the 3 pages that show listings, ${a.usPct}% of visits from the US. $${data.priceUsd} for 12 months, paid once.`;
 const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path: '/advertise' }])];
 ---
 <BaseLayout title={title} description={description} path="/advertise" jsonLd={ld}>
   <div class="container">
     <article class="adv">
-      <h1>Put your business under the Lake Mead water level</h1>
+      <h1>Put your business under the Lake Mead or Lake Powell water level</h1>
       <p class="adv-lead">People open these pages before a trip to the lake. Your listing sits right under the number they came for.</p>
 
       <div class="adv-nums" aria-label={`Measured audience, ${period}`}>
@@ -37,7 +37,7 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
       <div class="adv-buy" data-mm-sku="lld" data-mm-place="advertise-top">
         <p class="adv-price">${data.priceUsd} <span>for 12 months, paid once</span></p>
         <a class="adv-btn" href={BUY} rel="nofollow" data-mm-link>List my business, ${data.priceUsd}</a>
-        <p class="adv-small">No auto renew. Checkout is handled by Stripe and your statement shows AUTOM8 LLC. Pay by card, Apple Pay or Google Pay. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+        <p class="adv-small">No auto renew. Checkout is handled by Stripe. The checkout page shows the name BeLikeNative and your statement shows AUTOM8 LLC. Both belong to the small company behind this site. Pay by card, Apple Pay or Google Pay. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
       </div>
 
       <h2>What you get</h2>
@@ -75,7 +75,7 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
       <div class="adv-buy" data-mm-sku="lld" data-mm-place="advertise-end">
         <p class="adv-price">${data.priceUsd} <span>for 12 months, paid once</span></p>
         <a class="adv-btn" href={BUY} rel="nofollow" data-mm-link>List my business, ${data.priceUsd}</a>
-        <p class="adv-small">No auto renew. Checkout is handled by Stripe and your statement shows AUTOM8 LLC. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+        <p class="adv-small">No auto renew. Checkout is handled by Stripe. The checkout page shows the name BeLikeNative and your statement shows AUTOM8 LLC. Both belong to the small company behind this site. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
       </div>
       <p>Questions first? Email me at <a href="mailto:lipmichal@gmail.com?subject=Lake%20directory%20listing">lipmichal@gmail.com</a>.</p>
       <p>Michael Lip, {SITE.name}</p>
