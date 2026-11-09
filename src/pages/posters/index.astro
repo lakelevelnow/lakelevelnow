@@ -171,7 +171,7 @@ const STORES_CHECKED = 'November 8, 2026';
       <p class="pp-p">No. You get the files and print them where you like.</p>
       <h3>Will the latest reading update itself?</h3>
       <p class="pp-p">No. The posters show readings up to {longDate(mead.latest[0])}. The live level stays free
-      on the <a href="/lake/lake-mead/">Lake Mead page</a> and the <a href="/lake/lake-powell/">Lake Powell page</a>.</p>
+      on the <a href="/lake/lake-mead/">Lake Mead page</a> and the <span class="pp-nw"><a href="/lake/lake-powell/">Lake Powell page</a>.</span></p>
       <h3>Can I print more than one copy?</h3>
       <p class="pp-p">Yes. Print as many as you like for your home, your family and gifts. Please do not resell the files.</p>
       <h3>I lost my download page. What now?</h3>
@@ -273,6 +273,8 @@ const STORES_CHECKED = 'November 8, 2026';
     /* H2: the restore path is a real button on phones, at least 44 px tall. */
     .pp-restore { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px; margin: 4px 0 0;
       border: 2px solid var(--teal); border-radius: var(--r-sm); background: var(--card); color: var(--teal); font-size: 16px; font-weight: 600; }
+    /* H4: keeps the last link and its full stop together so the stop never wraps alone. */
+    .pp-nw { white-space: nowrap; }
     .pp-restore:hover { background: var(--teal); color: #fff; text-decoration: none; }
     @media (max-width: 640px) {
       .container.pst-page { padding: 0 16px; }

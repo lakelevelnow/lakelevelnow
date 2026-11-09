@@ -214,7 +214,8 @@ const tick = () => new Promise((r) => setTimeout(r, 20));
   assert.equal(els['pt-h'].textContent, 'I could not open your posters yet');
   assert.equal(els['pt-groups']?.children.length ?? 0, 0, 'no empty list');
   assert.equal(els['pt-help'].hidden, false, 'email line shown');
-  assert.equal(ga.length, 1, 'the payment itself is real, so the purchase still counts once');
+  // H4: GA4 counts a purchase only when download links rendered, so an error page is never a success.
+  assert.equal(ga.length, 0, 'no purchase event when no download link rendered');
 }
 {
   // H2: within a group, sizes sort largest first whatever order the API sends.
@@ -279,7 +280,8 @@ for (const [page, place, chartMark] of [
   const foEnd = h.indexOf('</p>', fo);
   assert.ok(h.slice(fo, foEnd).includes('data-cta="footer_almanac">See the Almanac and a free sample</a>'), `${page} owner footer link`);
   assert.ok(!h.slice(fo, foEnd).includes('footer_posters'), `${page} poster link is not inside the owner line`);
-  const fp = h.indexOf('<p class="foffer">Lake Mead and Lake Powell also come as posters to print. <a href="/posters/" data-cta="footer_posters">See the posters</a></p>');
+  // H4: the poster line carries foffer-p, which puts its link on its own line on phones.
+  const fp = h.indexOf('<p class="foffer foffer-p">Lake Mead and Lake Powell also come as posters to print. <a href="/posters/" data-cta="footer_posters">See the posters</a></p>');
   assert.ok(fp > foEnd, `${page} poster footer line is a separate paragraph after the owner line`);
 }
 {

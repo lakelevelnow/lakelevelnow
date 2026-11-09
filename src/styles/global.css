@@ -328,6 +328,8 @@ nav.main a { display: inline-flex; align-items: center; min-height: 48px; }
 @media (max-width: 340px) { .hdr-cta { padding: 0 8px; font-size: 12.5px; } }
 .foffer { margin: 18px 0 0; max-width: 680px; font-size: 14px; line-height: 1.6; color: rgba(255,255,255,.85); }
 .foffer a { display: inline-block; padding: 12px 0; color: #5fd3bd; font-weight: 600; text-decoration: underline; }
+/* H4: the poster line link sits on its own line, so the wrapped sentence keeps normal line spacing. */
+.foffer-p a { display: block; width: fit-content; padding: 12px 0; }
 /* CRO 2026-11-06 R2: home first-screen offer. The filled teal button is the one primary action. */
 .hero-offer { margin: 16px 0 4px; padding: 14px 16px; border: 1px solid var(--border); border-left: 4px solid var(--teal); border-radius: var(--r-sm); background: var(--card); max-width: 680px; }
 .hero-offer-t { margin: 0; font-size: 15px; line-height: 1.5; color: var(--t1); }

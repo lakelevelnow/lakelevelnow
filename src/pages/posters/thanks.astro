@@ -172,7 +172,8 @@ const description = 'Download the water level posters you bought. This page chec
     }
 
     function handle(j) {
-      if (j && j.ok === true && (j.p === 'llp' || j.p === undefined)) { render(j); return true; }
+      // H4: true only when render() drew download links, so GA4 never counts an error page as a purchase.
+      if (j && j.ok === true && (j.p === 'llp' || j.p === undefined)) return render(j);
       showError(j && typeof j.reason === 'string' ? j.reason : '');
       return false;
     }
