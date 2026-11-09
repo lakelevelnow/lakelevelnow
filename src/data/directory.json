@@ -1,0 +1,21 @@
+{
+  "_comment": "Local business directory (lane LD, 2026-11-09). Listings are added BY HAND after a paid $199 Stripe checkout (link 4gMfZi3se1xm3FHaYZ43S0M, fields business, website, line). One object per listing, fields id (a-z0-9-), name, line (max 90 characters), lakes (any of lake-mead, lake-powell), phone (US digits, optional), website (https, optional, at least one of phone or website), start and end (YYYY-MM-DD, end = start + 12 months). An expired listing disappears on the next build, nothing renews. Never add a sample or a fake business here. Audience numbers are the measured figures shown on /advertise/.",
+  "priceUsd": 199,
+  "months": 12,
+  "buyUrl": "https://buy.stripe.com/4gMfZi3se1xm3FHaYZ43S0M",
+  "maxShown": 3,
+  "listings": [],
+  "audience": {
+    "source": "GA4 property 555976683 (30daysAgo to yesterday) and Search Console sc https://lakelevelnow.com/, pulled read only by lanes/LD/pull_numbers.py on 2026-11-09",
+    "periodStart": "2026-10-10",
+    "periodEnd": "2026-11-08",
+    "pageViews": 3609,
+    "pageViewsListingPages": 2190,
+    "pageViewsMeadChart": 1157,
+    "pageViewsMeadLevel": 772,
+    "pageViewsPowellLevel": 261,
+    "usPct": 84,
+    "phonePct": 43,
+    "googlePhonePct": 69
+  }
+}

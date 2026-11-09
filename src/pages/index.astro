@@ -6,6 +6,10 @@ import { LAKES, freshLakes, byState, getReading, status, fmtNum, stateName } fro
 import { authorLd, breadcrumbLd } from '../lib/seo';
 import { levelStatus } from '../lib/seasonal';
 import almanacData from '../data/almanac.json';
+import posters from '../data/posters.json';
+// Lane LD: years on the posters, from the same frozen facts the poster files were drawn from.
+const pstYears = Object.fromEntries(Object.entries(posters.lakes as Record<string, any>).map(([k, f]) =>
+  [k, Number(String(f.latest[0]).slice(0, 4)) - Number(String(f.first[0]).slice(0, 4))]));
 import { almanacContext, leadSentence } from '../lib/almanac';
 import SupportLine from '../components/SupportLine.astro';
 import ShortAnswer from '../components/ShortAnswer.astro';
@@ -80,6 +84,15 @@ const almFeatureSentence = almFeature ? liveSentence(almFeature) : '';
           <a class="hero-offer-alt" href="/almanac/sample/" data-cta="home_hero_sample">Open a free sample</a>
         </div>
       </div>
+      {/* Lane LD 2026-11-09: the live $9 posters (sku llp), one compact entry in the first
+          phone screen and a half, linked to /posters/ (never straight to Stripe). No pop-up. */}
+      <a class="home-pst" href="/posters/" data-mm-sku="llp" data-mm-place="home-top" data-mm-link>
+        <img src="/posters/img/lake-mead-light-600.webp" width="600" height="800" alt="" loading="eager" decoding="async" />
+        <span class="home-pst-t"><span class="home-pst-h">Lake Mead and Lake Powell posters, ${posters.priceUsd}</span>
+        <span class="home-pst-s">{pstYears.mead} years of Lake Mead and {pstYears.powell} years of Lake Powell, drawn from every daily reading. Instant download.</span></span>
+        <span class="home-pst-go" aria-hidden="true">›</span>
+      </a>
+      <p class="home-pst-small">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
       <ShortAnswer
         question="What are US lake levels right now?"
         answer={`This page lists the ${fresh.length} lakes that have a current reading from USGS or CDEC. Each card shows percent full, the 30-day trend and a plain-English read on whether you can launch a boat. Open a lake for its own gauge and its full pool.`}
@@ -200,6 +213,16 @@ const almFeatureSentence = almFeature ? liveSentence(almFeature) : '';
 </BaseLayout>
 
 <style>
+  /* Lane LD 2026-11-09: compact poster entry in the hero. One tap row, at least 44 px. */
+  .home-pst { display: grid; grid-template-columns: 44px 1fr 20px; gap: 12px; align-items: center; margin: 14px 0 0; max-width: 680px;
+    padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); color: var(--t1); min-height: 64px; }
+  .home-pst:hover { text-decoration: none; border-color: var(--teal); }
+  .home-pst img { width: 44px; height: 59px; object-fit: cover; border-radius: 2px; box-shadow: 0 1px 4px rgba(22,40,47,.18); }
+  .home-pst-t { display: block; }
+  .home-pst-h { display: block; font-size: 16px; font-weight: 700; color: var(--teal); line-height: 1.35; }
+  .home-pst-s { display: block; font-size: 16px; line-height: 1.4; color: var(--t2); margin-top: 2px; }
+  .home-pst-go { font-size: 26px; color: var(--teal); line-height: 1; }
+  .home-pst-small { margin: 6px 0 0; font-size: 14px; color: var(--t2); max-width: 680px; }
   .alm-home { border: 1px solid var(--border); border-left: 4px solid var(--teal);
     border-radius: 0 12px 12px 0; padding: 22px 24px; margin: 4px 0 8px;
     background: var(--card); }

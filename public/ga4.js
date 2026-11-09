@@ -142,7 +142,8 @@
   var products = lake ? {
     'eVqeVe6Eq4Jy5NP2st43S0L': { item_id: 'llp', item_name: 'Lake Mead and Lake Powell Water Level Posters', price: 9, quantity: 1 },
     '00w3cw2oafoc7VXgjj43S0q': { item_id: 'almanac_single', item_name: 'Lake Level Almanac single', price: 19, quantity: 1 },
-    '4gM5kE1k63Fugst0kl43S0B': { item_id: 'almanac_bundle', item_name: 'Lake Level Almanac bundle', price: 79, quantity: 1 }
+    '4gM5kE1k63Fugst0kl43S0B': { item_id: 'almanac_bundle', item_name: 'Lake Level Almanac bundle', price: 79, quantity: 1 },
+    '4gMfZi3se1xm3FHaYZ43S0M': { item_id: 'lld', item_name: 'Lake directory listing 12 months', price: 199, quantity: 1 }
   } : {
     'cNieVe7Iu3Fuccd3wx43S0A': { item_id: 'ingredientcalculator_pro', item_name: 'IngredientCalculator Pro', price: 79, quantity: 1 }
   };

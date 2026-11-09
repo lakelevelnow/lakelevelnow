@@ -44,7 +44,7 @@ export const AFFILIATE_REPLACE_ME = Object.values(AFFILIATES).some((v) => v === 
 
 // Display ads, support link and the per-lake sponsor slot. Owner switches live in
 // src/data/monetization.json (AdSense unit IDs, the tip rails: Buy Me a Coffee + PayPal)
-// and src/data/sponsors.json (which lakes have a sponsor slot, its price, the sponsor).
+// and src/data/directory.json (paid local business listings, lane LD 2026-11-09).
 // 2026-10-20 (owner apply #3): the flat $49-a-month price for every lake is gone. Only
 // Lake Mead has a priced slot ($25 a month, $199 founding year); every other lake page
 // has far fewer views, so its price is quoted by email with that page's real numbers.

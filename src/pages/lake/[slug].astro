@@ -7,7 +7,7 @@ import MeadAlmanacNote from '../../components/MeadAlmanacNote.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import AskAiCard from '../../components/AskAiCard.astro';
 import StatusStrip from '../../components/StatusStrip.astro';
-import SponsorSlot from '../../components/SponsorSlot.astro';
+import LocalDirectory from '../../components/LocalDirectory.astro';
 import LakeFacts from '../../components/LakeFacts.astro';
 import WaitlistTest from '../../components/WaitlistTest.astro';
 import PosterOffer from '../../components/PosterOffer.astro';
@@ -274,6 +274,11 @@ import almPrice from '../../data/almanac.json';
       </div>
     )}
 
+    {/* Lane LD 2026-11-09: local business directory directly under the level and its trend
+        (intel N4). Lake Mead and Lake Powell only. Paid listings from src/data/directory.json,
+        or one small honest line inviting businesses when there are none. */}
+    {(slug === 'lake-mead' || slug === 'lake-powell') && <LocalDirectory slug={slug} lakeName={lake.name} placement={slug === 'lake-mead' ? 'mead-lake-dir' : 'powell-lake-dir'} />}
+
     {/* The $19 Almanac offer sits below the gauge and its trend chart (2026-10-20, owner
         apply #5). Above them it pushed the ramp read and the trend out of the first phone
         screen; the visitor now gets the reading before the offer. */}
@@ -281,10 +286,6 @@ import almPrice from '../../data/almanac.json';
         The "not included, see other lakes" cross-sell on uncovered lakes is removed. */}
     {alm && <AlmanacPeek slug={slug} name={lake.name} alm={alm} />}
 
-    {/* Sponsor slot (owner apply #3): only lakes listed in src/data/sponsors.json (Lake Mead
-        today). Below the gauge and chart, never in the first screen, and well above the
-        mid AdSense unit. */}
-    <SponsorSlot slug={slug} />
 
     {/* Directly under the gauge, on purpose. The visitor came for one number and it is
         immediately above this; the one question the number leaves open is whether it is

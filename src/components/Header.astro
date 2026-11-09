@@ -1,11 +1,12 @@
 ---
 // Sticky top navigation — dark slate (#16282f), LakeLevelNow wordmark (teal "Level").
 // Two nav renderings, one visible per breakpoint (global.css):
-//   >=768px  inline links (4 items, within the responsive spec's 6-item inline limit)
+//   >=768px  inline links (6 items, at the responsive spec's 6-item inline limit)
 //   <768px   native <details> hamburger — zero JS, keyboard accessible, 48px tap
 //            targets; open/close is browser-native so it cannot wedge in a bad state.
 import { SITE } from '../consts';
 import alm from '../data/almanac.json';
+import posters from '../data/posters.json';
 // CRO 2026-11-06 R2: the paid Almanac gets one header CTA with its price, on every page and width.
 
 const NAV = [
@@ -15,6 +16,9 @@ const NAV = [
   { href: '/texas-lake-levels/', label: 'Texas' },
   { href: '/about/', label: 'About & data' },
 ];
+// Lane LD 2026-11-09: the live $9 posters (sku llp) get one nav link with the price, on every page.
+// The desktop inline nav and the phone menu are separate placements, so GA4 can tell them apart.
+const POSTERS = { href: '/posters/', label: `Posters $${posters.priceUsd}` };
 ---
 <header class="site-header">
   <div class="container">
@@ -23,6 +27,7 @@ const NAV = [
     </a>
     <nav class="main" aria-label="Primary">
       {NAV.map((i) => <a href={i.href}>{i.label}</a>)}
+      <a href={POSTERS.href} class="nav-pst" data-mm-sku="llp" data-mm-place="nav-desktop" data-mm-link>{POSTERS.label}</a>
     </nav>
     <a class="hdr-cta" href="/almanac/" data-cta="header_almanac">Almanac, from ${alm.priceSingleUsd}</a>
     <details class="nav-m">
@@ -31,7 +36,43 @@ const NAV = [
       </summary>
       <nav aria-label="Primary">
         {NAV.map((i) => <a href={i.href}>{i.label}</a>)}
+        <a href={POSTERS.href} class="nav-pst" data-mm-sku="llp" data-mm-place="nav-menu" data-mm-link>{POSTERS.label}</a>
       </nav>
     </details>
   </div>
 </header>
+
+<script is:inline>
+/* Lane LD 2026-11-09. One tracker for every element with data-mm-sku and data-mm-place on the
+   page (nav poster links, home poster entry, lake directory). mm_cta_view once per placement
+   when half of it is on screen (a hidden nav copy never is), mm_cta_click on a data-mm-link.
+   Sent only through window.__siteGA4Event, so DNT and GPC still turn it off (ga4.js). */
+(function () {
+  function ga(name, params, anchor) {
+    if (typeof window.__siteGA4Event === 'function') { window.__siteGA4Event(name, params, anchor); return; }
+    document.addEventListener('site-ga4-ready', function () {
+      if (typeof window.__siteGA4Event === 'function') window.__siteGA4Event(name, params, anchor);
+    }, { once: true });
+  }
+  function init() {
+    var els = document.querySelectorAll('[data-mm-sku][data-mm-place]:not([data-mm-init])');
+    for (var i = 0; i < els.length; i++) (function (el) {
+      el.setAttribute('data-mm-init', '1');
+      var sku = el.getAttribute('data-mm-sku'), place = el.getAttribute('data-mm-place');
+      if (!/^[a-z0-9_-]{1,40}$/.test(sku) || !/^[a-z0-9_-]{1,40}$/.test(place)) return;
+      var params = { sku: sku, placement: place };
+      if (window.IntersectionObserver) {
+        var io = new IntersectionObserver(function (es) {
+          for (var k = 0; k < es.length; k++) if (es[k].isIntersecting && es[k].intersectionRatio >= 0.5) { ga('mm_cta_view', params); io.disconnect(); }
+        }, { threshold: 0.5 });
+        io.observe(el);
+      }
+      var links = el.hasAttribute('data-mm-link') ? [el] : el.querySelectorAll('a[data-mm-link]');
+      for (var j = 0; j < links.length; j++) (function (a) {
+        a.addEventListener('click', function () { ga('mm_cta_click', params, a); });
+      })(links[j]);
+    })(els[i]);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>

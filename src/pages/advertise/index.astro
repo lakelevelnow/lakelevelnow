@@ -1,0 +1,111 @@
+---
+// /advertise/ (lane LD, 2026-11-09, intel N4 single best bet). Replaces the $25 sponsor slot.
+// A $199 listing in the local business directory under the level on /lake/lake-mead/,
+// /lake/lake-mead/chart/ and /lake/lake-powell/, for 12 months, paid once, no auto renew.
+// Every number comes from src/data/directory.json "audience", pulled read only from GA4 and
+// Search Console by lanes/LD/pull_numbers.py, with its period. Never round them up.
+// The buy link is the live Stripe Payment Link. It collects business name, website or phone and
+// one line, then redirects to /advertise/thanks/. The listing is added by hand.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../consts';
+import { breadcrumbLd } from '../../lib/seo';
+import data from '../../data/directory.json';
+
+const a = data.audience;
+const fmtDay = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' });
+const period = `${fmtDay(a.periodStart)} to ${fmtDay(a.periodEnd)}, ${a.periodEnd.slice(0, 4)}`;
+const n = (x: number) => x.toLocaleString('en-US');
+const BUY = data.buyUrl;
+const title = `List your Lake Mead business for $${data.priceUsd} a year`;
+const description = `A listing under the live Lake Mead and Lake Powell water level, with Call and Website buttons. ${n(a.pageViews)} page views in 30 days, ${a.usPct}% from the US. $${data.priceUsd} for 12 months, paid once.`;
+const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path: '/advertise' }])];
+---
+<BaseLayout title={title} description={description} path="/advertise" jsonLd={ld}>
+  <div class="container">
+    <article class="adv">
+      <h1>Put your business under the Lake Mead water level</h1>
+      <p class="adv-lead">People open these pages right before a trip to the lake. They check the level, then they look for a boat, a guide or a place to stay. Your listing sits right there, under the number they came for.</p>
+
+      <div class="adv-nums" aria-label={`Measured audience, ${period}`}>
+        <div class="adv-num"><span class="adv-n">{n(a.pageViews)}</span><span class="adv-l">page views in 30 days</span></div>
+        <div class="adv-num"><span class="adv-n">{a.usPct}%</span><span class="adv-l">of visits from the US</span></div>
+        <div class="adv-num"><span class="adv-n">{a.phonePct}%</span><span class="adv-l">of visits on a phone</span></div>
+      </div>
+      <p class="adv-src">Measured in Google Analytics for {period}. Of those page views, {n(a.pageViewsListingPages)} were on the three pages that show listings. Visitors from Google search were {a.googlePhonePct}% on a phone (Search Console, same 30 days).</p>
+
+      <div class="adv-buy" data-mm-sku="lld" data-mm-place="advertise-top">
+        <p class="adv-price">${data.priceUsd} <span>for 12 months, paid once</span></p>
+        <a class="adv-btn" href={BUY} rel="nofollow" data-mm-link>List my business, ${data.priceUsd}</a>
+        <p class="adv-small">No auto renew. Checkout is handled by Stripe and your statement shows AUTOM8 LLC. Pay by card, Apple Pay or Google Pay. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+      </div>
+
+      <h2>What you get</h2>
+      <ul>
+        <li>Your business name, one line you write, and a Call button, a Website button or both.</li>
+        <li>It shows right under the live level on the <a href="/lake/lake-mead/">Lake Mead page</a>, the <a href="/lake/lake-mead/chart/">Lake Mead chart page</a> and the <a href="/lake/lake-powell/">Lake Powell page</a>. You pick Lake Mead, Lake Powell or both.</li>
+        <li>Up to 3 listings show at a time. If more businesses join, the 3 you see change on each visit, so everyone gets a fair share.</li>
+        <li>12 months from the day it goes live. Then it comes down by itself. Nothing renews and nothing is charged again.</li>
+      </ul>
+
+      <h2>How a listing looks</h2>
+      <div class="adv-demo" aria-label="Preview of a listing">
+        <p class="adv-demo-l">Sponsor</p>
+        <p class="adv-demo-n">Your business name</p>
+        <p class="adv-demo-t">One line about what you offer at the lake.</p>
+        <p class="adv-demo-b"><span>Call</span><span>Website</span></p>
+      </div>
+      <p class="adv-note">Placeholder text only. The lake pages show real, paid listings and nothing else.</p>
+
+      <h2>How it works</h2>
+      <ol>
+        <li>Tap the button. Stripe asks for your business name, your website or phone, and one line about your business.</li>
+        <li>I add your listing by hand within 2 business days and email you when it is live.</li>
+        <li>If I need to shorten your line to fit, I ask you first.</li>
+      </ol>
+
+      <h2>The rules I keep</h2>
+      <ul>
+        <li>Every listing carries the word Sponsor, so visitors know it is paid.</li>
+        <li>Website links are marked <code>rel="sponsored nofollow"</code>, the way Google asks for paid links.</li>
+        <li>Listings never change the data. The level and the charts come from public Reclamation and USGS feeds and look the same for everyone. See the <a href="/disclosure/">disclosure page</a>.</li>
+        <li>I only list businesses that serve visitors to the lake.</li>
+      </ul>
+
+      <div class="adv-buy" data-mm-sku="lld" data-mm-place="advertise-end">
+        <p class="adv-price">${data.priceUsd} <span>for 12 months, paid once</span></p>
+        <a class="adv-btn" href={BUY} rel="nofollow" data-mm-link>List my business, ${data.priceUsd}</a>
+        <p class="adv-small">No auto renew. Checkout is handled by Stripe and your statement shows AUTOM8 LLC. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+      </div>
+      <p>Questions first? Email me at <a href="mailto:lipmichal@gmail.com?subject=Lake%20directory%20listing">lipmichal@gmail.com</a>.</p>
+      <p>Michael Lip, {SITE.name}</p>
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .adv { max-width: 720px; padding: 20px 0 40px; }
+  .adv h1 { margin: 0 0 10px; }
+  .adv p, .adv li { font-size: 16px; line-height: 1.55; }
+  .adv-lead { color: var(--t1); }
+  .adv-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 8px; }
+  .adv-num { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 12px; }
+  .adv-n { display: block; font-size: 26px; font-weight: 700; color: var(--t1); letter-spacing: -.02em; }
+  .adv-l { display: block; font-size: 14px; line-height: 1.35; color: var(--t2); margin-top: 2px; }
+  .adv-src { font-size: 14px !important; color: var(--t2); margin: 6px 0 0; }
+  .adv-buy { background: var(--teal-bg); border-radius: var(--r); padding: 16px; margin: 20px 0; }
+  .adv-price { margin: 0 0 10px; font-size: 26px !important; font-weight: 700; color: var(--t1); }
+  .adv-price span { font-size: 16px; font-weight: 500; color: var(--t2); }
+  .adv-btn { display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 20px; border-radius: var(--r-sm);
+    background: var(--teal); color: #fff; font-weight: 700; font-size: 17px; max-width: 360px; }
+  .adv-btn:hover { background: #0a6b5b; color: #fff; text-decoration: none; }
+  .adv-small { margin: 10px 0 0; font-size: 14px !important; color: var(--t2); }
+  .adv-demo { background: var(--card); border: 1px dashed var(--border); border-radius: var(--r); padding: 12px 16px 14px; margin: 10px 0 6px; }
+  .adv-demo-l { margin: 0 0 4px; font-size: 13px !important; letter-spacing: .06em; text-transform: uppercase; color: var(--t2); font-weight: 600; }
+  .adv-demo-n { margin: 0 0 2px; font-size: 18px !important; font-weight: 700; color: var(--t1); }
+  .adv-demo-t { margin: 0 0 10px; color: var(--t2); }
+  .adv-demo-b { display: flex; gap: 10px; margin: 0; }
+  .adv-demo-b span { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 112px; padding: 0 18px;
+    border-radius: var(--r-sm); border: 1px solid var(--teal); color: var(--teal); font-weight: 600; }
+  .adv-note { font-size: 14px !important; color: var(--t2); }
+  @media (max-width: 420px) { .adv-n { font-size: 22px; } .adv-num { padding: 10px; } }
+</style>
