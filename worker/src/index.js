@@ -1,11 +1,15 @@
 // Lake Level Almanac fulfilment worker (lakelevelnow.com).
 // Routes: GET /health, /catalog, /verify?session_id=, /file?t=, /hit?e=&l=&p=,
-// POST /waitlist (fake-door email sign-up, JSON in and out).
+// POST /waitlist (fake-door email sign-up, JSON in and out),
+// POST /stripe-webhook (signed Stripe events, fills the paid-session store, see paid-store.js).
 // Bindings: KV ALMANAC_ASSETS (catalog + zips), KV ALMANAC_ORDERS (mint + hit counters),
-// vars ALLOWED_ORIGINS, ALMANAC_MODE, LINK_SINGLE_ID, LINK_BUNDLE_ID (comma-separated lists),
-// secrets SIGNING_KEY, STRIPE_SECRET_KEY.
+// D1 PAID (paid_sessions), vars ALLOWED_ORIGINS, ALMANAC_MODE, LINK_SINGLE_ID, LINK_BUNDLE_ID
+// (comma-separated lists), secrets SIGNING_KEY, STRIPE_WEBHOOK_SECRET and optional STRIPE_SECRET_KEY.
 
-const VERSION = "1.2.0";
+import { handleStripeWebhook, storedSession, linkOf, WAIT_MS } from "./paid-store.js";
+
+const VERSION = "1.3.0";
+const STORE_SERVICE = "almanac";
 const TEXT = { "content-type": "text/plain; charset=utf-8" };
 const JSONH = { "content-type": "application/json; charset=utf-8" };
 const TOKEN_TTL_S = 1800;
@@ -102,17 +106,40 @@ async function verifyToken(token, secret) {
 
 // ---- Stripe + catalog -------------------------------------------------------
 
+// 1. The paid-session store (filled by the signed webhook). 2. The Stripe API, when a key is set.
+// 3. When Stripe cannot be asked, wait about 8 seconds for the webhook, then report "confirming".
+// The thanks page shows its generic message for that code: the payment is safe, get in touch and
+// the file is sent by hand. That is true for a late or lost webhook, and it never tells a card
+// buyer to wait days for a bank transfer.
+// A dead or missing API key therefore no longer blocks a buyer whose payment Stripe confirmed.
 async function getSession(id, env) {
-  const r = await fetch(
-    `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(id)}`,
-    { headers: {
-      authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
-      "stripe-version": "2024-06-20"
-    } }
-  );
-  if (!r.ok) return { error: `stripe ${r.status}` };
-  return { session: await r.json() };
+  const first = await storedSession(env, id, STORE_SERVICE);
+  if (first) return { session: first };
+  if (env.STRIPE_SECRET_KEY) {
+    try {
+      const r = await fetch(
+        `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(id)}`,
+        { headers: {
+          authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+          "stripe-version": "2024-06-20"
+        } }
+      );
+      if (r.ok) return { session: await r.json() };
+      if (r.status === 404) return { error: "stripe 404" };
+      console.error("stripe lookup failed", r.status);   // never log the key
+    } catch (e) {
+      console.error("stripe lookup failed", String(e && e.message || e));
+    }
+  }
+  const later = await storedSession(env, id, STORE_SERVICE, WAIT_MS);
+  if (later) return { session: later };
+  return { pending: true };
 }
+
+export const ourLink = (link, env) => {
+  const id = linkOf(link);
+  return Boolean(id) && (list(env.LINK_SINGLE_ID).includes(id) || list(env.LINK_BUNDLE_ID).includes(id));
+};
 
 async function catalog(env) {
   const raw = await env.ALMANAC_ASSETS.get("catalog.json");
@@ -170,9 +197,10 @@ async function loadOrder(sid, env) {
   if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(sid)) {
     return { fail: [{ ok: false, error: "bad_session_id" }, 400] };
   }
-  const { session, error } = await getSession(sid, env);
+  const { session, error, pending } = await getSession(sid, env);
+  if (pending) return { fail: [{ ok: false, error: "confirming" }, 503] };
   if (error) return { fail: [{ ok: false, error: "lookup_failed" }, 502] };
-  const link = session.payment_link;
+  const link = linkOf(session.payment_link);
   let sku = null;
   if (link && list(env.LINK_SINGLE_ID).includes(link)) sku = "single";
   else if (link && list(env.LINK_BUNDLE_ID).includes(link)) sku = "bundle";
@@ -396,6 +424,9 @@ async function handleHealth(env, ch) {
     lakes: (cat.lakes || []).length,
     configured: {
       stripeKey: Boolean(env.STRIPE_SECRET_KEY),
+      webhookSecret: Boolean(env.STRIPE_WEBHOOK_SECRET),
+      paidStore: Boolean(env.PAID),
+      mlxHook: Boolean(env.ML0X_HOOK),
       signingKey: Boolean(env.SIGNING_KEY),
       linkSingle: Boolean(env.LINK_SINGLE_ID),
       linkBundle: Boolean(env.LINK_BUNDLE_ID)
@@ -406,6 +437,43 @@ async function handleHealth(env, ch) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/stripe-webhook") {
+      // The Stripe account is at its limit of 16 live webhook endpoints, so one endpoint serves
+      // two Workers. After this Worker accepts a signed event, it passes the same body and
+      // signature to ml0x-delivery (service binding ML0X_HOOK), which checks the signature
+      // itself. If the pass fails, answer 500 so Stripe retries. Our own insert is idempotent.
+      const copy = request.method === "POST" ? request.clone() : null;
+      let own;
+      try {
+        own = await handleStripeWebhook(request, env, {
+          service: STORE_SERVICE,
+          paidStates: PAID_STATES,
+          accept: (s) => ourLink(s.payment_link, env)
+        });
+      } catch (e) {
+        console.error("webhook error", (e && e.stack) || String(e));
+        return new Response("store failed", { status: 500, headers: TEXT });
+      }
+      if (own.status !== 200 || !copy || !env.ML0X_HOOK) return own;
+      try {
+        const passed = await env.ML0X_HOOK.fetch("https://ml0x-delivery/stripe-webhook", {
+          method: "POST",
+          body: await copy.text(),
+          headers: {
+            "content-type": "application/json",
+            "stripe-signature": request.headers.get("stripe-signature") || ""
+          }
+        });
+        if (passed.status !== 200) {
+          console.error("ml0x webhook pass failed", passed.status);
+          return new Response("pass failed", { status: 500, headers: TEXT });
+        }
+      } catch (e) {
+        console.error("ml0x webhook pass failed", String(e && e.message || e));
+        return new Response("pass failed", { status: 500, headers: TEXT });
+      }
+      return own;
+    }
     if (url.pathname === "/waitlist") {
       try {
         return await handleWaitlist(request, env);
@@ -424,7 +492,7 @@ export default {
         case "/catalog":
           return json(await catalog(env), 200, { ...ch, "cache-control": "public, max-age=3600" });
         case "/verify":
-          return handleVerify(url, env, ch);
+          return await handleVerify(url, env, ch);
         case "/file":
           return handleFile(url, env, ch);
         case "/hit":

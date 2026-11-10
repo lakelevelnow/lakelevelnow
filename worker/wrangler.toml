@@ -4,8 +4,21 @@ compatibility_date = "2026-08-01"
 workers_dev = true
 tsconfig = "tsconfig.json"
 
-# Secrets SIGNING_KEY and STRIPE_SECRET_KEY live in the dashboard and are
-# preserved across deploys (wrangler keeps secret_text bindings not listed here).
+# Secrets SIGNING_KEY, STRIPE_WEBHOOK_SECRET and STRIPE_SECRET_KEY live in the dashboard and
+# are preserved across deploys (wrangler keeps secret_text bindings not listed here).
+# STRIPE_WEBHOOK_SECRET belongs to the Stripe webhook endpoint .../stripe-webhook.
+
+# Paid-session store shared with ml0x-delivery (rows carry a service column). Schema: paid-store.sql
+[[d1_databases]]
+binding = "PAID"
+database_name = "checkout-paid"
+database_id = "a30fd33a-c9b2-4a00-89d5-42b054fe2452"
+
+# One Stripe endpoint serves both Workers (the account is at 16 live endpoints). Signed events
+# that this Worker accepts are passed on to ml0x-delivery, which uses the same STRIPE_WEBHOOK_SECRET.
+[[services]]
+binding = "ML0X_HOOK"
+service = "ml0x-delivery"
 
 [[kv_namespaces]]
 binding = "ALMANAC_ASSETS"
