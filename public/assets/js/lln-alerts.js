@@ -21,7 +21,8 @@
   var name = h1 ? h1.textContent.replace(/\s+(water level.*|right now.*)$/i, '').replace(/^How deep is\s+/i, '').trim() : '';
   if (!name || name.length > 60) name = 'this lake';
   var biz = slug === 'lake-mead' || slug === 'lake-powell';
-  var params = { offer_id: 'alerts', ab_variant: 'alerts', lake_slug: slug.slice(0, 40), placement: 'alerts-popup' };
+  var params = { offer_id: 'alerts', ab_variant: 'alerts', lake_slug: slug.slice(0, 40), placement: 'alerts-popup',
+    site: 'lakelevelnow', product: 'lake-level-alerts', price: 19, currency: 'USD' };
   function ga(n) { if (typeof window.__siteGA4Event === 'function') window.__siteGA4Event(n, params); }
   var shown = false;
   function show() {
@@ -42,14 +43,16 @@
     box.innerHTML = '<button type="button" class="lap-x" aria-label="Close">×</button>' +
       '<h2></h2><p class="lap-b"></p>' +
       '<form novalidate><div class="lap-row"><input type="email" name="email" autocomplete="email" maxlength="254" aria-label="Your email address" placeholder="you@example.com">' +
-      '<button type="submit" class="lap-s">Join free</button></div>' +
+      '<button type="submit" class="lap-s">Get it first</button></div>' +
       '<input type="text" name="hp_wl" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">' +
       '<small>One email when alerts start. Nothing else. <a href="/privacy/#waitlist">Privacy</a></small><p class="lap-st" role="status" aria-live="polite"></p></form>' +
       (biz ? '<p class="lap-biz">Marina or boat rental? <a href="/advertise/" data-cta="alerts_popup_advertise">List your business under the level, $199 a year</a></p>' : '');
     box.querySelector('h2').textContent = 'Email me when ' + name + ' crosses a level';
-    box.querySelector('.lap-b').textContent = 'Level alerts are being built. Join the free waitlist and get one email when they start.';
+    box.querySelector('.lap-b').textContent = 'Level alerts are being built: $19/yr at launch. Join the waitlist free and get one email when they start.';
+    box.setAttribute('data-cro-sprint', 'sprint-20261113-lln-alerts-price');
     document.body.appendChild(box);
     ga('view_promotion');
+    ga('offer_view');
     var form = box.querySelector('form'), input = form.querySelector('input[name=email]'), stt = box.querySelector('.lap-st'),
         btn = form.querySelector('.lap-s'), picked = false, busy = false;
     box.querySelector('.lap-x').addEventListener('click', function () { save('closed'); box.remove(); });
@@ -60,6 +63,7 @@
       if (busy) return;
       var v = String(input.value || '').trim();
       if (v.length > 254 || !RE.test(v)) { stt.textContent = 'Please enter a valid email address.'; input.focus(); return; }
+      ga('cta_click');
       busy = true; btn.disabled = true; stt.textContent = 'Sending';
       fetch('https://lake-level-almanac.lipmichal.workers.dev/waitlist', { method: 'POST', mode: 'cors', credentials: 'omit',
         headers: { 'content-type': 'application/json' },

@@ -91,6 +91,8 @@ const offers = data.offers.filter((o: { id: string; lakes?: string[] }) =>
   var lake = root.getAttribute('data-wl-lake') || '';
   var place = root.getAttribute('data-wl-place') || 'lake-waitlist';
   var params = { offer_id: pick, ab_variant: pick, lake_slug: lake, placement: place };
+  // Sprint 2026-11-13: the paid-at-launch alerts card names its product and price.
+  if (pick === 'alerts') { params.site = 'lakelevelnow'; params.product = 'lake-level-alerts'; params.price = 19; params.currency = 'USD'; }
   function ga(name) {
     var f = window.__siteGA4Event;
     if (typeof f === 'function') { f(name, params); return; }

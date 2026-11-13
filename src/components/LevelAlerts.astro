@@ -12,14 +12,14 @@ const WORKER = 'https://lake-level-almanac.lipmichal.workers.dev/waitlist';
 const id = `la-${place}`;
 ---
 <section class="la" id="lln-alerts" data-cro={cro} data-la-lake={slug} data-la-place={place} data-la-endpoint={WORKER} aria-labelledby={`${id}-t`}>
-  <p class="la-k">Free waitlist</p>
+  <p class="la-k" data-cro="sprint-20261113-lln-alerts-price">Level alerts: $19/yr at launch</p>
   <h2 class="la-t" id={`${id}-t`}>Get an email when {name} crosses a level you pick</h2>
-  <p class="la-b">Level alerts for {name} are being built. Join the list and you get one email when they start. Founding price after launch: $19 a year. Joining is free and you can ignore it.</p>
+  <p class="la-b">Level alerts for {name} are being built. They will cost <strong>$19/yr at launch</strong>. Join the waitlist free and get one email when they start, with the launch price. You can ignore it.</p>
   <form class="la-f" novalidate>
     <label class="la-l" for={`${id}-e`}>Your email address</label>
     <div class="la-row">
       <input class="la-e" id={`${id}-e`} name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required />
-      <button type="submit" class="la-s" data-cta={`${place.replace(/-/g, '_')}_join`.slice(0, 40)}>Email me when alerts start</button>
+      <button type="submit" class="la-s" data-cta={`${place.replace(/-/g, '_')}_join`.slice(0, 40)}>Get it first, $19/yr at launch</button>
     </div>
     <div class="la-hp" aria-hidden="true"><label>Leave this empty <input type="text" name="hp_wl" tabindex="-1" autocomplete="off" /></label></div>
     <p class="la-n">One email when it is ready. Nothing else. <a href="/privacy/#waitlist">Privacy policy</a></p>
@@ -35,7 +35,8 @@ const id = `la-${place}`;
   for (var b = 0; b < boxes.length; b++) (function (root) {
     if (root.dataset.laInit) return;
     root.dataset.laInit = '1';
-    var params = { offer_id: 'alerts', ab_variant: 'alerts', lake_slug: root.getAttribute('data-la-lake') || '', placement: root.getAttribute('data-la-place') || 'lake-alerts' };
+    var params = { offer_id: 'alerts', ab_variant: 'alerts', lake_slug: root.getAttribute('data-la-lake') || '', placement: root.getAttribute('data-la-place') || 'lake-alerts',
+      site: 'lakelevelnow', product: 'lake-level-alerts', price: 19, currency: 'USD' };
     function ga(name) {
       if (typeof window.__siteGA4Event === 'function') { window.__siteGA4Event(name, params); return; }
       document.addEventListener('site-ga4-ready', function () { if (typeof window.__siteGA4Event === 'function') window.__siteGA4Event(name, params); }, { once: true });
@@ -45,6 +46,13 @@ const id = `la-${place}`;
         for (var k = 0; k < es.length; k++) if (es[k].isIntersecting && es[k].intersectionRatio >= 0.5) { ga('view_promotion'); io.disconnect(); }
       }, { threshold: 0.5 });
       io.observe(root);
+      // Sprint 2026-11-13: offer_view only after a scroll, tap or key press, or 10 s on the page, and only when the box is visible.
+      var armed = false, offered = false, vis = false;
+      function arm() { armed = true; tryOffer(); }
+      function tryOffer() { if (armed && vis && !offered) { offered = true; ga('offer_view'); } }
+      ['scroll', 'pointerdown', 'keydown', 'touchstart'].forEach(function (t) { window.addEventListener(t, arm, { once: true, passive: true, capture: true }); });
+      setTimeout(arm, 10000);
+      new IntersectionObserver(function (es) { for (var k = 0; k < es.length; k++) vis = es[k].isIntersecting; tryOffer(); }, { threshold: 0.5 }).observe(root);
     }
     var form = root.querySelector('.la-f'), email = root.querySelector('.la-e'), send = root.querySelector('.la-s'),
         st = root.querySelector('.la-st'), hp = root.querySelector('input[name="hp_wl"]'), picked = false, busy = false;
@@ -57,6 +65,7 @@ const id = `la-${place}`;
       var v = String(email.value || '').trim();
       if (v.length > 254 || !RE.test(v)) { email.setAttribute('aria-invalid', 'true'); say('Please enter a valid email address.', true); email.focus(); return; }
       email.removeAttribute('aria-invalid');
+      ga('cta_click');
       busy = true; send.disabled = true; say('Sending');
       function fail(t) { busy = false; send.disabled = false; say(t, true); }
       fetch(root.getAttribute('data-la-endpoint'), { method: 'POST', mode: 'cors', credentials: 'omit',
