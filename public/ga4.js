@@ -119,8 +119,9 @@
   // DNT/GPC return above, so opted-out browsers never get it.
   // Mobile money run 2026-11-08: mm_cta_view and mm_cta_click carry a product sku and a
   // placement token (PosterOffer.astro, /posters/). Same allowlist rules, sku instead of offer_id.
-  var promoNames = ['view_promotion', 'select_promotion', 'generate_lead', 'mm_cta_view', 'mm_cta_click'];
-  var promoKeys = ['offer_id', 'ab_variant', 'lake_slug', 'placement', 'sku'];
+  // Sprint 2026-11-13: offer_view and cta_click for the paid-at-launch alerts waitlist, with site, product, price, currency.
+  var promoNames = ['view_promotion', 'select_promotion', 'generate_lead', 'mm_cta_view', 'mm_cta_click', 'offer_view', 'cta_click'];
+  var promoKeys = ['offer_id', 'ab_variant', 'lake_slug', 'placement', 'sku', 'site', 'product'];
   window.__siteGA4Event = function (name, params, anchor) {
     if (promoNames.indexOf(name) < 0 || !params || typeof params !== 'object') return false;
     var clean = {};
@@ -129,6 +130,7 @@
       var v = Object.prototype.hasOwnProperty.call(params, k) ? params[k] : null;
       if (typeof v === 'string' && /^[a-z0-9_-]{1,40}$/.test(v)) clean[k] = v;
     }
+    if (params.currency === 'USD' && typeof params.price === 'number' && params.price > 0 && params.price < 10000) { clean.currency = 'USD'; clean.price = params.price; clean.value = params.price; }
     var mm = name.indexOf('mm_') === 0;
     if (mm ? !clean.sku : !clean.offer_id) return false;
     // A click that opens another page of this site is handed to that page, like cta_click.
