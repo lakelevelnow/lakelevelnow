@@ -36,7 +36,7 @@ const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
         when it says no it removes the class and the space. */}
     {hasAds && <script is:inline>(function(){try{var h=location.hostname;if(!/^(www\.)?lakelevelnow\.com$/.test(h))return;var z=(Intl.DateTimeFormat().resolvedOptions().timeZone)||'';if(!z||/^Europe\//.test(z)||/^Atlantic\/(Reykjavik|Canary|Madeira|Azores|Faroe|Faeroe)$/.test(z))return;document.documentElement.classList.add('ads-likely');}catch(e){}})();</script>}
     {hasAds && <script is:inline defer src="/ads-loader.js"></script>}
-    <script is:inline defer src="/ga4.js?v=r6" data-site="lakelevelnow" data-measurement-id="G-LYY6FMNH6R"></script>
+    <script is:inline defer src="/ga4.js?v=r7" data-site="lakelevelnow" data-measurement-id="G-LYY6FMNH6R" data-cro="ga-host-allowlist"></script>
     <BaseHead
       title={title}
       description={description}
@@ -119,6 +119,7 @@ const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
   
 {/* adsense-w2: the off-topic cross-network "Related calculators" block (storm tracker, grade calculator) is removed. */}
 
-<script is:inline src="/assets/js/lln-ui.js" defer></script>
+{/* CRO 2026-11-13 (livedata impl): the Telegram popup (lln-ui.js) is replaced by the level-alerts card. */}
+<script is:inline src="/assets/js/lln-alerts.js?v=1" defer data-cro="lln-alerts-popup"></script>
 </body>
 </html>

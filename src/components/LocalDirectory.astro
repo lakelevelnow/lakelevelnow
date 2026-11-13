@@ -38,9 +38,9 @@ const max = data.maxShown;
   </section>
 )}
 {part === 'invite' && all.length === 0 && (
-  <p class="ldir-empty" data-ldir={slug} data-mm-sku="lld" data-mm-place={place}>
-    Run a boat rental, guide service or place to stay at {lakeName}? Your business can be listed on this page.
-    <a href="/advertise/" data-mm-link>See how it works</a>
+  <p class="ldir-empty" data-ldir={slug} data-mm-sku="lld" data-mm-place={place} data-cro={`advertise-link-${slug}`}>
+    Run a marina, boat rental, guide service or place to stay at {lakeName}? Your business can be listed on this page for ${data.priceUsd} a year.
+    <a href="/advertise/" data-mm-link data-cta="dir_invite_advertise">See how it works</a>
   </p>
 )}
 

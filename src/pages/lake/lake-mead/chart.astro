@@ -28,6 +28,7 @@ import AdSlot from '../../../components/AdSlot.astro';
 import PosterOffer from '../../../components/PosterOffer.astro';
 import WaitlistTest from '../../../components/WaitlistTest.astro';
 import LocalDirectory from '../../../components/LocalDirectory.astro';
+import LevelAlerts from '../../../components/LevelAlerts.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
 import MeadAlmanacNote from '../../../components/MeadAlmanacNote.astro';
@@ -204,6 +205,7 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
     <LocalDirectory part="listings" slug="lake-mead" lakeName="Lake Mead" placement="mead-chart-dir" />
 
     <AlmanacContext slug="lake-mead" level={live && reading ? reading.level_ft : null} asOf={live && reading ? reading.as_of : null} />
+    <LevelAlerts slug="lake-mead" name="Lake Mead" placement="mead-chart-alerts" cro="mead-chart-alerts-signup" business />
     <MeadAlmanacNote place="mead-chart" />
     {/* With no listings, the small invite to businesses comes after the Almanac block. */}
     <LocalDirectory part="invite" slug="lake-mead" lakeName="Lake Mead" placement="mead-chart-dir" />

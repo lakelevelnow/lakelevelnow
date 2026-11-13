@@ -11,9 +11,9 @@ const powell = alm.lakes.find((l) => l.slug === 'lake-powell');
 const id = place.replace('-', '_');
 ---
 {powell && (
-  <aside class="mead-alm" data-alm-place={place} aria-labelledby={`mead-alm-${place}`}>
-    <h2 id={`mead-alm-${place}`}>The Almanac for the lake upstream</h2>
-    <p>Lake Mead is not in the Lake Level Almanac. Lake Powell, upstream on the same river, is in it. It shows whether Powell is normal for each date of the year, from {powell.years} years of daily readings.</p>
+  <aside class="mead-alm" data-alm-place={place} data-cro="mead-almanac-powell-true" aria-labelledby={`mead-alm-${place}`}>
+    <h2 id={`mead-alm-${place}`}>Lake Powell almanac: the reservoir that feeds Lake Mead</h2>
+    <p>The Lake Level Almanac covers Lake Powell, upstream on the same river (the Lake Mead history is the free chart on this site). It shows whether Powell is normal for each date of the year, from {powell.years} years of daily readings.</p>
     <div class="mead-alm-cta">
       <a class="mead-alm-btn" href={SINGLE ? `${SINGLE}?client_reference_id=lake-powell` : '/almanac/#pick'} rel="nofollow" data-lake="lake-powell" data-cta={`${id}_almanac_powell`}>Lake Powell almanac, ${alm.priceSingleUsd}</a>
       <a class="mead-alm-alt" href="/almanac/" data-cta={`${id}_almanac_all`}>All {alm.lakeCount} lakes, ${alm.priceBundleUsd}, with a free sample</a>

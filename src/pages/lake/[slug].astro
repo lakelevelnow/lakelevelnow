@@ -8,6 +8,7 @@ import AdSlot from '../../components/AdSlot.astro';
 import AskAiCard from '../../components/AskAiCard.astro';
 import StatusStrip from '../../components/StatusStrip.astro';
 import LocalDirectory from '../../components/LocalDirectory.astro';
+import LevelAlerts from '../../components/LevelAlerts.astro';
 import LakeFacts from '../../components/LakeFacts.astro';
 import WaitlistTest from '../../components/WaitlistTest.astro';
 import PosterOffer from '../../components/PosterOffer.astro';
@@ -241,10 +242,11 @@ import almPrice from '../../data/almanac.json';
           <a href={import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? `${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=${slug}` : '/almanac/#pick'} rel="nofollow" data-lake={slug} data-cta="lake_hero_almanac">Get it for ${almPrice.priceSingleUsd}</a>
           <span class="lake-alm-micro">One payment, 60-day refund.</span></p>
       )}
+      {/* CRO 2026-11-13 (livedata impl): the Mead hero no longer leads with what the product
+          lacks. It offers what is true for Mead today: the free level-alerts waitlist below. */}
       {slug === 'lake-mead' && (
-        <p class="lake-alm-line" data-alm-place="mead-hero">Lake Mead is not in the Almanac. Lake Powell, upstream on the same river, is.
-          <a href={import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? `${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=lake-powell` : '/almanac/#pick'} rel="nofollow" data-lake="lake-powell" data-cta="mead_hero_powell">Lake Powell almanac, ${almPrice.priceSingleUsd}</a>
-          <span class="lake-alm-micro">One payment, 60-day refund.</span></p>
+        <p class="lake-alm-line" data-alm-place="mead-hero" data-cro="mead-hero-alerts">Want an email when Lake Mead crosses a level you pick?
+          <a href="#lln-alerts" data-cta="mead_hero_alerts">Join the Lake Mead alerts list, free</a></p>
       )}
     </div>
 
@@ -292,6 +294,7 @@ import almPrice from '../../data/almanac.json';
         normal, and this answers it before asking for anything. Renders nothing for a lake
         with no long record, so all 44 pages are safe to wrap. */}
     <AlmanacContext slug={slug} level={live ? reading!.level_ft : null} asOf={live ? reading!.as_of : null} />
+    {(slug === 'lake-mead' || slug === 'lake-powell') && <LevelAlerts slug={slug} name={lake.name} placement={slug === 'lake-mead' ? 'mead-alerts' : 'powell-alerts'} cro={slug === 'lake-mead' ? 'mead-alerts-signup' : 'powell-alerts-signup'} business />}
     {slug === 'lake-mead' && <MeadAlmanacNote place="mead" />}
     {/* With no listings, the small invite to businesses comes after the Almanac block. */}
     {(slug === 'lake-mead' || slug === 'lake-powell') && <LocalDirectory part="invite" slug={slug} lakeName={lake.name} placement={slug === 'lake-mead' ? 'mead-lake-dir' : 'powell-lake-dir'} />}

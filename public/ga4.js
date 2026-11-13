@@ -5,6 +5,9 @@
   var script = document.currentScript;
   var measurementId = script && script.getAttribute('data-measurement-id');
   if (!/^G-[A-Z0-9]+$/.test(measurementId || '') || window.__siteGA4) return;
+  // CRO 2026-11-13: production hostnames only. Previews (*.workers.dev, *.pages.dev, github.io),
+  // localhost and 127.0.0.1 never send hits, so QA traffic cannot reach the GA4 property.
+  if (!/^(www\.)?(lakelevelnow|ingredientcalculator)\.com$/.test(location.hostname)) return;
   if (navigator.doNotTrack === '1' || window.doNotTrack === '1' || navigator.globalPrivacyControl) return;
   window.__siteGA4 = true;
   var lake = script.getAttribute('data-site') === 'lakelevelnow';
