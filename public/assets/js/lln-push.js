@@ -40,10 +40,12 @@
       return r.pushManager.getSubscription().then(function (sub) {
         return sub || r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(VAPID) });
       }).then(function (sub) {
-        var s = load();
+        var s = load(), had = !!(s.rules && s.rules.length);
         return post('/subscribe', { sub: sub.toJSON(), rules: rules.map(function (x) { return { lake: x.lake, level: x.level }; }),
           digest: digest || s.digest || 'off', token: pro() ? s.token : undefined }).then(function (j) {
           if (j.ok) {
+            // KV reads can be up to 60 s stale; count a lead only for a browser that had no alert before.
+            j.new = !!j.new && !had;
             var names = {};
             rules.forEach(function (x) { names[x.lake] = x.name; });
             s.rules = (j.rules || []).map(function (x) { return { lake: x.lake, level: x.level, name: x.name || names[x.lake] || x.lake, now: x.now, side: x.side }; });

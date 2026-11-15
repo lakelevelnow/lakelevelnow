@@ -321,6 +321,18 @@ export default {
       try { return json({ ok: true, dry_run: true, ...(await runCheck(env, { send: false })) }); }
       catch (e) { return json({ ok: false, error: String(e && e.message || e) }, 500); }
     }
+    // Admin: send one test notification to one stored subscription (id = first 10 hex of its key, from dry-run items).
+    if (url.pathname === '/admin/test-push' && request.method === 'POST') {
+      const auth = request.headers.get('Authorization') || '';
+      if (!env.ADMIN_TOKEN || !auth.startsWith('Bearer ') || !(await timingSafeEq(auth.slice(7), env.ADMIN_TOKEN))) return json({ ok: false }, 401);
+      const sid = url.searchParams.get('id') || '';
+      if (!/^[a-f0-9]{10}$/.test(sid)) return json({ ok: false, error: 'id' }, 400);
+      const page = await env.LLN_ALERTS.list({ prefix: 's:' + sid, limit: 2 });
+      if (page.keys.length !== 1) return json({ ok: false, error: 'not_found' }, 404);
+      const rec = await env.LLN_ALERTS.get(page.keys[0].name, 'json');
+      const status = await sendPush(env, rec.sub, { title: 'Test lake alert', body: 'Lake alerts work in this browser.', url: '/alerts/', tag: 'test' });
+      return json({ ok: status >= 200 && status < 300, push_status: status });
+    }
     if (url.pathname === '/unlock' && request.method === 'GET') {
       const sid = url.searchParams.get('session_id') || '';
       if (!SID_RE.test(sid)) return json({ ok: false, error: 'session_id' }, 400, h);
