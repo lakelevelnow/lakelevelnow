@@ -17,13 +17,13 @@
       "id": "weekend",
       "title": "Friday lake report",
       "body": "One email each Friday with the {Lake} level, the 7-day trend and what changed.",
-      "price": "Free."
+      "price": "Free at launch."
     },
     {
       "id": "forecast",
       "title": "Where {Lake} could be in 30, 60 and 90 days",
       "body": "A plain-English monthly email with the Reclamation projection for {Lake} and how far off past projections were.",
-      "price": "$29 a year.",
+      "price": "$29 a year at launch.",
       "lakes": [
         "lake-mead",
         "lake-powell",
@@ -34,13 +34,13 @@
       "id": "ramps",
       "title": "Boat ramp alerts for {Lake}",
       "body": "Email when a ramp opens or closes at the current level.",
-      "price": "$9 a season."
+      "price": "$9 a season at launch."
     },
     {
       "id": "rent",
       "title": "Rent a boat at {Lake}",
       "body": "A short list of local boat rentals with prices and reviews. We email you once when it is ready.",
-      "price": "Free."
+      "price": "Free at launch."
     }
   ],
   "_note_alerts": "2026-11-15 lane L: the alerts offer left the waitlist test. Alerts are live by web push (LevelAlerts.astro, /alerts/)."
