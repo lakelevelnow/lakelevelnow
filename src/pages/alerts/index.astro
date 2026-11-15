@@ -1,0 +1,168 @@
+---
+// /alerts/ (sprint-20261115, lane L): manage lake level alerts (web push) and unlock Lake Alerts Pro.
+// Stripe Payment Link "LakeLevelNow Lake Alerts - 12 months" ($19 one-time, offer_id alerts) returns here
+// with ?session_id=. The lln-alerts Worker verifies the session with Stripe (payment link, paid, live)
+// and returns a signed Pro token (12 months from the purchase) and a receipt. GA4 purchase fires once
+// per session through ga4.js __siteGA4Purchase (localStorage dedupe). data-cro sprint-20261115-purchase.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { LAKES, getReading, fmtNum } from '../../lib/lakes';
+const lakes = LAKES.map((l) => ({ l, r: getReading(l.slug) }))
+  .filter((x) => x.r && x.r.level_ft != null && Number.isFinite(x.r.level_ft))
+  .map((x) => ({ slug: x.l.slug, name: x.l.name, state: x.l.state, level: x.r!.level_ft as number }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+const BUY = 'https://buy.stripe.com/8x25kE3seek8fopebb43S3R';
+const title = 'Lake level alerts: get a notification when a lake crosses your level';
+const description = 'Free web push alert for one lake and one level. Lake Alerts Pro: every lake, up to 25 levels and a daily or weekly summary, $19 for 12 months.';
+---
+<BaseLayout title={title} description={description} path="/alerts/" noindex={true}>
+  <div class="container al" data-cro="sprint-20261115-lln-push-alerts">
+    <h1>Lake level alerts</h1>
+    <p class="readable">Get a notification in this browser when a lake goes above or below a level you pick. We check the levels every 6 hours. The lake data comes from USGS, CDEC, USBR and TWDB and updates about once a day. No email and no account.</p>
+
+    <div id="al-unlock" class="al-box" hidden data-cro="sprint-20261115-purchase">
+      <h2 id="al-unlock-t">Checking your purchase</h2>
+      <p id="al-unlock-b">One moment. We are confirming the payment with Stripe.</p>
+    </div>
+
+    <div class="al-box">
+      <h2>Your alerts <span id="al-plan" class="al-plan">Free plan: 1 alert</span></h2>
+      <ul id="al-list" class="al-list"><li class="al-empty">No alerts in this browser yet.</li></ul>
+      <p id="al-digest-row" hidden>
+        <label for="al-digest"><strong>Level summary</strong> (Pro):</label>
+        <select id="al-digest"><option value="off">Off</option><option value="daily">Daily</option><option value="weekly">Weekly</option></select>
+      </p>
+      <form id="al-add" class="al-add" novalidate>
+        <label for="al-lake">Lake</label>
+        <select id="al-lake" required>
+          {lakes.map((x) => <option value={x.slug} data-level={x.level} data-name={x.name}>{x.name} ({x.state}), now {fmtNum(x.level, 1)} ft</option>)}
+        </select>
+        <label for="al-level">Level in feet</label>
+        <input id="al-level" type="number" inputmode="decimal" step="0.1" min="1" max="20000" required />
+        <button type="submit" id="al-go" data-cta="alerts_page_add">Add alert</button>
+      </form>
+      <p id="al-st" class="al-st" role="status" aria-live="polite"></p>
+      <p><button type="button" id="al-off" class="al-link">Turn off all alerts in this browser</button></p>
+    </div>
+
+    <div class="al-box al-pro" id="al-pro" data-s2-offer="alerts" data-s2-product="lake_alerts" data-s2-price="19" data-alm-place="alerts-page" data-cro="sprint-20261115-lln-alerts-pro">
+      <h2>Lake Alerts Pro: $19 for 12 months</h2>
+      <ul>
+        <li>Alerts for every lake on LakeLevelNow ({lakes.length} lakes with a level reading today).</li>
+        <li>Up to 25 alerts, each with your own level in feet.</li>
+        <li>An optional daily or weekly summary of your lakes.</li>
+        <li>One payment of $19. It does not renew. After 12 months your first alert keeps working free.</li>
+      </ul>
+      <p><a class="al-buy" href={BUY} data-cta="alerts_page_pro" rel="noopener">Get Lake Alerts Pro, $19</a></p>
+      <p class="al-small">Pay with Stripe. After payment you come back to this page and Pro unlocks in this browser. Keep the page address that Stripe sends you back to: open it in another browser to unlock Pro there too.</p>
+    </div>
+
+    <div class="al-box">
+      <h2>Which browsers work</h2>
+      <ul>
+        <li>Chrome, Edge and Firefox on Windows, Mac, Linux and Android: yes.</li>
+        <li>Safari on Mac (macOS 13 or later): yes.</li>
+        <li>iPhone and iPad: only after you tap Share, then Add to Home Screen, and open LakeLevelNow from the Home Screen icon (iOS 16.4 or later). Set the alert from there.</li>
+      </ul>
+      <p>Alerts belong to this browser. If you clear site data or block notifications, alerts stop. Questions or a payment problem: <a href="/contact/">contact us</a>. <a href="/privacy/#alerts">Privacy</a></p>
+    </div>
+  </div>
+  <script is:inline src="/assets/js/lln-push.js?v=1" defer></script>
+  <script is:inline data-cro="sprint-20261115-purchase">
+  /* sprint-20261115-purchase (lane L). Stripe returns ?session_id=cs_live_...; the lln-alerts Worker verifies it
+     (our payment link, paid, live) and returns a Pro token + receipt. GA4 purchase once per session (ga4.js dedupe). */
+  window.addEventListener('load', function () {
+    var P = window.LLNPush; if (!P) return;
+    var $ = function (id) { return document.getElementById(id); };
+    var list = $('al-list'), st = $('al-st'), sel = $('al-lake'), lvl = $('al-level'), dg = $('al-digest');
+    function say(t, bad) { st.textContent = t; st.classList.toggle('al-bad', !!bad); }
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function nameOf(slug) { var o = sel.querySelector('option[value="' + slug + '"]'); return o ? o.getAttribute('data-name') : slug; }
+    function render() {
+      var s = P.state(), rules = s.rules || [], pro = P.pro();
+      $('al-plan').textContent = pro ? 'Pro until ' + new Date(s.exp * 1000).toLocaleDateString() + ': up to 25 alerts' : 'Free plan: 1 alert';
+      $('al-digest-row').hidden = !pro; dg.value = s.digest || 'off';
+      $('al-go').textContent = pro || !rules.length ? 'Add alert' : 'Replace my free alert';
+      list.innerHTML = rules.length ? rules.map(function (x, i) {
+        return '<li><a href="/lake/' + esc(x.lake) + '/">' + esc(x.name || nameOf(x.lake)) + '</a> at <strong>' + esc(x.level) + ' ft</strong> <button type="button" class="al-link" data-rm="' + i + '">Remove</button></li>';
+      }).join('') : '<li class="al-empty">No alerts in this browser yet.</li>';
+    }
+    function setDefaultLevel() { var o = sel.options[sel.selectedIndex]; if (o) lvl.value = Math.round(Number(o.getAttribute('data-level'))); }
+    sel.addEventListener('change', setDefaultLevel);
+    try { var q = new URLSearchParams(location.search).get('lake'); if (q && sel.querySelector('option[value="' + q + '"]')) sel.value = q; } catch (_) {}
+    setDefaultLevel();
+    function save(rules, digest, okText) {
+      if (!rules.length) return P.unsubscribe().then(function () { render(); say('All alerts in this browser are off.'); });
+      say('Saving');
+      return P.subscribe(rules, digest).then(function (j) {
+        if (j.ok) { if (j.new) P.ga('generate_lead', { placement: 'alerts-page', lake_slug: rules[rules.length - 1].lake }); render(); say(okText); }
+        else say(j.error === 'need_pro' ? 'The free plan has one alert. Get Lake Alerts Pro for more.' : 'Sorry, that did not work. Please try again in a minute.', true);
+      }).catch(function (e) {
+        var m = e && e.message;
+        say(m === 'denied' ? 'Notifications are blocked for this site. Allow them in your browser settings, then try again.' :
+          m === 'ios_install' ? 'On iPhone and iPad: tap Share, then Add to Home Screen, then open LakeLevelNow from that icon (iOS 16.4 or later).' :
+          m === 'unsupported' ? 'This browser cannot show web notifications. Use Chrome, Edge or Firefox.' : 'Sorry, that did not work. Please try again in a minute.', true);
+      });
+    }
+    $('al-add').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var v = Math.round(Number(lvl.value) * 10) / 10;
+      if (!(v > 0 && v < 20000)) { say('Please enter a level in feet.', true); return; }
+      var slug = sel.value, name = nameOf(slug), rules = (P.state().rules || []).slice();
+      P.ga('cta_click', { placement: 'alerts-page', lake_slug: slug });
+      if (P.pro()) {
+        if (rules.length >= 25) { say('Pro has up to 25 alerts. Remove one first.', true); return; }
+        rules = rules.filter(function (x) { return !(x.lake === slug && x.level === v); }); rules.push({ lake: slug, level: v, name: name });
+      } else rules = [{ lake: slug, level: v, name: name }];
+      save(rules, dg.value, 'Saved. You get a notification when ' + name + ' crosses ' + v + ' ft.');
+    });
+    list.addEventListener('click', function (ev) {
+      var b = ev.target.closest && ev.target.closest('[data-rm]'); if (!b) return;
+      var rules = (P.state().rules || []).slice(); rules.splice(Number(b.getAttribute('data-rm')), 1);
+      save(rules, dg.value, 'Removed.');
+    });
+    dg.addEventListener('change', function () { var rules = P.state().rules || []; if (rules.length) save(rules, dg.value, 'Saved: summary ' + dg.value + '.'); else { var s = P.state(); s.digest = dg.value; P.save(s); } });
+    $('al-off').addEventListener('click', function () { P.unsubscribe().then(function () { render(); say('All alerts in this browser are off.'); }); });
+    render();
+    // Sync with the Worker (the browser may have lost local storage, or the subscription expired).
+    P.mine().then(function (j) {
+      if (j && j.ok && j.found) { var s = P.state(); s.rules = j.rules.map(function (x) { return { lake: x.lake, level: x.level, name: nameOf(x.lake) }; }); s.digest = j.digest; P.save(s); render(); }
+    }).catch(function () {});
+    // Unlock after payment.
+    var sid = ''; try { sid = new URLSearchParams(location.search).get('session_id') || ''; } catch (_) {}
+    if (!/^cs_live_[A-Za-z0-9]+$/.test(sid)) return;
+    var box = $('al-unlock'); box.hidden = false;
+    P.unlock(sid).then(function (j) {
+      if (j.ok) {
+        $('al-unlock-t').textContent = 'Lake Alerts Pro is active';
+        $('al-unlock-b').textContent = 'Thank you. Pro is unlocked in this browser until ' + new Date(j.expires * 1000).toLocaleDateString() + '. Add alerts for any lake below. Bookmark this page address to unlock Pro in another browser.';
+        function fire() { if (typeof window.__siteGA4Purchase === 'function') window.__siteGA4Purchase(j.payment_receipt, sid); }
+        if (typeof window.__siteGA4Purchase === 'function') fire(); else document.addEventListener('site-ga4-ready', fire, { once: true });
+        render();
+        var rules = P.state().rules || [];
+        if (rules.length && window.Notification && Notification.permission === 'granted') P.subscribe(rules).then(render).catch(function () {});
+      } else {
+        $('al-unlock-t').textContent = j.retry ? 'We could not reach Stripe' : 'We could not confirm this payment';
+        $('al-unlock-b').textContent = j.retry ? 'Please reload this page in a minute.' : 'This link is not a paid Lake Alerts Pro purchase. If you paid, please contact us with your Stripe receipt.';
+      }
+    }).catch(function () { $('al-unlock-t').textContent = 'We could not reach the server'; $('al-unlock-b').textContent = 'Please reload this page in a minute.'; });
+  });
+  </script>
+  <style>
+    .al { padding: 28px 0 40px; max-width: 760px; }
+    .al-box { margin: 18px 0; padding: 16px 20px; border: 1px solid var(--border); border-radius: var(--r); background: var(--card); }
+    .al-box h2 { margin: 0 0 8px; font-size: 19px; }
+    .al-pro { border-left: 4px solid var(--teal); }
+    .al-plan { font-size: 13px; font-weight: 600; color: var(--teal-deep); margin-left: 6px; }
+    .al-list { margin: 0 0 12px; padding-left: 18px; }
+    .al-list li { margin: 4px 0; }
+    .al-empty { color: var(--t2); list-style: none; margin-left: -18px; }
+    .al-add { display: grid; gap: 6px; max-width: 420px; }
+    .al-add select, .al-add input { min-height: 44px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font: 16px var(--sans); background: #fff; color: var(--t1); }
+    .al-add button, .al-buy { min-height: 46px; padding: 10px 18px; border: 0; border-radius: 6px; background: var(--teal); color: #fff !important; font: 600 15px var(--sans); cursor: pointer; text-decoration: none; display: inline-block; box-sizing: border-box; }
+    .al-buy { background: var(--teal-deep); }
+    .al-link { background: none; border: 0; padding: 6px 0; color: var(--teal-deep); text-decoration: underline; cursor: pointer; font: inherit; }
+    .al-st { min-height: 1em; color: var(--teal-deep); }
+    .al-st.al-bad { color: var(--burnt); }
+    .al-small { font-size: 13px; color: var(--t2); }
+  </style>
+</BaseLayout>

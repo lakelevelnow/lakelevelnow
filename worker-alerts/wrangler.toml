@@ -1,0 +1,21 @@
+# lln-alerts: lake level alerts by Web Push (sprint-20261115, lane L). Separate from lake-level-almanac
+# on purpose: that Worker owns the Stripe webhook and almanac downloads.
+# Secrets (wrangler secret put): VAPID_PRIVATE_JWK, TOKEN_KEY, STRIPE_KEY (restricted sprint key), ADMIN_TOKEN.
+name = "lln-alerts"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+workers_dev = true
+
+# Lake data updates once a day (GitHub Pages CI 09:23 UTC). Check every 6 hours, never more often.
+[triggers]
+crons = ["17 */6 * * *"]
+
+[[kv_namespaces]]
+binding = "LLN_ALERTS"
+id = "95bafcf10d0141c29b3917d9dc554045"
+
+[vars]
+LEVELS_URL = "https://lakelevelnow.com/alerts/levels.json"
+VAPID_PUBLIC = "BHiGHtIJBRwotk3uKLXsoljfbqWv_jZwWY7OzSRfvSpqA9IEQJmGRcV1te49QEkjcBjjkvFjdSEF16Cwuk6eV_g"
+# Stripe Payment Link "LakeLevelNow Lake Alerts - 12 months" ($19 one-time), offer_id alerts.
+PLINK_IDS = "plink_1UbvuAJKCamubEm1QdQJJf80"

@@ -37,6 +37,9 @@ const EMAIL = 'support@zovo.one';
       <h2 id="waitlist">Waitlist email</h2>
       <p>Some lake pages show a planned feature with a "Get early access" button. If you leave your email address there, our Cloudflare Worker stores it in Cloudflare KV with the feature you picked, the lake page, the time and your country. We use it once, to tell you when that feature is ready. We do not sell or share it and we add it to no other list. To limit abuse, the Worker also keeps a one-way hash of your IP address for two days. To have your address deleted, ask on the <a href="/contact/">contact page</a>.</p>
 
+      <h2 id="alerts">Lake level alerts (browser notifications)</h2>
+      <p>If you set a lake level alert, your browser creates a push address (a long URL at Google, Mozilla, Microsoft or Apple, depending on your browser) and two keys. Our Cloudflare Worker stores them in Cloudflare KV with the lakes and levels you picked, the time and, if you bought Lake Alerts Pro, the end date and a one-way hash of the Stripe checkout reference. We use them only to send the alerts and summaries you asked for. We do not ask for your name or email for alerts. The record is deleted when you turn alerts off on the <a href="/alerts/">alerts page</a>, or when your browser's push service tells us the address no longer works. Lake Alerts Pro is paid on Stripe's own site.</p>
+
       <h2 id="logs">Hosting logs</h2>
       <p>The site is hosted on GitHub Pages. Like any web host, GitHub may log IP addresses and request details for security and operations. We do not receive or keep those logs.</p>
 

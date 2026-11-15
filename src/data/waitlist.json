@@ -14,12 +14,6 @@
   "limit": "Too many sign-ups from this connection today. Please try again tomorrow.",
   "offers": [
     {
-      "id": "alerts",
-      "title": "Level alerts for {Lake}",
-      "body": "Email when {Lake} rises or falls past a level you pick.",
-      "price": "$19/yr at launch. Joining the waitlist is free."
-    },
-    {
       "id": "weekend",
       "title": "Friday lake report",
       "body": "One email each Friday with the {Lake} level, the 7-day trend and what changed.",
@@ -48,5 +42,6 @@
       "body": "A short list of local boat rentals with prices and reviews. We email you once when it is ready.",
       "price": "Free."
     }
-  ]
+  ],
+  "_note_alerts": "2026-11-15 lane L: the alerts offer left the waitlist test. Alerts are live by web push (LevelAlerts.astro, /alerts/)."
 }
