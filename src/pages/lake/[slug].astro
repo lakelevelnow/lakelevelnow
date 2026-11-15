@@ -296,7 +296,7 @@ import almPrice from '../../data/almanac.json';
         with no long record, so all 44 pages are safe to wrap. */}
     <AlmanacContext slug={slug} level={live ? reading!.level_ft : null} asOf={live ? reading!.as_of : null} />
     {/* Sprint 2026-11-15 lane L: web push level alerts on every lake page with a level reading (1 free alert, Pro $19 for 12 months). */}
-    <LevelAlerts slug={slug} name={lake.name} placement={slug === 'lake-mead' ? 'mead-alerts' : slug === 'lake-powell' ? 'powell-alerts' : 'lake-alerts'} business={slug === 'lake-mead' || slug === 'lake-powell'} />
+    <LevelAlerts slug={slug} name={lake.name} placement={slug === 'lake-mead' ? 'mead-alerts' : slug === 'lake-powell' ? 'powell-alerts' : 'lake-alerts'} cro={slug === 'lake-mead' ? 'mead-alerts-signup' : slug === 'lake-powell' ? 'powell-alerts-signup' : undefined} business={slug === 'lake-mead' || slug === 'lake-powell'} />
     {slug === 'lake-mead' && <MeadAlmanacNote place="mead" />}
     {/* With no listings, the small invite to businesses comes after the Almanac block. */}
     {(slug === 'lake-mead' || slug === 'lake-powell') && <LocalDirectory part="invite" slug={slug} lakeName={lake.name} placement={slug === 'lake-mead' ? 'mead-lake-dir' : 'powell-lake-dir'} />}

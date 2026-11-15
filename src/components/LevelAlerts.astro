@@ -9,7 +9,8 @@
 import dir from '../data/directory.json';
 import { getReading, fmtNum, lastReadingDate } from '../lib/lakes';
 interface Props { slug: string; name: string; placement: string; cro?: string; business?: boolean }
-const { slug, name, placement, business } = Astro.props;
+const { slug, name, placement, cro, business } = Astro.props;
+const legacy = cro && /^[a-z0-9-]{1,60}$/.test(cro) ? cro : undefined;
 const place = /^[a-z0-9-]{1,40}$/.test(placement) ? placement : 'lake-alerts';
 const r = getReading(slug);
 const level = r && r.level_ft != null && Number.isFinite(r.level_ft) ? r.level_ft : null;
@@ -23,7 +24,7 @@ const cta = `${place.replace(/-/g, '_')}`.slice(0, 32);
   <p class="la-k">Lake level alerts: 1 free alert</p>
   <h2 class="la-t" id={`${id}-t`}>Alert me when {name} crosses a level I choose</h2>
   <p class="la-b">{name} is at <strong>{fmtNum(level, 1)} ft</strong> (reading of {lastReadingDate(r!.as_of)}). Pick a level in feet. We check the level every 6 hours and send a notification to this browser when {name} goes above or below your level. No email needed.</p>
-  <form class="la-f" novalidate>
+  <form class="la-f" novalidate data-cro={legacy}>
     <label class="la-l" for={`${id}-v`}>Your level in feet</label>
     <div class="la-row">
       <input class="la-e" id={`${id}-v`} name="level" type="number" inputmode="decimal" step="0.1" min="1" max="20000" value={Math.round(level)} required />
@@ -38,7 +39,7 @@ const cta = `${place.replace(/-/g, '_')}`.slice(0, 32);
   </div>
   <p class="la-n">Works in Chrome, Edge and Firefox on desktop and Android. On iPhone or iPad: tap Share, then Add to Home Screen, then open LakeLevelNow from the Home Screen icon (iOS 16.4 or later). Alerts use the same daily reading as this page. <a href="/privacy/#alerts">Privacy</a></p>
   {business && (
-    <p class="la-biz">Run a marina, boat rental or guide service at {name}? <a href="/advertise/" data-cta="alerts_box_advertise">Get listed on the {name} level page, ${dir.priceUsd} a year</a></p>
+    <p class="la-biz" data-cro={legacy ? `${legacy}-advertise` : undefined}>Run a marina, boat rental or guide service at {name}? <a href="/advertise/" data-cta="alerts_box_advertise">Get listed on the {name} level page, ${dir.priceUsd} a year</a></p>
   )}
 </section>
 )}
