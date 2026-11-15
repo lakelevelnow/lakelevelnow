@@ -11,10 +11,12 @@ import WaitlistTest from '../../../components/WaitlistTest.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import DepthGauge from '../../../components/DepthGauge.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
+import almDepth from '../../../data/almanac.json';
 import { LAKES, getReading, fmtNum, POWELL_BAND, changeOverSeries, feedLabel, POWELL_HISTORY, POWELL_HISTORY_SOURCE, compareToMark, fmtRecordDate} from '../../../lib/lakes';
 import { authorLd, breadcrumbLd, speakableLd, absUrl, orgRef } from '../../../lib/seo';
 
 const lake = LAKES.find((l) => l.slug === 'lake-powell')!;
+const powellAlm = almDepth.lakes.find((l) => l.slug === 'lake-powell');
 const reading = getReading('lake-powell');
 const live = !!(reading && reading.fresh);
 const elev = live ? reading!.level_ft : null;
@@ -129,6 +131,11 @@ const faqs = [
     <div style="padding-top:16px;">
       <h1>How deep is Lake Powell right now?</h1>
       <p style="font-size:13px;color:var(--t2);margin-top:8px;">By <a href="/about/">Michael</a>, independent developer behind <a href="https://zovo.one" rel="noopener">zovo.one</a>.{asOfFmt && ` Data checked ${asOfFmt}.`}</p>
+      {/* Sprint 2026-11-15 (lane E): the Powell almanac in the first phone screen, one text link to Stripe. */}
+      <p class="lake-alm-line" data-alm-place="depth-hero" data-cro="sprint-20261115-lln-depth-almanac"
+         data-s2-offer="lln-almanac-single" data-s2-product="almanac_single" data-s2-price={almDepth.priceSingleUsd}>Is this depth normal for the date? The Lake Powell almanac has {powellAlm?.years ?? 60} years of daily levels and the normal range for every date.
+        <a href={import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? `${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=lake-powell` : '/almanac/#pick'} rel="nofollow" data-lake="lake-powell" data-cta="depth_hero_almanac">Get the Lake Powell almanac, ${almDepth.priceSingleUsd}</a>
+        <span class="lake-alm-micro">One payment, instant download, 60-day refund. <a class="lake-alm-alt" href={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE || '/almanac/'} rel="nofollow" data-cta="depth_hero_bundle">All {almDepth.lakeCount} lakes, ${almDepth.priceBundleUsd}</a></span></p>
     </div>
 
     {qas && <p class="qas" data-keyword="lake powell water depth" style="font-size:15px;color:var(--t1);margin-top:14px;max-width:660px;font-weight:500;">{qas}</p>}

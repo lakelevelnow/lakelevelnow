@@ -173,7 +173,9 @@
     var anchorLake = anchor.getAttribute('data-lake');
     var lakeSlug = /^[a-z0-9-]{1,40}$/.test(anchorLake || '') ? anchorLake :
       /^\/lake\/[a-z0-9-]+$/.test(path) ? path.split('/')[2] : '';
+    // Sprint 2026-11-15: begin_checkout also carries site, product and price.
     return Object.assign({ currency: 'USD', value: product.price, items: [product], placement: placement(anchor),
+      site: site, product: product.item_id, price: product.price,
       ...(lake && lakeSlug && product.item_id === 'almanac_single' ? { lake_slug: lakeSlug } : {}) }, ctaId(anchor));
   }
   if (lake ? path === '/almanac' : path === '/pro' || path === '/kitchen-pack') {
@@ -278,6 +280,35 @@
       records.forEach(function (record) { record.addedNodes.forEach(register); });
     }).observe(document.body, { childList: true, subtree: true });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', observeOffers, { once: true });
-  else observeOffers();
+  // Sprint 2026-11-15 (lane E): offer_view for the first-screen offer blocks ([data-s2-offer]).
+  // Sent once per block, only after a real scroll, tap or key press, and only while the block is visible.
+  function observeS2Offers() {
+    var blocks = Array.prototype.slice.call(document.querySelectorAll('[data-s2-offer]'));
+    if (!blocks.length || !window.IntersectionObserver) return;
+    var visible = new Set(), interacted = false;
+    function fire(el) {
+      var id = el.getAttribute('data-s2-offer'), prod = el.getAttribute('data-s2-product'), price = Number(el.getAttribute('data-s2-price'));
+      if (!/^[a-z0-9_-]{1,40}$/.test(id || '') || !/^[a-z0-9_-]{1,40}$/.test(prod || '') || !(price > 0 && price < 10000)) return;
+      var place = el.getAttribute('data-alm-place');
+      event('offer_view', { offer_id: id, site: site, product: prod, price: price, value: price, currency: 'USD',
+        placement: /^[a-z0-9-]{1,40}$/.test(place || '') ? place : 'content' }, 'offer_view:s2:' + id + ':' + (place || ''));
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && e.intersectionRatio >= 0.5) { visible.add(e.target); if (interacted) fire(e.target); }
+        else visible.delete(e.target);
+      });
+    }, { threshold: 0.5 });
+    blocks.forEach(function (b) { io.observe(b); });
+    function onInteract() {
+      if (interacted) return;
+      interacted = true;
+      visible.forEach(fire);
+      ['scroll', 'pointerdown', 'keydown', 'touchstart'].forEach(function (t) { window.removeEventListener(t, onInteract, true); });
+    }
+    ['scroll', 'pointerdown', 'keydown', 'touchstart'].forEach(function (t) { window.addEventListener(t, onInteract, { capture: true, passive: true }); });
+  }
+  function startOffers() { observeOffers(); observeS2Offers(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startOffers, { once: true });
+  else startOffers();
 })();

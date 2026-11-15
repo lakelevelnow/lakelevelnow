@@ -77,12 +77,15 @@ const almFeatureSentence = almFeature ? liveSentence(almFeature) : '';
       <h1>Live US lake &amp; reservoir water levels</h1>
       <p class="lead">Percent full and 30-day trend from USGS and CDEC gages, with a plain-English read on whether you can launch a boat.</p>
       {/* CRO 2026-11-06 R2: say what is free and what is paid on the first screen, at 390 px too. */}
-      <div class="hero-offer" data-alm-place="home-hero">
-        <p class="hero-offer-t">Live levels are free on every page. The paid Lake Level Almanac adds {almYearsMin} to {almYearsMax} years of daily history for one lake.</p>
-        <p class="hero-offer-p">${almanacData.priceSingleUsd} once for one lake, or ${almanacData.priceBundleUsd} for all {almanacData.lakeCount} Almanac lakes. 60-day refund.</p>
+      {/* Sprint 2026-11-15 (lane E): the home hero sells the all-lakes bundle in one click to Stripe. */}
+      <div class="hero-offer" data-alm-place="home-hero" data-cro="sprint-20261115-lln-home-bundle"
+           data-s2-offer="lln-almanac-bundle" data-s2-product="almanac_bundle" data-s2-price={almanacData.priceBundleUsd}>
+        <p class="hero-offer-t">Live levels are free on every page. The paid Lake Level Almanac adds {almYearsMin} to {almYearsMax} years of daily history: the normal range for every date, a ramp-threshold tool and CSV records.</p>
+        <p class="hero-offer-p">All {almanacData.lakeCount} Almanac lakes for ${almanacData.priceBundleUsd} once, or ${almanacData.priceSingleUsd} for one lake. Instant download, 60-day refund.</p>
         <div class="hero-offer-cta">
-          <a class="hero-offer-btn" href="/almanac/" data-cta="home_hero_almanac">See the Almanac, from ${almanacData.priceSingleUsd}</a>
-          <a class="hero-offer-alt" href="/almanac/sample/" data-cta="home_hero_sample">Open a free sample</a>
+          <a class="hero-offer-btn" href={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE || '/almanac/'} rel="nofollow" data-cta="home_hero_bundle">Get all {almanacData.lakeCount} lakes, ${almanacData.priceBundleUsd}</a>
+          <a class="hero-offer-alt" href="/almanac/#pick" data-cta="home_hero_almanac">One lake, ${almanacData.priceSingleUsd}</a>
+          <a class="hero-offer-alt" href="/almanac/sample/" data-cta="home_hero_sample">Free sample</a>
         </div>
       </div>
       {/* Lane LD 2026-11-09: the live $9 posters (sku llp), one compact entry in the first
