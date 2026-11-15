@@ -106,13 +106,7 @@ const description = 'Download the almanac you just bought. The link is verified 
       .then(function (res) {
         var j = res.j;
         if (j && j.ok) {
-          if (res.s === 200) {
-            var trackReceipt = function () {
-              if (window.__siteGA4Purchase) window.__siteGA4Purchase(j.payment_receipt, sid);
-              else document.addEventListener('site-ga4-ready', trackReceipt, { once: true });
-            };
-            trackReceipt();
-          }
+          // GA4 purchase: sent by the sprint-20261115-purchase script below (fleet verifier), not here, so it fires once.
           hd.textContent = 'Thank you, here it is';
           sub.textContent = 'Payment confirmed with Stripe.';
           document.getElementById('lakeName').textContent =
@@ -153,5 +147,44 @@ const description = 'Download the almanac you just bought. The link is verified 
           'page in a minute, or get in touch through <a href="/about/">the contact page</a> with the ' +
           'reference below.');
       });
+  })();
+</script>
+
+<script is:inline data-cro="sprint-20261115-purchase">
+  /* sprint-20261115-purchase (lane D). Server-verified GA4 purchase: reads ?session_id= or #s=, asks the
+     fleet verifier (Stripe check server side, success_url must be lakelevelnow.com), then fires purchase once
+     through the site's own gtag after ga4.js has run its config (ga4.js keeps its host allowlist, DNT and GPC
+     rules). Dedupe: localStorage per transaction_id, plus the key the older ga4.js purchase path wrote. */
+  (function () {
+    var SITE = 'lakelevelnow.com';
+    if ([SITE, 'www.' + SITE].indexOf(location.hostname) < 0) return;
+    var m = (location.search + '&' + location.hash).match(/(?:session_id=|[#&?]s=)(cs_live_[A-Za-z0-9]+)/);
+    if (!m) return;
+    var id = m[1], key = 'cro_purchase_' + id, oldKey = 'ga4_purchase_lakelevelnow_' + id;
+    function seen() { try { return !!(localStorage.getItem(key) || localStorage.getItem(oldKey)); } catch (e) { return false; } }
+    if (seen()) return;
+    function configured() {
+      var dl = window.dataLayer || [];
+      for (var i = 0; i < dl.length; i++) if (dl[i] && dl[i][0] === 'config') return true;
+      return false;
+    }
+    function when(cb) { var n = 0; (function t() { if (configured()) return cb(); if (++n < 1200) setTimeout(t, 500); })(); }
+    fetch('https://fleet-purchase-verify.lipmichal.workers.dev/v?session_id=' + encodeURIComponent(id), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d || !d.paid || d.transaction_id !== id) return;
+        when(function () {
+          if (window.__croPurchaseSent === id || seen()) return;
+          window.__croPurchaseSent = id;
+          try { localStorage.setItem(key, '1'); localStorage.setItem(oldKey, '1'); } catch (e) {}
+          var g = typeof window.gtag === 'function' ? window.gtag : function () { (window.dataLayer = window.dataLayer || []).push(arguments); };
+          g('event', 'purchase', {
+            transaction_id: d.transaction_id, value: d.value, currency: d.currency || 'USD',
+            site: SITE, product: d.product, price: d.value, payment_verified: true, transport_type: 'beacon',
+            items: [{ item_id: d.item_id || d.product, item_name: d.product, price: d.value, quantity: 1 }]
+          });
+        });
+      })
+      .catch(function () {});
   })();
 </script>
