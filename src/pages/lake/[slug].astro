@@ -294,7 +294,21 @@ import almPrice from '../../data/almanac.json';
         screen; the visitor now gets the reading before the offer. */}
     {/* adsense-w2: the offer shows only on lakes the Almanac covers (it is about this lake).
         The "not included, see other lakes" cross-sell on uncovered lakes is removed. */}
-    {alm && <AlmanacPeek slug={slug} name={lake.name} alm={alm} />}
+    {/* Sprint 2026-11-16 (lane D2): on Pine Flat the almanac offer under the gauge is the post-result offer
+        (data-cro sprint-20261116-postresult): offer_view when seen, pre-pay box next to its buy link. D1's
+        not-ready form is in the hero, so it is not repeated here. */}
+    {alm && slug === 'pine-flat-lake' ? (
+      <div id="s3-postresult" data-cro="sprint-20261116-postresult" data-s3-post data-s3-site="lakelevelnow" data-s3-product="almanac_single"
+        data-s3-price={String(almPrice.priceSingleUsd)} data-s3-name="Lake Level Almanac (one lake)" data-s3-bc="site">
+        <AlmanacPeek slug={slug} name={lake.name} alm={alm} />
+        <div class="s3-paybox" data-cro="sprint-20261116-paybox">
+          <p><strong>${almPrice.priceSingleUsd}</strong> once - the {lake.name} almanac: {almPrice.lakes.find((l) => l.slug === slug)?.years ?? ''} years of daily levels, the normal range for every date, a ramp and dock threshold tool and the CSV record (one ZIP, works offline)</p>
+          <p>Instant download after payment · 60-day refund, no questions</p>
+          <p>Secure checkout by Stripe - the page shows BeLikeNative, our company account</p>
+        </div>
+        <script is:inline defer src="/s3-postresult.js?v=2"></script>
+      </div>
+    ) : alm && <AlmanacPeek slug={slug} name={lake.name} alm={alm} />}
 
 
     {/* Directly under the gauge, on purpose. The visitor came for one number and it is
