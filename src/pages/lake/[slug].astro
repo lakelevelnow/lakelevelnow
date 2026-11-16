@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ZovoXpromo from '../../components/ZovoXpromo.astro';
 import LakeGauge from '../../components/LakeGauge.astro';
 import AlmanacContext from '../../components/AlmanacContext.astro';
 import AlmanacPeek from '../../components/AlmanacPeek.astro';
@@ -467,6 +468,8 @@ import almPrice from '../../data/almanac.json';
         </div>
       </section>
     )}
+
+    <ZovoXpromo placement="tool" content={`lake-${slug}`} />
 
   </div>
 </BaseLayout>

@@ -13,6 +13,7 @@ const pstSince = Object.fromEntries(Object.entries(posters.lakes as Record<strin
   [k, String(f.first[0]).slice(0, 4)]));
 import { almanacContext, leadSentence } from '../lib/almanac';
 import SupportLine from '../components/SupportLine.astro';
+import ZovoXpromo from '../components/ZovoXpromo.astro';
 import ShortAnswer from '../components/ShortAnswer.astro';
 import { CONTENT_CHECKED } from '../consts';
 
@@ -212,6 +213,8 @@ const almFeatureSentence = almFeature ? liveSentence(almFeature) : '';
     </section>
 
     <AdSlot pos="end" />
+
+    <ZovoXpromo placement="home" />
 
   </div>
 </BaseLayout>

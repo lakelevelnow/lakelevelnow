@@ -1,0 +1,19 @@
+---
+// Sprint 2026-11-16 lane Z: one Zovo cross-promo block (EVERYDAY set). Footer area or after
+// the tool result only, never above the site's own offer. No offer_view (keeps offer metrics clean).
+interface Props { placement?: 'home' | 'tool'; content?: string }
+const { placement = 'home', content = '' } = Astro.props;
+const site = 'lakelevelnow.com';
+const href = `https://zovo.one/pricing?utm_source=${site}&utm_medium=xpromo&utm_campaign=s3${content ? `&utm_content=${content}` : ''}`;
+const onclick = `typeof gtag==='function'&&gtag('event','zovo_xpromo_click',{site:'${site}',placement:'${placement}',link_url:this.href})`;
+---
+<aside data-cro="sprint-20261116-zovo-xpromo" class="zovo-xpromo" style="margin:2rem auto;max-width:720px;padding:1rem 1.25rem;border:1px solid var(--border, #e5e7eb);border-radius:10px;font-size:15px;line-height:1.5">
+  <p style="margin:0 0 .4rem;font-weight:600">From the makers of Lake Level Now: Zovo Chrome extensions for everyday browsing</p>
+  <ul style="margin:.25rem 0 .6rem 1.1rem;padding:0">
+    <li><b>Tab Suspender Pro</b> - free memory from idle tabs</li>
+    <li><b>Session Manager Pro</b> - save and restore all tabs</li>
+    <li><b>Clipboard History Pro</b> - never lose copied text</li>
+  </ul>
+  <p style="margin:0 0 .6rem">One Zovo Pro plan unlocks Pro in all 15 extensions: <b>$4.99 a month</b> or <b>Lifetime $99</b> once.</p>
+  <a href={href} onclick={onclick} rel="noopener" style="font-weight:600">See Zovo Pro and Lifetime &rarr;</a>
+</aside>
