@@ -1,0 +1,58 @@
+---
+// Sprint 3 (2026-11-16) lane D1, PAY4 + PAY7: the pre-pay box and the "Not ready? Email me this
+// link" form. Put it directly AFTER the buy button, never above it, so the button does not move.
+// Facts only: price and contents come from src/data/almanac.json and the /almanac/ page; the
+// 60-day refund is the one /almanac/#questions states. The form posts to the fleet-leads Worker
+// (double opt-in; lane R sends this link once and one reminder). GA4: generate_lead.
+interface Props { price: number; gets: string; refund: string; delivery?: string }
+const { price, gets, refund, delivery = 'Instant download after payment' } = Astro.props;
+const OFFER = 'lakelevelnow-notready';
+---
+<div class="s3-paybox" data-cro="sprint-20261116-paybox">
+ <p><strong>${price}</strong> once - {gets}</p>
+ <p>{delivery} · {refund}</p>
+ <p>Secure checkout by Stripe - the page shows BeLikeNative, our company account</p>
+</div>
+<form class="s3-notready" data-cro="sprint-20261116-notready" data-offer={OFFER} data-price={String(price)} novalidate>
+ <label>Not ready? Email me this link <input type="email" name="email" required placeholder="you@email.com" autocomplete="email" /></label>
+ <input type="text" name="hp" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" />
+ <button type="submit">Email me</button>
+ <small>We email you this link once and one reminder. Unsubscribe any time.</small>
+ <span class="s3-nr-msg" role="status"></span>
+</form>
+<script is:inline>
+(function () {
+  if (window.__s3NotReady) return;
+  window.__s3NotReady = 1;
+  document.addEventListener('submit', function (ev) {
+    var f = ev.target;
+    if (!f || !f.matches || !f.matches('form.s3-notready')) return;
+    ev.preventDefault();
+    if (f.elements.hp && f.elements.hp.value) return;
+    var em = f.elements.email, msg = f.querySelector('.s3-nr-msg'), email = (em && em.value || '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { if (msg) msg.textContent = 'Please type a valid email address.'; return; }
+    if (f.dataset.busy) return;
+    f.dataset.busy = '1';
+    var offer = f.getAttribute('data-offer') || 'lakelevelnow-notready', price = f.getAttribute('data-price') || '';
+    fetch('https://fleet-leads.lipmichal.workers.dev/lead', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, offer_id: offer, page: location.href, price: price, hp: '' }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return r.ok && j && j.ok; }); })
+      .then(function (ok) {
+        delete f.dataset.busy;
+        if (!ok) { if (msg) msg.textContent = 'Sorry, that did not work. Please try again.'; return; }
+        if (msg) msg.textContent = 'Check your inbox to confirm.';
+        var p = { site: 'lakelevelnow', offer_id: offer, price: Number(price), currency: 'USD' };
+        if (typeof window.__siteGA4Event === 'function') window.__siteGA4Event('generate_lead', p);
+        else if (typeof window.gtag === 'function') window.gtag('event', 'generate_lead', p);
+      })
+      .catch(function () { delete f.dataset.busy; if (msg) msg.textContent = 'Sorry, that did not work. Please try again.'; });
+  });
+})();
+</script>
+<style is:global>
+  .s3-paybox{margin:.5rem 0;padding:.5rem .75rem;border:1px solid var(--border, rgba(0,0,0,.15));border-radius:8px;font-size:13px;line-height:1.4;color:inherit}
+  .s3-paybox p{margin:.15rem 0;font-size:13px}
+  .s3-notready{font-size:13px;margin:.25rem 0 .75rem;position:relative}
+  .s3-notready input[type=email]{max-width:200px;padding:4px 6px;font-size:14px}
+  .s3-notready small{display:block;opacity:.75}
+</style>

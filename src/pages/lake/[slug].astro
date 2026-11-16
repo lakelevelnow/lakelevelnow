@@ -13,6 +13,7 @@ import LevelAlerts from '../../components/LevelAlerts.astro';
 import LakeFacts from '../../components/LakeFacts.astro';
 import WaitlistTest from '../../components/WaitlistTest.astro';
 import PosterOffer from '../../components/PosterOffer.astro';
+import S3PayBox from '../../components/S3PayBox.astro';
 // import RecreationAffiliates from '../../components/RecreationAffiliates.astro'; // enable with the box below
 import { almanacContext, descriptionClause } from '../../lib/almanac';
 import { SITE, AUTHOR } from '../../consts';
@@ -238,12 +239,17 @@ import almPrice from '../../data/almanac.json';
       <p style="font-size:14px;color:var(--t2);margin-top:8px;">{lake.river} · {stName} · operated by {lake.operator}</p>
       <p style="font-size:13px;color:var(--t2);margin-top:6px;">By <a href="/about/">{AUTHOR.name}</a>, independent developer behind <a href="https://zovo.one" rel="noopener">zovo.one</a>. Readings pulled live from the same {feedLabel(reading?.feed) || 'USGS'} feed the operator reports to.</p>
       {/* CRO 2026-11-06 R4: the lake's own paid offer in the first phone screen, as one text link. */}
-      {alm && (
+      {alm && (<>
+        <div data-cro="sprint-20261116-direct">
         <p class="lake-alm-line" data-alm-place="lake-hero" data-cro="sprint-20261115-lln-hero-almanac"
            data-s2-offer="lln-almanac-single" data-s2-product="almanac_single" data-s2-price={almPrice.priceSingleUsd}>Is {live && reading ? `${fmtNum(reading.level_ft, 1)} ft` : 'today\u2019s level'} normal for the date? The {lake.name} almanac shows the normal range for every day of the year.
           <a href={import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? `${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=${slug}` : '/almanac/#pick'} rel="nofollow" data-lake={slug} data-cta="lake_hero_almanac">Get the {lake.name} almanac, ${almPrice.priceSingleUsd}</a>
           <span class="lake-alm-micro">One payment, instant download, 60-day refund. <a class="lake-alm-alt" href={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE || '/almanac/'} rel="nofollow" data-cta="lake_hero_bundle">All {almPrice.lakeCount} lakes, ${almPrice.priceBundleUsd}</a></span></p>
-      )}
+        </div>
+        {/* Sprint 2026-11-16 (lane D1): pre-pay box + not-ready form directly after the buy link. */}
+        <S3PayBox price={almPrice.priceSingleUsd} refund="60-day refund, no questions"
+          gets={`the ${lake.name} almanac: ${almPrice.lakes.find((l) => l.slug === slug)?.years ?? ''} years of daily levels, the normal range for every date, a ramp and dock threshold tool and the CSV record (one ZIP, works offline)`} />
+      </>)}
       {/* CRO 2026-11-13 (livedata impl): the Mead hero no longer leads with what the product
           lacks. It offers what is true for Mead today: the free level-alerts waitlist below. */}
       {slug === 'lake-mead' && (

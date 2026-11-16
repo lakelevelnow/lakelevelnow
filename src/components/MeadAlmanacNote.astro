@@ -4,6 +4,7 @@
 // Lake Powell upstream on the same river, or the full set. No claim about Mead itself.
 import alm from '../data/almanac.json';
 import { CHECKOUT_NAME } from '../consts';
+import S3PayBox from './S3PayBox.astro';
 interface Props { place: 'mead' | 'mead-chart'; }
 const { place } = Astro.props;
 const SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
@@ -14,10 +15,13 @@ const id = place.replace('-', '_');
   <aside class="mead-alm" data-alm-place={place} data-cro="mead-almanac-powell-true" aria-labelledby={`mead-alm-${place}`}>
     <h2 id={`mead-alm-${place}`}>Lake Powell almanac: the reservoir that feeds Lake Mead</h2>
     <p>The Lake Level Almanac covers Lake Powell, upstream on the same river (the Lake Mead history is the free chart on this site). It shows whether Powell is normal for each date of the year, from {powell.years} years of daily readings.</p>
-    <div class="mead-alm-cta">
+    <div class="mead-alm-cta" data-cro="sprint-20261116-direct">
       <a class="mead-alm-btn" href={SINGLE ? `${SINGLE}?client_reference_id=lake-powell` : '/almanac/#pick'} rel="nofollow" data-lake="lake-powell" data-cta={`${id}_almanac_powell`}>Lake Powell almanac, ${alm.priceSingleUsd}</a>
       <a class="mead-alm-alt" href="/almanac/" data-cta={`${id}_almanac_all`}>All {alm.lakeCount} lakes, ${alm.priceBundleUsd}, with a free sample</a>
     </div>
+    {/* Sprint 2026-11-16 (lane D1): pre-pay box + not-ready form directly after the buy button. */}
+    <S3PayBox price={alm.priceSingleUsd} refund="60-day refund, no questions"
+      gets={`the Lake Powell almanac: ${powell.years} years of daily levels, the normal range for every date, a ramp and dock threshold tool and the CSV record (one ZIP, works offline)`} />
     <p class="mead-alm-micro">One payment, no subscription. 60-day refund, no questions. {CHECKOUT_NAME}</p>
   </aside>
 )}

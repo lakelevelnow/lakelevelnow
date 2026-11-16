@@ -15,6 +15,7 @@ import { almanacContext, leadSentence } from '../lib/almanac';
 import SupportLine from '../components/SupportLine.astro';
 import ZovoXpromo from '../components/ZovoXpromo.astro';
 import ShortAnswer from '../components/ShortAnswer.astro';
+import S3PayBox from '../components/S3PayBox.astro';
 import { CONTENT_CHECKED } from '../consts';
 
 // Hand-tuned 2026-10-08 for "lake levels" / "current lake levels" (1,922 impressions, pos 18).
@@ -83,11 +84,14 @@ const almFeatureSentence = almFeature ? liveSentence(almFeature) : '';
            data-s2-offer="lln-almanac-bundle" data-s2-product="almanac_bundle" data-s2-price={almanacData.priceBundleUsd}>
         <p class="hero-offer-t">Live levels are free on every page. The paid Lake Level Almanac adds {almYearsMin} to {almYearsMax} years of daily history: the normal range for every date, a ramp-threshold tool and CSV records.</p>
         <p class="hero-offer-p">All {almanacData.lakeCount} Almanac lakes for ${almanacData.priceBundleUsd} once, or ${almanacData.priceSingleUsd} for one lake. Instant download, 60-day refund.</p>
-        <div class="hero-offer-cta">
+        <div class="hero-offer-cta" data-cro="sprint-20261116-direct">
           <a class="hero-offer-btn" href={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE || '/almanac/'} rel="nofollow" data-cta="home_hero_bundle">Get all {almanacData.lakeCount} lakes, ${almanacData.priceBundleUsd}</a>
           <a class="hero-offer-alt" href="/almanac/#pick" data-cta="home_hero_almanac">One lake, ${almanacData.priceSingleUsd}</a>
           <a class="hero-offer-alt" href="/almanac/sample/" data-cta="home_hero_sample">Free sample</a>
         </div>
+        {/* Sprint 2026-11-16 (lane D1): pre-pay box + not-ready form directly after the buy button. */}
+        <S3PayBox price={almanacData.priceBundleUsd} refund="60-day refund, no questions"
+          gets={`the Lake Level Almanac for all ${almanacData.lakeCount} lakes: ${almYearsMin} to ${almYearsMax} years of daily levels per lake, the normal range for every date, a ramp-threshold tool and CSV records (one ZIP per lake, works offline)`} />
       </div>
       {/* Lane LD 2026-11-09: the live $9 posters (sku llp), one compact entry in the first
           phone screen and a half, linked to /posters/ (never straight to Stripe). No pop-up. */}

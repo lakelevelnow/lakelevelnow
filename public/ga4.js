@@ -177,7 +177,7 @@
       /^\/lake\/[a-z0-9-]+$/.test(path) ? path.split('/')[2] : '';
     // Sprint 2026-11-15: begin_checkout also carries site, product and price.
     return Object.assign({ currency: 'USD', value: product.price, items: [product], placement: placement(anchor),
-      site: site, product: product.item_id, price: product.price,
+      site: site, product: product.item_id, product_name: product.item_name, price: product.price,
       ...(lake && lakeSlug && product.item_id === 'almanac_single' ? { lake_slug: lakeSlug } : {}) }, ctaId(anchor));
   }
   if (lake ? path === '/almanac' : path === '/pro' || path === '/kitchen-pack') {
