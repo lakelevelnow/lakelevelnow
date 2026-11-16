@@ -13,6 +13,7 @@ import DepthGauge from '../../../components/DepthGauge.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
 import almDepth from '../../../data/almanac.json';
 import S3PayBox from '../../../components/S3PayBox.astro';
+import HistoryExportOffer from '../../../components/HistoryExportOffer.astro';
 import { LAKES, getReading, fmtNum, POWELL_BAND, changeOverSeries, feedLabel, POWELL_HISTORY, POWELL_HISTORY_SOURCE, compareToMark, fmtRecordDate} from '../../../lib/lakes';
 import { authorLd, breadcrumbLd, speakableLd, absUrl, orgRef } from '../../../lib/seo';
 
@@ -260,6 +261,9 @@ const faqs = [
         The whole-record minimum is lower still, {fmtNum(hist.seriesLowFt,2)} ft on {fmtRecordDate(hist.seriesLowDate)}, but that was the initial filling and is not a comparable operating state. Both figures are recomputed from that archive on every build, and the {hist.firstFillCutoff} boundary used for "since first fill" is ours, not Reclamation's. The April 2023 low is documented by <a href="https://earthobservatory.nasa.gov/images/151274/lake-powell-hits-new-low">NASA Earth Observatory</a>.
       </p>
     </section>
+
+    {/* Sprint 3c (2026-11-17, lane PX2A): the Lake Powell history export, after the record-low paragraph. */}
+    <HistoryExportOffer slug="lake-powell" place="depth-history" />
 
     <section class="section airy google-anno-skip">
       <h2 style="margin-bottom:8px;">Check the depth for any surface elevation</h2>

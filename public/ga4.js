@@ -86,7 +86,8 @@
   var paidSeen = new Set();
   // Each return page may report only its own items. /posters/thanks (sku llp) since 2026-11-08.
   // Sprint 2026-11-15 lane L: /alerts/ is the return page of the Lake Alerts Pro link (sku lake_alerts).
-  var purchasePages = lake ? { '/almanac/thanks': ['almanac_single', 'almanac_bundle'], '/posters/thanks': ['llp'], '/alerts': ['lake_alerts'] }
+  var purchasePages = lake ? { '/almanac/thanks': ['almanac_single', 'almanac_bundle'], '/posters/thanks': ['llp'], '/alerts': ['lake_alerts'],
+      '/history-export/download': ['lln-history-export', 'lln-history-export-lake'] }
     : { '/welcome': ['ingredientcalculator_pro'] };
   window.__siteGA4Purchase = function (receipt, requestedSession) {
     var allowed = Object.prototype.hasOwnProperty.call(purchasePages, path) ? purchasePages[path] : null;
@@ -150,7 +151,10 @@
     '00w3cw2oafoc7VXgjj43S0q': { item_id: 'almanac_single', item_name: 'Lake Level Almanac single', price: 19, quantity: 1 },
     '4gM5kE1k63Fugst0kl43S0B': { item_id: 'almanac_bundle', item_name: 'Lake Level Almanac bundle', price: 79, quantity: 1 },
     '4gMfZi3se1xm3FHaYZ43S0M': { item_id: 'lld', item_name: 'Lake directory listing 12 months', price: 199, quantity: 1 },
-    '8x25kE3seek8fopebb43S3R': { item_id: 'lake_alerts', item_name: 'LakeLevelNow Lake Alerts - 12 months', price: 19, quantity: 1 }
+    '8x25kE3seek8fopebb43S3R': { item_id: 'lake_alerts', item_name: 'LakeLevelNow Lake Alerts - 12 months', price: 19, quantity: 1 },
+    // Sprint 3c (2026-11-17, lane PX2A): lake history export
+    'bJeeVe5Am1xm7VX0kl43S40': { item_id: 'lln-history-export-lake', item_name: 'Lake history export, one lake', price: 9, quantity: 1 },
+    'cNi00k8My0ti7VX9UV43S41': { item_id: 'lln-history-export', item_name: 'Lake history export, all 16 lakes', price: 29, quantity: 1 }
   } : {
     'cNieVe7Iu3Fuccd3wx43S0A': { item_id: 'ingredientcalculator_pro', item_name: 'IngredientCalculator Pro', price: 79, quantity: 1 }
   };
@@ -178,7 +182,7 @@
     // Sprint 2026-11-15: begin_checkout also carries site, product and price.
     return Object.assign({ currency: 'USD', value: product.price, items: [product], placement: placement(anchor),
       site: site, product: product.item_id, product_name: product.item_name, price: product.price,
-      ...(lake && lakeSlug && product.item_id === 'almanac_single' ? { lake_slug: lakeSlug } : {}) }, ctaId(anchor));
+      ...(lake && lakeSlug && (product.item_id === 'almanac_single' || product.item_id === 'lln-history-export-lake') ? { lake_slug: lakeSlug } : {}) }, ctaId(anchor));
   }
   if (lake ? path === '/almanac' : path === '/pro' || path === '/kitchen-pack') {
     event('pricing_view', { content_id: lake ? 'almanac' : 'ingredientcalculator_pro' }, 'pricing_view');

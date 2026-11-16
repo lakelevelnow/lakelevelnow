@@ -1,0 +1,170 @@
+{
+ "_note": "Sprint 3c lane PX2A (2026-11-17): the lake history export. Files built by sprint/products/lln-history-export/build.py on 2026-11-16 from the site's own stored records; delivery by the sprint-delivery Worker after Stripe verifies the session.",
+ "priceLakeUsd": 9,
+ "priceAllUsd": 29,
+ "refund": "60-day refund, no questions",
+ "linkLake": "https://buy.stripe.com/bJeeVe5Am1xm7VX0kl43S40",
+ "linkAll": "https://buy.stripe.com/cNi00k8My0ti7VX9UV43S41",
+ "lakes": [
+  {
+   "slug": "lake-mead",
+   "name": "Lake Mead",
+   "resolution": "daily",
+   "start": "1935-02-02",
+   "end": "2026-10-15",
+   "values": 33494,
+   "source": "USBR",
+   "what": "daily water-surface elevation"
+  },
+  {
+   "slug": "lake-powell",
+   "name": "Lake Powell",
+   "resolution": "daily",
+   "start": "1963-12-28",
+   "end": "2026-10-15",
+   "values": 22938,
+   "source": "USBR",
+   "what": "daily water-surface elevation"
+  },
+  {
+   "slug": "lake-travis",
+   "name": "Lake Travis",
+   "resolution": "daily",
+   "start": "1940-09-30",
+   "end": "2026-10-16",
+   "values": 30690,
+   "source": "TWDB",
+   "what": "daily water-surface elevation"
+  },
+  {
+   "slug": "lake-buchanan",
+   "name": "Lake Buchanan",
+   "resolution": "daily",
+   "start": "1937-06-30",
+   "end": "2026-10-28",
+   "values": 30760,
+   "source": "TWDB",
+   "what": "daily water-surface elevation"
+  },
+  {
+   "slug": "lake-shasta",
+   "name": "Shasta Lake",
+   "resolution": "monthly",
+   "start": "1953-10",
+   "end": "2026-10",
+   "values": 875,
+   "source": "CDEC",
+   "what": "monthly storage"
+  },
+  {
+   "slug": "lake-oroville",
+   "name": "Lake Oroville",
+   "resolution": "monthly",
+   "start": "1967-10",
+   "end": "2026-10",
+   "values": 709,
+   "source": "CDEC",
+   "what": "monthly storage"
+  },
+  {
+   "slug": "lake-berryessa",
+   "name": "Lake Berryessa",
+   "resolution": "monthly",
+   "start": "1957-10",
+   "end": "2026-10",
+   "values": 828,
+   "source": "CDEC",
+   "what": "monthly storage"
+  },
+  {
+   "slug": "folsom-lake",
+   "name": "Folsom Lake",
+   "resolution": "monthly",
+   "start": "1955-10",
+   "end": "2026-10",
+   "values": 853,
+   "source": "CDEC",
+   "what": "monthly storage"
+  },
+  {
+   "slug": "pine-flat-lake",
+   "name": "Pine Flat Lake",
+   "resolution": "monthly",
+   "start": "1951-12",
+   "end": "2026-10",
+   "values": 889,
+   "source": "CDEC",
+   "what": "monthly storage"
+  },
+  {
+   "slug": "lake-isabella",
+   "name": "Lake Isabella",
+   "resolution": "monthly",
+   "start": "1952-10",
+   "end": "2026-10",
+   "values": 888,
+   "source": "CDEC",
+   "what": "monthly storage"
+  },
+  {
+   "slug": "millerton-lake",
+   "name": "Millerton Lake",
+   "resolution": "monthly",
+   "start": "1941-10",
+   "end": "2026-10",
+   "values": 1021,
+   "source": "CDEC",
+   "what": "monthly storage"
+  },
+  {
+   "slug": "new-melones-lake",
+   "name": "New Melones Lake",
+   "resolution": "monthly",
+   "start": "1975-10",
+   "end": "2026-10",
+   "values": 613,
+   "source": "CDEC",
+   "what": "monthly storage"
+  },
+  {
+   "slug": "don-pedro-lake",
+   "name": "Don Pedro Reservoir",
+   "resolution": "monthly",
+   "start": "1970-10",
+   "end": "2026-09",
+   "values": 672,
+   "source": "CDEC",
+   "what": "monthly storage"
+  },
+  {
+   "slug": "san-luis-reservoir",
+   "name": "San Luis Reservoir",
+   "resolution": "monthly",
+   "start": "1968-10",
+   "end": "2026-10",
+   "values": 697,
+   "source": "CDEC",
+   "what": "monthly storage"
+  },
+  {
+   "slug": "lake-cachuma",
+   "name": "Cachuma Lake",
+   "resolution": "monthly",
+   "start": "1955-08",
+   "end": "2026-10",
+   "values": 853,
+   "source": "CDEC",
+   "what": "monthly storage"
+  },
+  {
+   "slug": "lake-casitas",
+   "name": "Casitas Reservoir",
+   "resolution": "monthly",
+   "start": "1961-10",
+   "end": "2026-10",
+   "values": 779,
+   "source": "CDEC",
+   "what": "monthly storage"
+  }
+ ]
+}

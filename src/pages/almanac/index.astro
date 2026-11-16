@@ -16,6 +16,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import data from '../../data/almanac.json';
 import ShortAnswer from '../../components/ShortAnswer.astro';
+import HistoryExportOffer from '../../components/HistoryExportOffer.astro';
 import { CONTENT_CHECKED, CHECKOUT_NAME } from '../../consts';
 import { getReading } from '../../lib/lakes';
 import { almanacContext, leadSentence } from '../../lib/almanac';
@@ -235,6 +236,9 @@ const ld = [{
       </div>
       <p class="alm-micro">{CHECKOUT_NAME}</p>
     </section>
+
+    {/* Sprint 3c (2026-11-17, lane PX2A): data-only alternative, after the almanac pick table. */}
+    <HistoryExportOffer place="almanac-history" />
 
     <section class="section">
       <h2>Why you should believe the numbers</h2>

@@ -1,0 +1,76 @@
+---
+// /history-export/download/ - where Stripe sends a buyer of the lake history export (sprint 3c, lane PX2A).
+// The page holds no secret. It sends ?session_id= and ?sku= to the sprint-delivery Worker, which asks
+// Stripe whether that session was paid on the export's own Payment Link, then returns a download URL.
+// The one-lake export takes its lake from the session's client_reference_id (the lake page's link sets it);
+// without one, the buyer picks the lake here once and the Worker locks that choice to the purchase.
+// GA4 purchase fires once, through ga4.js __siteGA4Purchase (dedupe per transaction_id in localStorage).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import hx from '../../data/history-export.json';
+const title = 'Your lake history export download';
+const description = 'Download the lake history export you just bought. The link is checked against your Stripe payment.';
+const names = Object.fromEntries(hx.lakes.map((l) => [l.slug, l.name]));
+---
+<BaseLayout title={title} description={description} path="/history-export/download/" noindex={true}>
+  <div class="container" data-cro="sprint-20261116-purchase">
+    <div style="padding:36px 0 12px;">
+      <h1 id="hd">Checking your purchase&hellip;</h1>
+      <p id="sub" class="readable" style="margin-top:10px;">One moment. We are confirming the payment with Stripe before we hand over the file.</p>
+    </div>
+    <div id="pick" class="callout a" hidden style="margin-top:12px;">
+      <p><strong>Which lake do you want?</strong> Your purchase covers one lake. You choose it once; after that this page always gives you the same lake.</p>
+      <p style="margin-top:8px;"><select id="lakeSel" aria-label="Lake">
+        {hx.lakes.map((l) => <option value={l.slug}>{l.name} ({l.resolution}, from {l.start.slice(0, 4)})</option>)}
+      </select> <button id="lakeGo" type="button" class="btn">Get this lake</button></p>
+    </div>
+    <div id="ok" hidden style="margin-top:12px;">
+      <p class="readable" id="okTxt"></p>
+      <p style="margin-top:10px;"><a id="dl" class="btn" href="#" rel="nofollow">Download the ZIP</a></p>
+      <p class="readable" style="font-size:14px;margin-top:10px;">Bookmark this page: it gives you a fresh download link each time you open it (up to 30 downloads). The ZIP holds CSV files, an XLSX workbook with the same tables and a README that names each source and the date it was read.</p>
+    </div>
+    <div id="prob" hidden class="callout a" style="margin-top:12px;"><p id="probMsg"></p></div>
+    <p class="readable" style="font-size:14px;margin-top:22px;">Problems? Reply to your Stripe receipt or use <a href="/contact/">the contact page</a> with the reference below. 60-day refund, no questions.</p>
+    <p style="font-size:13px;">Reference: <code id="ref">not set</code></p>
+  </div>
+  <script is:inline define:vars={{ names }}>
+    (function () {
+      var W = 'https://sprint-delivery.lipmichal.workers.dev';
+      var q = new URLSearchParams(location.search);
+      var sid = q.get('session_id') || '', sku = q.get('sku') || 'lln-history-export-lake';
+      if (['lln-history-export', 'lln-history-export-lake'].indexOf(sku) < 0) sku = 'lln-history-export-lake';
+      var $ = function (id) { return document.getElementById(id); };
+      $('ref').textContent = sid || 'not set';
+      function problem(m) { $('hd').textContent = 'We could not confirm that purchase'; $('sub').hidden = true; $('probMsg').textContent = m; $('prob').hidden = false; }
+      if (!/^cs_live_[A-Za-z0-9]{10,200}$/.test(sid)) { problem('This page needs the link Stripe opened after payment. If you paid, reply to your Stripe receipt and we will send the file.'); return; }
+      var sentPurchase = false, tries = 0;
+      function purchase(receipt) {
+        if (sentPurchase || !receipt) return;
+        var n = 0;
+        (function t() {
+          if (typeof window.__siteGA4Purchase === 'function') { sentPurchase = true; window.__siteGA4Purchase(receipt, sid); return; }
+          if (++n < 40) setTimeout(t, 250);
+        })();
+      }
+      function claim(lake) {
+        fetch(W + '/claim?sku=' + encodeURIComponent(sku) + '&session_id=' + encodeURIComponent(sid) + (lake ? '&lake=' + encodeURIComponent(lake) : ''), { cache: 'no-store' })
+          .then(function (r) { return r.json().then(function (j) { return [r.status, j]; }); })
+          .then(function (x) {
+            var st = x[0], j = x[1] || {};
+            if (j.ok) {
+              purchase(j.payment_receipt);
+              if (j.need_lake) { $('hd').textContent = 'Payment confirmed. Pick your lake'; $('sub').hidden = true; $('pick').hidden = false; return; }
+              $('pick').hidden = true; $('sub').hidden = true;
+              $('hd').textContent = 'Your download is ready';
+              $('okTxt').textContent = sku === 'lln-history-export' ? 'All 16 lakes: ' + (j.filename || 'ZIP') + '.' : (names[j.lake] || j.lake) + ': ' + (j.filename || 'ZIP') + '.';
+              $('dl').href = j.download; $('ok').hidden = false; return;
+            }
+            if (j.retry && ++tries < 8) { $('sub').textContent = j.reason || 'Checking again...'; setTimeout(function () { claim(lake); }, 4000); return; }
+            problem(j.reason || ('Error ' + st + '. Reply to your Stripe receipt and we will send the file.'));
+          })
+          .catch(function () { if (++tries < 8) setTimeout(function () { claim(lake); }, 4000); else problem('The download service could not be reached. Reload this page in a minute.'); });
+      }
+      $('lakeGo').addEventListener('click', function () { $('lakeGo').disabled = true; claim($('lakeSel').value); });
+      claim('');
+    })();
+  </script>
+</BaseLayout>

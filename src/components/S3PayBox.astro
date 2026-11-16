@@ -4,8 +4,8 @@
 // Facts only: price and contents come from src/data/almanac.json and the /almanac/ page; the
 // 60-day refund is the one /almanac/#questions states. The form posts to the fleet-leads Worker
 // (double opt-in; lane R sends this link once and one reminder). GA4: generate_lead.
-interface Props { price: number; gets: string; refund: string; delivery?: string }
-const { price, gets, refund, delivery = 'Instant download after payment' } = Astro.props;
+interface Props { price: number; gets: string; refund: string; delivery?: string; form?: boolean }
+const { price, gets, refund, delivery = 'Instant download after payment', form = true } = Astro.props;
 const OFFER = 'lakelevelnow-notready';
 ---
 <div class="s3-paybox" data-cro="sprint-20261116-paybox">
@@ -13,13 +13,13 @@ const OFFER = 'lakelevelnow-notready';
  <p>{delivery} · {refund}</p>
  <p>Secure checkout by Stripe - the page shows BeLikeNative, our company account</p>
 </div>
-<form class="s3-notready" data-cro="sprint-20261116-notready" data-offer={OFFER} data-price={String(price)} novalidate>
+{form && <form class="s3-notready" data-cro="sprint-20261116-notready" data-offer={OFFER} data-price={String(price)} novalidate>
  <label>Not ready? Email me this link <input type="email" name="email" required placeholder="you@email.com" autocomplete="email" /></label>
  <input type="text" name="hp" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" />
  <button type="submit">Email me</button>
  <small>We email you this link once and one reminder. Unsubscribe any time.</small>
  <span class="s3-nr-msg" role="status"></span>
-</form>
+</form>}
 <script is:inline>
 (function () {
   if (window.__s3NotReady) return;

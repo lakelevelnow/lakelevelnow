@@ -1,0 +1,52 @@
+---
+// Sprint 3c (2026-11-17) lane PX2A: the lake history export ($9 one lake, $29 all 16 lakes).
+// Facts only, from src/data/history-export.json (the export's own lakes.json): resolution, record span,
+// value count and agency. The $9 link carries client_reference_id=<slug>, so the sprint-delivery Worker
+// hands over that lake's ZIP after Stripe verifies the payment. Without a slug (the almanac page) the
+// buyer picks the lake in a select; with JS off they pick it on the download page instead.
+// The pay box sits right after the buy links. No email form here: the page already has one (D1).
+import hx from '../data/history-export.json';
+import S3PayBox from './S3PayBox.astro';
+interface Props { slug?: string; place: string }
+const { slug, place } = Astro.props;
+const lake = slug ? hx.lakes.find((l) => l.slug === slug) : undefined;
+// The parent renders this only for the 16 export lakes (hx.lakes) or with no slug.
+const ctaText = lake ? `Buy the ${lake.name} history, $${hx.priceLakeUsd}` : `Buy one lake, $${hx.priceLakeUsd}`;
+const yr = (s: string) => s.slice(0, 4);
+const span = (l: typeof hx.lakes[number]) => `${yr(l.start)} to ${l.end.length === 7 ? new Date(l.end + '-15T12:00:00Z').toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : new Date(l.end + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}`;
+const first = lake || hx.lakes[0];
+const lakeHref = `${hx.linkLake}?client_reference_id=${first.slug}`;
+const gets = lake
+  ? `the ${lake.name} record: ${lake.values.toLocaleString('en-US')} ${lake.what} values (${lake.source}), ${span(lake)}, as CSV + XLSX with a yearly summary, day-of-year percentiles and a README with sources (one ZIP)`
+  : 'one lake’s full stored record (daily or monthly) as CSV + XLSX with a yearly summary, day-of-year percentiles and a README with sources (one ZIP)';
+---
+<section class="section lln-hx" id="history-export" data-cro="sprint-20261116-lln-history" data-alm-place={place}
+  data-s2-offer="lln-history-export-lake" data-s2-product="lln-history-export-lake" data-s2-price={String(hx.priceLakeUsd)}>
+  {lake ? (
+    <h2 style="margin-bottom:8px;">Download the {lake.name} level record</h2>
+    <p class="readable" style="font-size:15px;max-width:660px;">Every {lake.what} reading this site stores for {lake.name}: {lake.values.toLocaleString('en-US')} values from {lake.source}, {span(lake)}. For your own chart, spreadsheet or report.</p>
+  ) : (
+    <h2 style="margin-bottom:8px;">Only want the raw record? The lake history export</h2>
+    <p class="readable" style="font-size:15px;max-width:660px;">The stored level record of {hx.lakes.length} lakes as CSV + XLSX: 4 daily records (Mead from 1935, Buchanan from 1937, Travis from 1940, Powell from 1963) and 12 California reservoirs with monthly CDEC storage. No almanac tools, just the data and its sources.</p>
+    <p style="font-size:14px;margin:8px 0 4px;"><label>Lake: <select class="lln-hx-pick" aria-label="Pick a lake">
+      {hx.lakes.map((l) => <option value={l.slug}>{l.name} ({l.resolution}, from {yr(l.start)})</option>)}
+    </select></label></p>
+  )}
+  <p class="lln-hx-cta" style="font-size:15px;margin-top:8px;">
+    <a class="btn lln-hx-buy" href={lakeHref} rel="nofollow" data-lake={first.slug} data-cta="hx_lake_buy">{ctaText}</a>
+    <span style="margin-left:8px;">or <a href={hx.linkAll} rel="nofollow" data-cta="hx_all_buy">all {hx.lakes.length} lakes, ${hx.priceAllUsd}</a></span>
+  </p>
+  <S3PayBox price={hx.priceLakeUsd} refund={hx.refund} gets={gets} form={false} />
+  {!lake && (
+    <script is:inline>
+      (function () {
+        var s = document.querySelector('.lln-hx-pick'), a = document.querySelector('.lln-hx-buy');
+        if (!s || !a) return;
+        s.addEventListener('change', function () {
+          var u = new URL(a.href); u.searchParams.set('client_reference_id', s.value);
+          a.href = u.toString(); a.setAttribute('data-lake', s.value);
+        });
+      })();
+    </script>
+  )}
+</section>

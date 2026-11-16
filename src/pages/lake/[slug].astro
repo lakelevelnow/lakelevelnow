@@ -221,6 +221,9 @@ const elevM = elev != null ? Math.round(elev * 0.3048 * 10000) / 10000 : null;
 const calcFull = fullPool; // exposed to the inline calculator script
 
 import almPrice from '../../data/almanac.json';
+import hxData from '../../data/history-export.json';
+import HistoryExportOffer from '../../components/HistoryExportOffer.astro';
+const hxLake = hxData.lakes.some((l) => l.slug === slug);
 ---
 <BaseLayout title={title} description={description} path={`/lake/${slug}`} jsonLd={ld} brand={!datedTitle} noindex={noData} robots={noData ? 'noindex,follow' : undefined}>
   <div class="container">
@@ -398,6 +401,10 @@ import almPrice from '../../data/almanac.json';
         </p>
       </section>
     )}
+
+    {/* Sprint 3c (2026-11-17, lane PX2A): the lake history export, right after the record/chart links,
+        on the 16 lakes whose stored record is exported (src/data/history-export.json). */}
+    {hxLake && <HistoryExportOffer slug={slug} place="lake-history" />}
 
     {elev != null && (
       <section class="section">

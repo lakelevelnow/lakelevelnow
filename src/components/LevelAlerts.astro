@@ -7,6 +7,7 @@
 // GA4: offer_view via [data-s2-offer] (ga4.js), cta_click on the free button, generate_lead on a new
 // subscription, cta_click + begin_checkout (value 19) on the Pro link via ga4.js products map.
 import dir from '../data/directory.json';
+import S3PayBox from './S3PayBox.astro';
 import { getReading, fmtNum, lastReadingDate } from '../lib/lakes';
 interface Props { slug: string; name: string; placement: string; cro?: string; business?: boolean }
 const { slug, name, placement, cro, business } = Astro.props;
@@ -36,6 +37,12 @@ const cta = `${place.replace(/-/g, '_')}`.slice(0, 32);
     <p><strong>Lake Alerts Pro: $19 for 12 months.</strong> Alerts for every lake on LakeLevelNow, up to 25 levels, and a daily or weekly level summary. One payment. It does not renew.</p>
     <p class="la-btns"><a class="la-buy" href={`${BUY}?client_reference_id=${slug}`} data-cta={`${cta}_pro`} data-lake={slug} rel="noopener">Get Lake Alerts Pro, $19</a>
       <a class="la-mng" href="/alerts/" data-cta={`${cta}_manage`}>Manage my alerts</a></p>
+    {/* Sprint 3c (2026-11-17, lane PX2A, owner-authorized): pre-pay box with the site's 60-day refund window
+        (the same window the Stripe page now states for this link). No email form: the lake page has one. */}
+    <div data-cro="sprint-20261116-alerts-paybox">
+      <S3PayBox price={19} delivery="Instant access after payment" refund="60-day refund, no questions"
+        gets="Lake Alerts Pro for 12 months: alerts for every lake on LakeLevelNow, up to 25 levels, and a daily or weekly level summary (no renewal)" form={false} />
+    </div>
   </div>
   <p class="la-n">Works in Chrome, Edge and Firefox on desktop and Android. On iPhone or iPad: tap Share, then Add to Home Screen, then open LakeLevelNow from the Home Screen icon (iOS 16.4 or later). Alerts use the same daily reading as this page. <a href="/privacy/#alerts">Privacy</a></p>
   {business && (
