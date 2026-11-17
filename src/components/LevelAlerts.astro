@@ -72,7 +72,7 @@ const cta = `${place.replace(/-/g, '_')}`.slice(0, 32);
         var v = Math.round(Number(input.value) * 10) / 10;
         if (!(v > 0 && v < 20000)) { input.setAttribute('aria-invalid', 'true'); say('Please enter a level in feet, for example ' + input.defaultValue + '.', true); return; }
         input.removeAttribute('aria-invalid');
-        P.ga('cta_click', { placement: place, lake_slug: slug });
+        P.ga('nav_click', { placement: place, lake_slug: slug }); // sprint-20261117-c-navclick: free alert, not a checkout
         var cur = P.state(), rules = (cur.rules || []).slice();
         if (P.pro()) { rules = rules.filter(function (x) { return !(x.lake === slug && x.level === v); }); rules.push({ lake: slug, level: v, name: name }); }
         else {

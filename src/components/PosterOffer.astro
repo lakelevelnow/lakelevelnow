@@ -9,8 +9,9 @@
 import posters from '../data/posters.json';
 
 // fullChart: the page's main chart is the whole record (the /chart/ pages), so "this chart" is true.
-interface Props { lake: 'lake-mead' | 'lake-powell'; placement: string; cta: string; fullChart?: boolean }
-const { lake, placement, cta, fullChart = false } = Astro.props;
+// direct (sprint-20261117-c-lln-mead): the button opens the Stripe Payment Link in 1 click ($9, all files); /posters/ stays as a text link.
+interface Props { lake: 'lake-mead' | 'lake-powell'; placement: string; cta: string; fullChart?: boolean; direct?: boolean }
+const { lake, placement, cta, fullChart = false, direct = false } = Astro.props;
 const slug = lake === 'lake-mead' ? 'mead' : 'powell';
 const f = (posters.lakes as Record<string, any>)[slug];
 const name: string = f.lake;
@@ -32,8 +33,11 @@ const christmas = now.getUTCMonth() === 10 || (now.getUTCMonth() === 11 && now.g
     Lake Mead, Lake Powell and both together, light or dark, in four sizes, plus a 2027 calendar.{christmas && ' It downloads the moment you pay, with nothing to ship, so it makes an easy Christmas gift.'}</p>
     <p class="pst-row">
       <span class="pst-price">${posters.priceUsd}</span>
-      <a class="pst-btn" href="/posters/" data-cta={cta} data-pst-link>See the posters</a>
+      {direct
+        ? <a class="pst-btn" href={posters.buyUrl} rel="nofollow" data-cta={cta} data-pst-link data-cro="sprint-20261117-c-lln-mead">Get the posters, ${posters.priceUsd}</a>
+        : <a class="pst-btn" href="/posters/" data-cta={cta} data-pst-link>See the posters</a>}
     </p>
+    {direct && <p class="pst-small">One payment: every poster file and the 2027 calendar in one download. <a href="/posters/">See every poster first</a>.</p>}
     <p class="pst-small">Pay with Apple Pay or Google Pay. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
 </aside>
 

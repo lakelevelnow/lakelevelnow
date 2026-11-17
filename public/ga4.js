@@ -63,7 +63,7 @@
       sessionStorage.removeItem(HAND);
       var hs = JSON.parse(held);
       (Array.isArray(hs) ? hs : [hs]).forEach(function (h) {
-        if (h && (h.n === 'select_content' || h.n === 'cta_click' || h.n === 'mm_cta_click') && h.p && Date.now() - h.t < 60000) event(h.n, h.p);
+        if (h && (h.n === 'select_content' || h.n === 'cta_click' || h.n === 'nav_click' || h.n === 'mm_cta_click') && h.p && Date.now() - h.t < 60000) event(h.n, h.p);
       });
     }
   } catch (_) {}
@@ -122,7 +122,7 @@
   // Mobile money run 2026-11-08: mm_cta_view and mm_cta_click carry a product sku and a
   // placement token (PosterOffer.astro, /posters/). Same allowlist rules, sku instead of offer_id.
   // Sprint 2026-11-13: offer_view and cta_click for the paid-at-launch alerts waitlist, with site, product, price, currency.
-  var promoNames = ['view_promotion', 'select_promotion', 'generate_lead', 'mm_cta_view', 'mm_cta_click', 'offer_view', 'cta_click'];
+  var promoNames = ['view_promotion', 'select_promotion', 'generate_lead', 'mm_cta_view', 'mm_cta_click', 'offer_view', 'cta_click', 'nav_click'];
   var promoKeys = ['offer_id', 'ab_variant', 'lake_slug', 'placement', 'sku', 'site', 'product'];
   window.__siteGA4Event = function (name, params, anchor) {
     if (promoNames.indexOf(name) < 0 || !params || typeof params !== 'object') return false;
@@ -204,7 +204,8 @@
       var cnow = Date.now();
       if (cnow - (Number(anchor.dataset && anchor.dataset.gaCtaT) || 0) >= 1000) {
         if (anchor.dataset) anchor.dataset.gaCtaT = String(cnow);
-        sendOrHand(anchor, 'cta_click', Object.assign({ placement: placement(anchor) }, cid));
+        // sprint-20261117-c-navclick: cta_click only for a link that opens Stripe; links to pages send nav_click.
+        sendOrHand(anchor, productFor(anchor) ? 'cta_click' : 'nav_click', Object.assign({ placement: placement(anchor) }, cid));
       }
     }
     // Lake sponsor slot (house ad or a paid sponsor): count the click so each sponsor can
