@@ -321,6 +321,8 @@ body .mt-cta-a:hover { color: #fff; text-decoration: none; }
 /* Review mode (adsense.approved false): no reserved space, no margin, no label until Google fills the unit. */
 .ad-slot.ad-review:not(.ad-filled) { margin: 0; min-height: 0; }
 .ad-slot.ad-review:not(.ad-filled) .ad-label { display: none; }
+/* Google sets the unit height at push, before its answer: keep it at 0 until Google reports a status. */
+.ad-slot.ad-review ins.adsbygoogle:not([data-ad-status]) { height: 0 !important; min-height: 0 !important; overflow: hidden; }
 
 /* CRO 2026-11-06 R2: header CTA for the paid Almanac. The only filled teal control in the header. */
 .hdr-cta { display: inline-flex; align-items: center; min-height: 48px; padding: 0 16px; margin-left: 20px; border-radius: var(--r-sm);

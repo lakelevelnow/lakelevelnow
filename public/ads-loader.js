@@ -39,7 +39,8 @@
       // Review mode: show the box (label, margin) only for a filled unit; collapse an unfilled one.
       new MutationObserver(function () {
         var st = ins.getAttribute('data-ad-status');
-        if (st === 'filled') box.classList.add('ad-filled');
+        // unfill-optimized = Google's own "Discover more" links: real content, shown with the label.
+        if (st === 'filled' || st === 'unfill-optimized') box.classList.add('ad-filled');
         else if (st === 'unfilled') hide(box);
       }).observe(ins, { attributes: true, attributeFilter: ['data-ad-status'] });
       return;
