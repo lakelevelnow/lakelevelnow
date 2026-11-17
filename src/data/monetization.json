@@ -1,7 +1,8 @@
 {
-  "_comment": "Owner switches. adsense.slots: the display ad unit IDs (digits only) for the three manual positions (top = first ad after the H1 and intro, mid = inside the content, end = after the content). Change them here only; AdSlot.astro reads them. An empty ID hides that slot. Auto ads stay under owner control in the AdSense UI (adsense-mobile 2026-11-02). support: the voluntary tip rails (Buy Me a Coffee primary, PayPal.Me secondary) used by SupportLine.astro and /support/.",
+  "_comment": "Owner switches. adsense.slots: the display ad unit IDs (digits only) for the three manual positions (top = first ad after the H1 and intro, mid = inside the content, end = after the content). Change them here only; AdSlot.astro reads them. An empty ID hides that slot. adsense.approved: false while the AdSense Sites page says Getting ready (ad code and requests stay, no reserved space, unfilled boxes collapse at any position); set it to true when the site is Ready (V1 2026-11-17). Auto ads stay under owner control in the AdSense UI (adsense-mobile 2026-11-02). support: the voluntary tip rails (Buy Me a Coffee primary, PayPal.Me secondary) used by SupportLine.astro and /support/.",
   "adsense": {
     "client": "ca-pub-2241192243363112",
+    "approved": false,
     "slots": {
       "top": "5693152633",
       "mid": "1902081438",

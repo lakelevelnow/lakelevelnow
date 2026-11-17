@@ -6,10 +6,16 @@
    Runs on lakelevelnow.com and www only: on localhost, 127.0.0.1 and the workers.dev preview no
    ad request is made. A slot that Google reports as unfilled, or whose script fails to load,
    is hidden so no empty "Advertisements" label is left behind. Slots render hidden with no
-   reserved height (AdSlot.astro); the loader adds .ad-live (min-height) only when it loads. */
+   reserved height (AdSlot.astro); the loader adds .ad-live (min-height) only when it loads.
+   Review mode (V1 2026-11-17): while data-approved on this script tag is not "true"
+   (src/data/monetization.json adsense.approved), the ad code and the push still run, but no box
+   reserves space (.ad-review: no margin, no label) and a box shows only when Google fills it;
+   an unfilled box collapses at any position. An AdSense site in review gets no paid ads. */
 (function () {
   'use strict';
   var w = window, d = document;
+  var me = d.currentScript || d.querySelector('script[src*="ads-loader.js"]');
+  var APPROVED = !!me && me.getAttribute('data-approved') === 'true';
   if (w.__llnAds) return;
   w.__llnAds = 1;
   var slots = [].slice.call(d.querySelectorAll('.ad-slot[data-ad-client]'));
@@ -29,6 +35,15 @@
   }
   function watch(box, ins) {
     if (!w.MutationObserver) return;
+    if (!APPROVED) {
+      // Review mode: show the box (label, margin) only for a filled unit; collapse an unfilled one.
+      new MutationObserver(function () {
+        var st = ins.getAttribute('data-ad-status');
+        if (st === 'filled') box.classList.add('ad-filled');
+        else if (st === 'unfilled') hide(box);
+      }).observe(ins, { attributes: true, attributeFilter: ['data-ad-status'] });
+      return;
+    }
     var keep = false;
     // Google writes min-height:0 !important on the box of an unfilled unit. A box that is on
     // screen keeps its reserved space (recipetool site-analytics.js approach, Amendment B).
@@ -76,7 +91,8 @@
       // Reserve the height (280px on phones, 100px from 768px, global.css .ad-live) only now
       // that the gate said load, so a gated-out visitor never sees a shift.
       // The box is visible with its min-height before push(): Google may skip a hidden unit.
-      box.classList.add('ad-live');
+      // Review mode: no reserve; the box is shown at zero height so Google still sees the unit.
+      box.classList.add(APPROVED ? 'ad-live' : 'ad-review');
       box.hidden = false;
       box.appendChild(ins);
       watch(box, ins);

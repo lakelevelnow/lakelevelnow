@@ -5,6 +5,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { organizationLd, websiteLd } from '../lib/seo';
+import monetization from '../data/monetization.json';
 
 interface Props {
   title: string;
@@ -23,6 +24,9 @@ const adPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
   adPath.startsWith('/lake/') || adPath.startsWith('/guides/') ||
   adPath === '/california-lake-levels' || adPath === '/texas-lake-levels');
+// AdSense site status switch (src/data/monetization.json adsense.approved). false = site in review:
+// no pre-paint reserve and the loader shows a box only when Google fills it.
+const adsApproved = (monetization.adsense as { approved?: boolean }).approved === true;
 ---
 
 <!DOCTYPE html>
@@ -33,9 +37,10 @@ const hasAds = !noindex && (adPath === '/' || adPath === '/lakes' ||
     <meta name="google-adsense-account" content="ca-pub-2241192243363112" />
     {/* Amendment B: reserve the top ad slot before first paint for visitors who will probably
         get ads (time zone outside Europe, live host). The geo gate in /ads-loader.js decides;
-        when it says no it removes the class and the space. */}
-    {hasAds && <script is:inline>(function(){try{var h=location.hostname;if(!/^(www\.)?lakelevelnow\.com$/.test(h))return;var z=(Intl.DateTimeFormat().resolvedOptions().timeZone)||'';if(!z||/^Europe\//.test(z)||/^Atlantic\/(Reykjavik|Canary|Madeira|Azores|Faroe|Faeroe)$/.test(z))return;document.documentElement.classList.add('ads-likely');}catch(e){}})();</script>}
-    {hasAds && <script is:inline defer src="/ads-loader.js"></script>}
+        when it says no it removes the class and the space. Only once the site is approved
+        (adsense.approved): a site in review gets no reserved, empty box. */}
+    {hasAds && adsApproved && <script is:inline>(function(){try{var h=location.hostname;if(!/^(www\.)?lakelevelnow\.com$/.test(h))return;var z=(Intl.DateTimeFormat().resolvedOptions().timeZone)||'';if(!z||/^Europe\//.test(z)||/^Atlantic\/(Reykjavik|Canary|Madeira|Azores|Faroe|Faeroe)$/.test(z))return;document.documentElement.classList.add('ads-likely');}catch(e){}})();</script>}
+    {hasAds && <script is:inline defer src="/ads-loader.js" data-approved={adsApproved ? 'true' : 'false'}></script>}
     <script is:inline defer src="/ga4.js?v=r13" data-site="lakelevelnow" data-measurement-id="G-LYY6FMNH6R" data-cro="ga-host-allowlist"></script>
     <BaseHead
       title={title}
