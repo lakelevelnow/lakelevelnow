@@ -11,7 +11,6 @@ import StatusStrip from '../../components/StatusStrip.astro';
 import LocalDirectory from '../../components/LocalDirectory.astro';
 import LevelAlerts from '../../components/LevelAlerts.astro';
 import LakeFacts from '../../components/LakeFacts.astro';
-import WaitlistTest from '../../components/WaitlistTest.astro';
 import PosterOffer from '../../components/PosterOffer.astro';
 import S3PayBox from '../../components/S3PayBox.astro';
 // import RecreationAffiliates from '../../components/RecreationAffiliates.astro'; // enable with the box below
@@ -336,7 +335,6 @@ const hxLake = hxData.lakes.some((l) => l.slug === slug);
     {/* a5-build 2026-11-03: fake-door waitlist test (5 planned products, one per visitor).
         Below the gauge and the readings, above the first mid-page ad slot. Copy lives in
         src/data/waitlist.json. */}
-    <WaitlistTest slug={slug} name={lake.name} />
 
     <AdSlot pos="mid" />
 

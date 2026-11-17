@@ -12,7 +12,6 @@
 // claim about what the monthly figure samples (CDEC does not say on the data reply), and the
 // first-fill boundary is stated next to every figure it shapes.
 import AdSlot from '../../../components/AdSlot.astro';
-import WaitlistTest from '../../../components/WaitlistTest.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
 import { getReading } from '../../../lib/lakes';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
@@ -171,7 +170,6 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
       </figure>
     </section>
 
-    <WaitlistTest slug={c.slug} name={shortName} placement="chart-waitlist" />
 
     <section class="section airy">
       <h2>Where {c.latest.label} sits in {c.years} years of readings</h2>

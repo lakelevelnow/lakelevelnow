@@ -7,7 +7,6 @@
 // validated reading + published constants; nothing is typed by hand.
 import AdSlot from '../../../components/AdSlot.astro';
 import AskAiCard from '../../../components/AskAiCard.astro';
-import WaitlistTest from '../../../components/WaitlistTest.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import DepthGauge from '../../../components/DepthGauge.astro';
 import AlmanacContext from '../../../components/AlmanacContext.astro';
@@ -159,7 +158,6 @@ const faqs = [
     )}
 
     {/* a5-build 2026-11-03: waitlist fake-door test, right after the main data block. */}
-    <WaitlistTest slug={lake.slug} name={lake.name} placement="depth-waitlist" />
 
 
     {/* This page had no call to action at all, and it has the site's best click-through
