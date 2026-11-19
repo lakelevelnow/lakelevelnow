@@ -255,6 +255,19 @@
     }
   }
   document.addEventListener('click', onOfferClick, true);
+  // Sprint 2026-11-19 lane S: footer GitHub Sponsors line. sponsor_click + button_click with site and the
+  // line's data-cro id as placement, through event() (same DNT/GPC gate and host allowlist as every hit).
+  function s7Sponsor(ev) {
+    var t = ev.target;
+    if (t && t.nodeType !== 1) t = t.parentElement;
+    var a = t && t.closest ? t.closest('[data-cro^="sprint-20261119-s-"] a[href]') : null;
+    if (!a) return;
+    var pl = String(a.closest('[data-cro]').getAttribute('data-cro') || '').slice(0, 100);
+    event('sponsor_click', { site: location.hostname, placement: pl, link_url: a.href.slice(0, 100) });
+    event('button_click', { site: location.hostname, placement: pl });
+  }
+  document.addEventListener('click', function (ev) { try { s7Sponsor(ev); } catch (_) {} }, true);
+  document.addEventListener('auxclick', function (ev) { try { if (ev.button === 1) s7Sponsor(ev); } catch (_) {} }, true);
   // Middle-click opens the offer in a new tab: count it like a click.
   document.addEventListener('auxclick', function (ev) { if (ev.button === 1) onOfferClick(ev); }, true);
   function observeOffers() {

@@ -41,7 +41,7 @@ const adsApproved = (monetization.adsense as { approved?: boolean }).approved ==
         (adsense.approved): a site in review gets no reserved, empty box. */}
     {hasAds && adsApproved && <script is:inline>(function(){try{var h=location.hostname;if(!/^(www\.)?lakelevelnow\.com$/.test(h))return;var z=(Intl.DateTimeFormat().resolvedOptions().timeZone)||'';if(!z||/^Europe\//.test(z)||/^Atlantic\/(Reykjavik|Canary|Madeira|Azores|Faroe|Faeroe)$/.test(z))return;document.documentElement.classList.add('ads-likely');}catch(e){}})();</script>}
     {hasAds && <script is:inline defer src="/ads-loader.js" data-approved={adsApproved ? 'true' : 'false'}></script>}
-    <script is:inline defer src="/ga4.js?v=r13" data-site="lakelevelnow" data-measurement-id="G-LYY6FMNH6R" data-cro="ga-host-allowlist"></script>
+    <script is:inline defer src="/ga4.js?v=r14" data-site="lakelevelnow" data-measurement-id="G-LYY6FMNH6R" data-cro="ga-host-allowlist"></script>
     <BaseHead
       title={title}
       description={description}

@@ -17,6 +17,10 @@ const fpath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 // Mobile money 2026-11-08 (llp): the owner's Almanac line below stays word for word on every page.
 // Lake Mead and Lake Powell pages and /posters/ add one separate poster line after it.
 const posterPage = /^\/lake\/lake-(mead|powell)(\/|$)/.test(fpath) || fpath === '/posters';
+// Sprint 2026-11-19 lane S: one GitHub Sponsors line on every free page. Not on pages that sell or
+// deliver a paid product (the line says "free tool") and not on /support (it has its own ask).
+const sponsorLine = !/^\/(support|almanac|posters|advertise|alerts|history-export)(\/|$)/.test(fpath);
+const sponsorCro = 'sprint-20261119-s-' + ((fpath.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase().slice(0, 60)) || 'home');
 const showTip = fpath !== '/support' && fpath !== '/' && fpath !== '/almanac' && !fpath.startsWith('/almanac/thanks') && !fpath.startsWith('/lake/');
 ---
 <footer class="site-footer">
@@ -39,6 +43,7 @@ const showTip = fpath !== '/support' && fpath !== '/' && fpath !== '/almanac' &&
         <a href="https://mcp.zovo.one">MCP servers for Claude</a>
       </div>
     </div>
+    {sponsorLine && <p class="foffer s7-sponsor" data-cro={sponsorCro}>Like this free tool? <a href="https://github.com/sponsors/theluckystrike" target="_blank" rel="noopener" data-sponsor-line style="display:inline-block;padding:12px 0">Support it on GitHub Sponsors.</a></p>}
     {/* CRO 2026-11-06 R2: one plain offer line in the footer of every page. */}
     <p class="foffer">Live lake levels are free. The Lake Level Almanac is the paid tier, with the daily history of one lake for ${alm.priceSingleUsd}, or all {alm.lakeCount} Almanac lakes for ${alm.priceBundleUsd}. <a href="/almanac/" data-cta="footer_almanac">See the Almanac and a free sample</a></p>
     {posterPage && <p class="foffer foffer-p">Lake Mead and Lake Powell also come as posters to print. <a href="/posters/" data-cta="footer_posters">See the posters</a></p>}
