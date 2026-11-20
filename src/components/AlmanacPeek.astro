@@ -15,10 +15,15 @@ const href = SINGLE ? `${SINGLE}?client_reference_id=${slug}` : '/almanac/';
   <p>{alm
     ? `The ${name} Almanac has daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} once. No subscription.`
     : `Plan visits to other lakes. Get daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} per lake. ${name} is not included.`}</p>
+  {alm && <label class="alm-peek-email">Email for the download link (optional)
+    <input type="email" id={`s8-email-${slug}`} name="email" autocomplete="email" inputmode="email" maxlength="200" placeholder="you@email.com" /></label>}
   {alm ? <a class="alm-peek-buy" href={href} data-alm-cta="lake" data-cta="peek_almanac_single" data-lake={slug}
+    data-s8-email-from={`#s8-email-${slug}`} data-cro={`sprint-20261120-w-lln-${slug}`}
     rel="nofollow">Get {name} Almanac for ${PRICE_SINGLE}</a>
     : <a class="alm-peek-buy" href="/almanac/">See the {LAKE_COUNT} covered lakes at ${PRICE_SINGLE} each</a>}
   {alm && <a class="alm-peek-more" href={slug === 'pine-flat-lake' ? '#pine-flat-sample' : `#alm-h-${slug}`}>{slug === 'pine-flat-lake' ? 'See Pine Flat sample' : 'See what is included'}</a>}
+  {alm && <small class="alm-peek-note">We use your email for this order only. <span data-s8-msg role="status"></span></small>}
+  {alm && <script is:inline defer src="/s8-w.js?v=1"></script>}
 </aside>
 
 <style>
@@ -28,4 +33,8 @@ const href = SINGLE ? `${SINGLE}?client_reference_id=${slug}` : '/almanac/';
   .alm-peek-buy { display: inline-block; padding: 11px 14px; border-radius: 6px;
     background: var(--teal); color: #fff; font-weight: 600; text-decoration: none; }
   .alm-peek-more { display: inline-block; padding: 10px 0; margin-left: 10px; font-size: 13px; }
+  .alm-peek-email { display: block; margin: 0 0 10px; font-size: 13px; max-width: 360px; }
+  .alm-peek-email input { display: block; width: 100%; box-sizing: border-box; min-height: 44px; margin-top: 4px;
+    padding: 8px 10px; border: 1px solid var(--border, #888); border-radius: 6px; font: inherit; font-size: 16px; }
+  .alm-peek-note { display: block; margin-top: 6px; font-size: 12px; color: var(--t2, #555); }
 </style>
