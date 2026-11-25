@@ -296,10 +296,9 @@ const hxLake = hxData.lakes.some((l) => l.slug === slug);
         screen; the visitor now gets the reading before the offer. */}
     {/* adsense-w2: the offer shows only on lakes the Almanac covers (it is about this lake).
         The "not included, see other lakes" cross-sell on uncovered lakes is removed. */}
-    {/* Sprint 2026-11-16 (lane D2): on Pine Flat the almanac offer under the gauge is the post-result offer
-        (data-cro sprint-20261116-postresult): offer_view when seen, pre-pay box next to its buy link. D1's
-        not-ready form is in the hero, so it is not repeated here. */}
-    {alm && slug === 'pine-flat-lake' ? (
+    {/* Post-result Pro CTA directly below the gauge on every Almanac-covered lake page:
+        offer_view when seen after interaction, pre-pay box next to the direct Stripe buy link (0 popups on load). */}
+    {alm && (
       <div id="s3-postresult" data-cro="sprint-20261116-postresult" data-s3-post data-s3-site="lakelevelnow" data-s3-product="almanac_single"
         data-s3-price={String(almPrice.priceSingleUsd)} data-s3-name="Lake Level Almanac (one lake)" data-s3-bc="site">
         <AlmanacPeek slug={slug} name={lake.name} alm={alm} />
@@ -310,7 +309,7 @@ const hxLake = hxData.lakes.some((l) => l.slug === slug);
         </div>
         <script is:inline defer src="/s3-postresult.js?v=2"></script>
       </div>
-    ) : alm && <AlmanacPeek slug={slug} name={lake.name} alm={alm} />}
+    )}
 
 
     {/* Directly under the gauge, on purpose. The visitor came for one number and it is
