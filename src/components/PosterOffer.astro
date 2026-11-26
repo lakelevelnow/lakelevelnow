@@ -34,12 +34,16 @@ const christmas = now.getUTCMonth() === 10 || (now.getUTCMonth() === 11 && now.g
     <p class="pst-row">
       <span class="pst-price">${posters.priceUsd}</span>
       {direct
-        ? <a class="pst-btn" href={posters.buyUrl} rel="nofollow" data-cta={cta} data-pst-link data-cro="sprint-20261117-c-lln-mead">Get the posters, ${posters.priceUsd}</a>
+        ? <>
+            <a class="pst-btn" href={`#pst-h-${place}`} data-checkout-url={`${posters.buyUrl}?client_reference_id=s9_l9_lln_${lake}_poster`} data-s8-offer="llp" rel="nofollow noopener" data-cta={cta} data-pst-link data-cro="sprint-20261117-c-lln-mead">Get the posters, ${posters.priceUsd}</a>
+            <noscript><a class="pst-btn" href={`${posters.buyUrl}?client_reference_id=s9_l9_lln_${lake}_poster`} rel="nofollow noopener">Get the posters, ${posters.priceUsd}</a></noscript>
+          </>
         : <a class="pst-btn" href="/posters/" data-cta={cta} data-pst-link>See the posters</a>}
     </p>
-    {direct && <p class="pst-small">One payment: every poster file and the 2027 calendar in one download. <a href="/posters/">See every poster first</a>.</p>}
-    <p class="pst-small">Pay with Apple Pay or Google Pay. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+    {direct && <p class="pst-small">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company). <a href="/posters/">See every poster first</a>.</p>}
+    {!direct && <p class="pst-small">Pay with Apple Pay or Google Pay. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>}
 </aside>
+{direct && <script is:inline defer src="/s8-w.js?v=2"></script>}
 
 <script is:inline>
 (function () {

@@ -25,6 +25,7 @@
 //     gives the closure date, only the year.
 //   - No factual claim about what other trackers plot or how far back their charts go.
 import AdSlot from '../../../components/AdSlot.astro';
+import HistoryExportOffer from '../../../components/HistoryExportOffer.astro';
 import PosterOffer from '../../../components/PosterOffer.astro';
 import LocalDirectory from '../../../components/LocalDirectory.astro';
 import LevelAlerts from '../../../components/LevelAlerts.astro';
@@ -199,6 +200,9 @@ const ld = [articleLd, datasetLd, speakableLd(PATH), authorLd(),
         </figcaption>
       </figure>
     </section>
+
+    {/* Sprint 9 L9 (2026-11-26): $9 Lake Mead 1935–2026 CSV+XLSX offer directly below the 91-year chart. */}
+    <HistoryExportOffer slug="lake-mead" place="mead-chart-history" />
 
     {/* Lane LD 2026-11-09: local business directory right under the level chart (intel N4). */}
     <LocalDirectory part="listings" slug="lake-mead" lakeName="Lake Mead" placement="mead-chart-dir" />

@@ -2,34 +2,69 @@
 // Compact offer below the gauge and trend chart (moved from the top 2026-10-20; the GA4
 // place is "lake-below-chart" so clicks before and after the move stay apart). Never sell
 // an uncovered lake.
+// Sprint 9 L9: Universal CRO Standard (3-bullet proof, <details> real USBR CSV sample, Baymard trust +
+// Stripe merchant disclosure directly above CTA, bot click-gate via data-checkout-url + <noscript> fallback).
+// Keeps client_reference_id=<slug> intact so lake-level-almanac Worker delivers the exact lake ZIP.
 import { PRICE_SINGLE, LAKE_COUNT } from '../lib/almanac';
 import type { AlmanacContext } from '../lib/almanac';
 
 interface Props { slug: string; name: string; alm: AlmanacContext | null; }
 const { slug, name, alm } = Astro.props;
 const SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
-const href = SINGLE ? `${SINGLE}?client_reference_id=${slug}` : '/almanac/';
+const stripeHref = SINGLE ? `${SINGLE}?client_reference_id=${slug}` : '';
 ---
 
-<aside class="alm-peek" aria-label="Lake Level Almanac" data-alm-place="lake-below-chart">
+<aside class="alm-peek" id="alm-peek" aria-label="Lake Level Almanac" data-alm-place="lake-below-chart">
   <p>{alm
     ? `The ${name} Almanac has daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} once. No subscription.`
     : `Plan visits to other lakes. Get daily normal ranges, a threshold explorer and CSV records. $${PRICE_SINGLE} per lake. ${name} is not included.`}</p>
+  {alm && (
+    <ul class="alm-peek-proof">
+      <li><strong>Instant ZIP download</strong> right after Stripe checkout — works offline in any browser or spreadsheet.</li>
+      <li><strong>Day-of-year normal ranges</strong> (10th–90th percentiles) plus a ramp and dock threshold explorer for {name}.</li>
+      <li><strong>Full CSV record included</strong> with sourced agency readings. One-time ${PRICE_SINGLE} payment, no renewal.</li>
+    </ul>
+  )}
+  {alm && (
+    <details class="alm-peek-sample">
+      <summary>Preview 3 real USBR CSV rows (Lake Mead sample, 1935–2026)</summary>
+      <pre><code>date,elevation_ft,source
+1935-02-02,670.00,USBR RISE site 921
+1983-07-24,1225.83,USBR RISE site 921
+2026-10-15,1037.53,USBR RISE site 921</code></pre>
+    </details>
+  )}
   {alm && <label class="alm-peek-email">Email for the download link (optional)
     <input type="email" id={`s8-email-${slug}`} name="email" autocomplete="email" inputmode="email" maxlength="200" placeholder="you@email.com" /></label>}
-  {alm ? <a class="alm-peek-buy" href={href} data-alm-cta="lake" data-cta="peek_almanac_single" data-lake={slug}
-    data-s8-email-from={`#s8-email-${slug}`} data-cro={`sprint-20261120-w-lln-${slug}`}
-    rel="nofollow">Get {name} Almanac for ${PRICE_SINGLE}</a>
-    : <a class="alm-peek-buy" href="/almanac/">See the {LAKE_COUNT} covered lakes at ${PRICE_SINGLE} each</a>}
+  {alm && <p class="alm-peek-trust">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>}
+  {alm ? (
+    stripeHref ? (
+      <>
+        <a class="alm-peek-buy" href="#alm-peek" data-checkout-url={stripeHref} data-alm-cta="lake" data-cta="peek_almanac_single" data-lake={slug}
+          data-s8-email-from={`#s8-email-${slug}`} data-s8-offer="almanac_single" data-cro={`s9_l9_lln_${slug}`}
+          rel="nofollow noopener">Get {name} Almanac for ${PRICE_SINGLE}</a>
+        <noscript><a class="alm-peek-buy" href={stripeHref} rel="nofollow noopener">Get {name} Almanac for ${PRICE_SINGLE}</a></noscript>
+      </>
+    ) : (
+      <a class="alm-peek-buy" href="/almanac/" data-alm-cta="lake" data-cta="peek_almanac_single" data-lake={slug}
+        rel="nofollow">Get {name} Almanac for ${PRICE_SINGLE}</a>
+    )
+  ) : <a class="alm-peek-buy" href="/almanac/">See the {LAKE_COUNT} covered lakes at ${PRICE_SINGLE} each</a>}
   {alm && <a class="alm-peek-more" href={slug === 'pine-flat-lake' ? '#pine-flat-sample' : `#alm-h-${slug}`}>{slug === 'pine-flat-lake' ? 'See Pine Flat sample' : 'See what is included'}</a>}
   {alm && <small class="alm-peek-note">We use your email for this order only. <span data-s8-msg role="status"></span></small>}
-  {alm && <script is:inline defer src="/s8-w.js?v=1"></script>}
+  {alm && <script is:inline defer src="/s8-w.js?v=2"></script>}
 </aside>
 
 <style>
   .alm-peek { margin: 14px 0; padding: 12px 14px; border-left: 3px solid var(--teal);
     background: var(--card); font-size: 14px; line-height: 1.45; color: var(--t1); max-width: 70ch; }
   .alm-peek p { margin: 0 0 10px; }
+  .alm-peek-proof { margin: 0 0 10px; padding-left: 20px; font-size: 13px; line-height: 1.5; }
+  .alm-peek-proof li { margin: 3px 0; }
+  .alm-peek-sample { margin: 0 0 10px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; background: var(--bg, #fff); }
+  .alm-peek-sample summary { cursor: pointer; font-weight: 600; color: var(--teal-deep); }
+  .alm-peek-sample pre { margin: 8px 0 0; overflow-x: auto; font-size: 12px; line-height: 1.45; }
+  .alm-peek-trust { margin: 0 0 8px; font-size: 12px; color: var(--t2, #555); }
   .alm-peek-buy { display: inline-block; padding: 11px 14px; border-radius: 6px;
     background: var(--teal); color: #fff; font-weight: 600; text-decoration: none; }
   .alm-peek-more { display: inline-block; padding: 10px 0; margin-left: 10px; font-size: 13px; }

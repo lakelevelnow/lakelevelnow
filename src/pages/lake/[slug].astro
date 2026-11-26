@@ -286,6 +286,10 @@ const hxLake = hxData.lakes.some((l) => l.slug === slug);
       </div>
     )}
 
+    {/* Sprint 9 L9 (2026-11-26): HistoryExportOffer ($9 CSV+XLSX) moved directly below LakeGauge
+        instead of buried at line 405, on the 16 lakes whose stored record is exported. */}
+    {hxLake && <HistoryExportOffer slug={slug} place="lake-history" />}
+
     {/* Lane LD 2026-11-09: local business directory directly under the level and its trend
         (intel N4). Lake Mead and Lake Powell only. Paid listings from src/data/directory.json,
         or one small honest line inviting businesses when there are none. */}
@@ -399,9 +403,7 @@ const hxLake = hxData.lakes.some((l) => l.slug === slug);
       </section>
     )}
 
-    {/* Sprint 3c (2026-11-17, lane PX2A): the lake history export, right after the record/chart links,
-        on the 16 lakes whose stored record is exported (src/data/history-export.json). */}
-    {hxLake && <HistoryExportOffer slug={slug} place="lake-history" />}
+    {/* Sprint 9 L9: HistoryExportOffer moved directly below LakeGauge above. */}
 
     {elev != null && (
       <section class="section">

@@ -160,7 +160,8 @@
   };
   function productFor(anchor) {
     try {
-      var url = new URL(anchor.href, location.href);
+      var raw = (anchor.getAttribute && anchor.getAttribute('data-checkout-url')) || anchor.href;
+      var url = new URL(raw, location.href);
       return url.hostname === 'buy.stripe.com' ? products[url.pathname.slice(1)] : null;
     } catch (_) { return null; }
   }

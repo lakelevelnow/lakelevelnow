@@ -1,13 +1,9 @@
 ---
-// Sprint 2026-11-15 lane L: lake level alerts by Web Push (replaces the "at launch" alerts waitlist).
-// One free alert (one lake, one level). Lake Alerts Pro, $19 one-time for 12 months (Stripe Payment
-// Link, offer_id alerts): every lake, up to 25 levels, daily or weekly digest. Unlock on /alerts/.
-// Push subscription -> lln-alerts.lipmichal.workers.dev (one KV write per subscribe). The Worker cron
-// (every 6 h) reads /alerts/levels.json, the same reading as this page.
-// GA4: offer_view via [data-s2-offer] (ga4.js), cta_click on the free button, generate_lead on a new
-// subscription, cta_click + begin_checkout (value 19) on the Pro link via ga4.js products map.
+// Sprint 2026-11-15 lane L + Sprint 9 L9 (2026-11-26): lake level alerts by Web Push + honest async
+// fleet-leads email capture for weekly alerts + Universal CRO Standard + Bot Click-Gate.
+// One free alert (one lake, one level). Lake Alerts Pro ($19 one-time for 12 months) + immediate $9 History Export CTA.
 import dir from '../data/directory.json';
-import S3PayBox from './S3PayBox.astro';
+import hx from '../data/history-export.json';
 import { getReading, fmtNum, lastReadingDate } from '../lib/lakes';
 interface Props { slug: string; name: string; placement: string; cro?: string; business?: boolean }
 const { slug, name, placement, cro, business } = Astro.props;
@@ -17,6 +13,10 @@ const r = getReading(slug);
 const level = r && r.level_ft != null && Number.isFinite(r.level_ft) ? r.level_ft : null;
 const id = `la-${place}`;
 const BUY = 'https://buy.stripe.com/8x25kE3seek8fopebb43S3R';
+const proHref = `${BUY}?client_reference_id=s9_l9_lln_${slug}`;
+const hxLake = hx.lakes.find((l) => l.slug === slug);
+const hxSlug = hxLake ? hxLake.slug : 'lake-mead';
+const hxHref = `${hx.linkLake}?client_reference_id=${hxSlug}`;
 const cta = `${place.replace(/-/g, '_')}`.slice(0, 32);
 ---
 {level != null && (
@@ -33,16 +33,41 @@ const cta = `${place.replace(/-/g, '_')}`.slice(0, 32);
     </div>
     <p class="la-st" role="status" aria-live="polite"></p>
   </form>
-  <div class="la-pro" data-cro="sprint-20261115-lln-alerts-pro">
-    <p><strong>Lake Alerts Pro: $19 for 12 months.</strong> Alerts for every lake on LakeLevelNow, up to 25 levels, and a daily or weekly level summary. One payment. It does not renew.</p>
-    <p class="la-btns"><a class="la-buy" href={`${BUY}?client_reference_id=${slug}`} data-cta={`${cta}_pro`} data-lake={slug} rel="noopener">Get Lake Alerts Pro, $19</a>
-      <a class="la-mng" href="/alerts/" data-cta={`${cta}_manage`}>Manage my alerts</a></p>
-    {/* Sprint 3c (2026-11-17, lane PX2A, owner-authorized): pre-pay box with the site's 60-day refund window
-        (the same window the Stripe page now states for this link). No email form: the lake page has one. */}
-    <div data-cro="sprint-20261116-alerts-paybox">
-      <S3PayBox price={19} delivery="Instant access after payment" refund="60-day refund, no questions"
-        gets="Lake Alerts Pro for 12 months: alerts for every lake on LakeLevelNow, up to 25 levels, and a daily or weekly level summary (no renewal)" form={false} />
+
+  <form class="la-email-f" data-la-email-form data-lake={slug} data-cro={`s9_l9_lln_weekly_${slug}`} novalidate>
+    <label class="la-l" for={`${id}-em`}>Prefer a weekly email summary? (optional)</label>
+    <div class="la-row">
+      <input class="la-e la-e-wide" id={`${id}-em`} name="email" type="email" autocomplete="email" inputmode="email" maxlength="200" placeholder="you@email.com" required />
+      <input type="text" name="hp" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" />
+      <button type="submit" class="la-s la-s-sec">Join weekly email</button>
     </div>
+    <p class="la-n">Weekly summary only — no immediate email is sent today. Unsubscribe any time.</p>
+    <p class="la-st la-em-st" role="status" aria-live="polite"></p>
+  </form>
+
+  <div class="la-pro" data-cro="sprint-20261115-lln-alerts-pro">
+    <p><strong>Need multi-lake alerts or the raw history today?</strong></p>
+    <ul class="la-proof">
+      <li><strong>Instant unlock / download</strong> immediately after Stripe checkout — no account needed.</li>
+      <li><strong>Lake Alerts Pro ($19 once for 12 months):</strong> every lake on LakeLevelNow, up to 25 threshold levels, daily or weekly digest, no auto-renewal.</li>
+      <li><strong>{hxLake ? `${hxLake.name} History Export ($${hx.priceLakeUsd})` : `Lake Mead History Export ($${hx.priceLakeUsd})`}:</strong> {hxLake ? `${hxLake.values.toLocaleString('en-US')} ${hxLake.resolution} ${hxLake.source} rows` : '33,494 daily USBR rows (1935–2026)'} as CSV + XLSX with yearly summary &amp; percentiles.</li>
+    </ul>
+    <details class="la-csv-sample">
+      <summary>Preview 3 real Lake Mead USBR CSV rows (1935–2026)</summary>
+      <pre><code>date,elevation_ft,source
+1935-02-02,670.00,USBR RISE site 921
+1983-07-24,1225.83,USBR RISE site 921
+2026-10-15,1037.53,USBR RISE site 921</code></pre>
+    </details>
+    <p class="la-trust">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
+    <p class="la-btns">
+      <a class="la-buy" href="#lln-alerts" data-checkout-url={proHref} data-s8-offer="lake_alerts" data-cta={`${cta}_pro`} data-lake={slug} data-cro={`s9_l9_lln_${slug}_alerts`} rel="nofollow noopener">Get Lake Alerts Pro, $19</a>
+      <a class="la-buy la-buy-hx" href="#lln-alerts" data-checkout-url={hxHref} data-s8-offer="lln-history-export-lake" data-cta={`${cta}_hx`} data-lake={hxSlug} data-cro={`s9_l9_lln_${hxSlug}_hx`} rel="nofollow noopener">{hxLake ? `${hxLake.name} CSV + XLSX, $${hx.priceLakeUsd}` : `Lake Mead CSV + XLSX, $${hx.priceLakeUsd}`}</a>
+      <a class="la-mng" href="/alerts/" data-cta={`${cta}_manage`}>Manage my alerts</a>
+    </p>
+    <noscript>
+      <p class="la-n">JavaScript is off: <a href={proHref} rel="nofollow noopener">Get Lake Alerts Pro, $19</a> · <a href={hxHref} rel="nofollow noopener">Download CSV + XLSX, ${hx.priceLakeUsd}</a></p>
+    </noscript>
   </div>
   <p class="la-n">Works in Chrome, Edge and Firefox on desktop and Android. On iPhone or iPad: tap Share, then Add to Home Screen, then open LakeLevelNow from the Home Screen icon (iOS 16.4 or later). Alerts use the same daily reading as this page. <a href="/privacy/#alerts">Privacy</a></p>
   {business && (
@@ -51,8 +76,50 @@ const cta = `${place.replace(/-/g, '_')}`.slice(0, 32);
 </section>
 )}
 <script is:inline src="/assets/js/lln-push.js?v=2" defer></script>
+<script is:inline defer src="/s8-w.js?v=2"></script>
 <script is:inline>
 (function () {
+  function initEmailForms() {
+    if (window.__laEmailInit) return;
+    window.__laEmailInit = 1;
+    document.addEventListener('submit', function (ev) {
+      var f = ev.target;
+      if (!f || !f.matches || !f.matches('form[data-la-email-form]')) return;
+      ev.preventDefault();
+      if (f.elements.hp && f.elements.hp.value) return;
+      var em = f.elements.email, st = f.querySelector('.la-em-st');
+      var email = (em && em.value || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+        if (st) { st.textContent = 'Please enter a valid email address.'; st.classList.add('la-bad'); }
+        return;
+      }
+      if (f.dataset.busy) return;
+      f.dataset.busy = '1';
+      var lake = f.getAttribute('data-lake') || '';
+      if (st) { st.textContent = 'Saving…'; st.classList.remove('la-bad'); }
+      fetch('https://fleet-leads.lipmichal.workers.dev/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, offer_id: 'lln-weekly-alerts', lake: lake, page: location.href, hp: '' }),
+        keepalive: true
+      })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return r.ok && j && j.ok; }); })
+        .then(function (ok) {
+          delete f.dataset.busy;
+          if (!ok) { if (st) { st.textContent = 'Could not save right now. Please try again in a minute.'; st.classList.add('la-bad'); } return; }
+          if (st) { st.textContent = 'Saved for weekly email summaries. No immediate email is sent today.'; st.classList.remove('la-bad'); }
+          if (typeof window.__siteGA4Event === 'function') {
+            window.__siteGA4Event('generate_lead', { offer_id: 'lln-weekly-alerts', site: 'lakelevelnow', lake_slug: lake, placement: 'level-alerts' });
+          }
+        })
+        .catch(function () {
+          delete f.dataset.busy;
+          if (st) { st.textContent = 'Could not save right now. Please try again in a minute.'; st.classList.add('la-bad'); }
+        });
+    });
+  }
+  initEmailForms();
+
   function init() {
     var boxes = document.querySelectorAll('section.la[data-la-lake]');
     for (var b = 0; b < boxes.length; b++) (function (root) {
@@ -115,14 +182,24 @@ const cta = `${place.replace(/-/g, '_')}`.slice(0, 32);
   .la-l { display: block; margin: 0 0 6px; font-weight: 600; font-size: 14px; }
   .la-row { display: flex; flex-wrap: wrap; gap: 8px; }
   .la-e { flex: 0 1 180px; min-width: 0; min-height: 46px; padding: 10px 12px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--t1); font: 16px/1.2 var(--sans); }
+  .la-e-wide { flex: 1 1 240px; max-width: 320px; }
   .la-e[aria-invalid="true"] { border-color: var(--burnt); }
   .la-s { min-height: 46px; padding: 10px 18px; border: 0; border-radius: 6px; background: var(--teal); color: #fff; font: 600 15px/1.2 var(--sans); cursor: pointer; }
   .la-s:hover { background: var(--teal-deep); }
+  .la-s-sec { background: var(--t1, #1e293b); }
   .la-s:disabled { opacity: .6; cursor: progress; }
+  .la-email-f { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--border); position: relative; }
   .la-pro { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--border); font-size: 15px; line-height: 1.5; }
   .la-pro p { margin: 0 0 8px; }
+  .la-proof { margin: 6px 0 10px; padding-left: 20px; font-size: 14px; line-height: 1.5; }
+  .la-proof li { margin: 4px 0; }
+  .la-csv-sample { margin: 8px 0 10px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; background: var(--bg, #fff); }
+  .la-csv-sample summary { cursor: pointer; font-weight: 600; color: var(--teal-deep); }
+  .la-csv-sample pre { margin: 8px 0 0; overflow-x: auto; font-size: 12px; line-height: 1.45; }
+  .la-trust { margin: 8px 0 8px; font-size: 13px; line-height: 1.45; color: var(--t2); }
   .la-btns { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   .la-buy { display: inline-block; min-height: 44px; box-sizing: border-box; padding: 11px 18px; border-radius: 6px; background: var(--teal-deep); color: #fff !important; font-weight: 600; text-decoration: none; }
+  .la-buy-hx { background: var(--teal); }
   .la-mng { display: inline-block; padding: 10px 4px; font-weight: 600; }
   .la-n { margin: 8px 0 0; font-size: 13px; color: var(--t2); }
   .la-st { margin: 6px 0 0; font-size: 14px; color: var(--teal-deep); }

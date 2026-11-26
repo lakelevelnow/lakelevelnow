@@ -47,13 +47,21 @@ const description = 'Free web push alert for one lake and one level. Lake Alerts
     <div class="al-box al-pro" id="al-pro" data-s2-offer="alerts" data-s2-product="lake_alerts" data-s2-price="19" data-alm-place="alerts-page" data-cro="sprint-20261115-lln-alerts-pro">
       <h2>Lake Alerts Pro: $19 for 12 months</h2>
       <ul>
-        <li>Alerts for every lake on LakeLevelNow ({lakes.length} lakes with a level reading today).</li>
-        <li>Up to 25 alerts, each with your own level in feet.</li>
-        <li>An optional daily or weekly summary of your lakes.</li>
-        <li>One payment of $19. It does not renew. After 12 months your first alert keeps working free.</li>
+        <li><strong>Instant unlock after payment:</strong> Stripe returns you here and Pro activates immediately in this browser (no account required).</li>
+        <li><strong>Every lake &amp; up to 25 alerts:</strong> track all {lakes.length} live lakes with custom elevation thresholds plus an optional daily or weekly summary.</li>
+        <li><strong>One-time $19 payment:</strong> no auto-renewal; after 12 months your first alert keeps working free.</li>
       </ul>
-      <p><a class="al-buy" href={BUY} data-cta="alerts_page_pro" rel="noopener">Get Lake Alerts Pro, $19</a></p>
-      <p class="al-small">Pay with Stripe. After payment you come back to this page and Pro unlocks in this browser. Keep the page address that Stripe sends you back to: open it in another browser to unlock Pro there too.</p>
+      <details class="al-csv-sample">
+        <summary>Preview 3 real Lake Mead USBR CSV rows (1935–2026)</summary>
+        <pre><code>date,elevation_ft,source
+1935-02-02,670.00,USBR RISE site 921
+1983-07-24,1225.83,USBR RISE site 921
+2026-10-15,1037.53,USBR RISE site 921</code></pre>
+      </details>
+      <p class="al-trust">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
+      <p><a class="al-buy" href="#al-pro" data-checkout-url={`${BUY}?client_reference_id=s9_l9_lln_alerts`} data-s8-offer="lake_alerts" data-cta="alerts_page_pro" data-cro="s9_l9_lln_alerts" rel="nofollow noopener">Get Lake Alerts Pro, $19</a></p>
+      <noscript><p class="al-small"><a href={`${BUY}?client_reference_id=s9_l9_lln_alerts`} rel="nofollow noopener">Get Lake Alerts Pro, $19</a></p></noscript>
+      <p class="al-small">After payment you come back to this page and Pro unlocks in this browser. Keep the page address that Stripe sends you back to: open it in another browser to unlock Pro there too.</p>
     </div>
 
     <div class="al-box">
@@ -67,6 +75,7 @@ const description = 'Free web push alert for one lake and one level. Lake Alerts
     </div>
   </div>
   <script is:inline src="/assets/js/lln-push.js?v=2" defer></script>
+  <script is:inline defer src="/s8-w.js?v=2"></script>
   <script is:inline data-cro="sprint-20261115-purchase">
   /* sprint-20261115-purchase (lane L). Stripe returns ?session_id=cs_live_...; the lln-alerts Worker verifies it
      (our payment link, paid, live) and returns a Pro token + receipt. GA4 purchase once per session (ga4.js dedupe). */
@@ -164,5 +173,9 @@ const description = 'Free web push alert for one lake and one level. Lake Alerts
     .al-st { min-height: 1em; color: var(--teal-deep); }
     .al-st.al-bad { color: var(--burnt); }
     .al-small { font-size: 13px; color: var(--t2); }
+    .al-trust { margin: 8px 0 10px; font-size: 13px; line-height: 1.45; color: var(--t2); }
+    .al-csv-sample { margin: 10px 0; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; background: var(--bg, #fff); }
+    .al-csv-sample summary { cursor: pointer; font-weight: 600; color: var(--teal-deep); }
+    .al-csv-sample pre { margin: 8px 0 0; overflow-x: auto; font-size: 12px; line-height: 1.45; }
   </style>
 </BaseLayout>
