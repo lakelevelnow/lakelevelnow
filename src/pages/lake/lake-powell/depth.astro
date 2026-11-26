@@ -132,12 +132,26 @@ const faqs = [
     <div style="padding-top:16px;">
       <h1>How deep is Lake Powell right now?</h1>
       <p style="font-size:13px;color:var(--t2);margin-top:8px;">By <a href="/about/">Michael</a>, independent developer behind <a href="https://zovo.one" rel="noopener">zovo.one</a>.{asOfFmt && ` Data checked ${asOfFmt}.`}</p>
-      {/* Sprint 2026-11-15 (lane E): the Powell almanac in the first phone screen, one text link to Stripe. */}
-      <div data-cro="sprint-20261116-direct">
+      {/* Sprint 2026-11-15 (lane E) + Sprint 9 L9 Wave 2: bot click-gated Powell almanac hero link. */}
+      <div id="depth-hero-alm" data-cro="sprint-20261116-direct">
       <p class="lake-alm-line" data-alm-place="depth-hero" data-cro="sprint-20261115-lln-depth-almanac"
          data-s2-offer="lln-almanac-single" data-s2-product="almanac_single" data-s2-price={almDepth.priceSingleUsd}>Is this depth normal for the date? The Lake Powell almanac has {powellAlm?.years ?? 60} years of daily levels and the normal range for every date.
-        <a href={import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? `${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=lake-powell` : '/almanac/#pick'} rel="nofollow" data-lake="lake-powell" data-cta="depth_hero_almanac">Get the Lake Powell almanac, ${almDepth.priceSingleUsd}</a>
-        <span class="lake-alm-micro">One payment, instant download, 60-day refund. <a class="lake-alm-alt" href={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE || '/almanac/'} rel="nofollow" data-cta="depth_hero_bundle">All {almDepth.lakeCount} lakes, ${almDepth.priceBundleUsd}</a></span></p>
+        {import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? (
+          <>
+            <a href="#depth-hero-alm" data-checkout-url={`${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=lake-powell`} data-s8-offer="almanac_single" rel="nofollow noopener" data-lake="lake-powell" data-cta="depth_hero_almanac">Get the Lake Powell almanac, ${almDepth.priceSingleUsd}</a>
+            <noscript><a href={`${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=lake-powell`} rel="nofollow noopener">Get the Lake Powell almanac, ${almDepth.priceSingleUsd}</a></noscript>
+          </>
+        ) : (
+          <a href="/almanac/#pick" rel="nofollow" data-lake="lake-powell" data-cta="depth_hero_almanac">Get the Lake Powell almanac, ${almDepth.priceSingleUsd}</a>
+        )}
+        <span class="lake-alm-micro">One payment, instant download, 60-day refund (Stripe checkout: BeLikeNative / AUTOM8 LLC). {import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE ? (
+          <>
+            <a class="lake-alm-alt" href="#depth-hero-alm" data-checkout-url={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE} data-s8-offer="almanac_bundle" rel="nofollow noopener" data-cta="depth_hero_bundle">All {almDepth.lakeCount} lakes, ${almDepth.priceBundleUsd}</a>
+            <noscript><a href={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE} rel="nofollow noopener">All {almDepth.lakeCount} lakes, ${almDepth.priceBundleUsd}</a></noscript>
+          </>
+        ) : (
+          <a class="lake-alm-alt" href="/almanac/" rel="nofollow" data-cta="depth_hero_bundle">All {almDepth.lakeCount} lakes, ${almDepth.priceBundleUsd}</a>
+        )}</span></p>
       </div>
       {/* Sprint 2026-11-16 (lane D1): pre-pay box + not-ready form directly after the buy link. */}
       <S3PayBox price={almDepth.priceSingleUsd} refund="60-day refund, no questions"

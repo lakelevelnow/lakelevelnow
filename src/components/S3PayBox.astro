@@ -5,7 +5,7 @@
 // 60-day refund is the one /almanac/#questions states. The form posts to the fleet-leads Worker
 // (double opt-in; lane R sends this link once and one reminder). GA4: generate_lead.
 interface Props { price: number; gets: string; refund: string; delivery?: string; form?: boolean }
-const { price, gets, refund, delivery = 'Instant download after payment', form = true } = Astro.props;
+const { price, gets, refund, delivery = 'Instant download after payment', form = false } = Astro.props;
 const OFFER = 'lakelevelnow-notready';
 ---
 <div class="s3-paybox" data-cro="sprint-20261116-paybox">

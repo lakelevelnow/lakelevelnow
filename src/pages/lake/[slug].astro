@@ -13,6 +13,9 @@ import LevelAlerts from '../../components/LevelAlerts.astro';
 import LakeFacts from '../../components/LakeFacts.astro';
 import PosterOffer from '../../components/PosterOffer.astro';
 import S3PayBox from '../../components/S3PayBox.astro';
+import HistoryExportOffer from '../../components/HistoryExportOffer.astro';
+import almPrice from '../../data/almanac.json';
+import hxData from '../../data/history-export.json';
 // import RecreationAffiliates from '../../components/RecreationAffiliates.astro'; // enable with the box below
 import { almanacContext, descriptionClause } from '../../lib/almanac';
 import { SITE, AUTHOR } from '../../consts';
@@ -27,6 +30,8 @@ export function getStaticPaths() {
 
 const { slug } = Astro.params;
 const lake = LAKES.find((l) => l.slug === slug)!;
+const hxEntry = hxData.lakes.find((l) => l.slug === slug);
+const hxLake = !!hxEntry;
 // Lakes with a printable poster (sku llp). The poster card sits after the Almanac CTAs, and the waitlist test stays below it.
 const posterLake = slug === 'lake-mead' || slug === 'lake-powell' ? (slug as 'lake-mead' | 'lake-powell') : null;
 // California lakes with a long CDEC monthly record get a chart page (src/pages/lake/[slug]/chart.astro).
@@ -112,7 +117,27 @@ const datedCandidates = datedName && liveValue
     ].filter(Boolean)
   : [];
 const datedTitle = datedCandidates.find((t) => t.length <= 60) || null;
-const title = datedTitle || titleDefault;
+
+// Sprint 9 L9 Wave 2: high-CTR title & description templates matching high-intent queries
+// (e.g. "Lake Mead Water Level Today — Live Feet, Chart & 1935–2026 History").
+let title = datedTitle || titleDefault;
+if (hxEntry) {
+  const hxStart = hxEntry.start.slice(0, 4);
+  const hxEnd = hxEntry.end.slice(0, 4);
+  if (slug === 'lake-mead') {
+    title = `Lake Mead Water Level Today — Live Feet, Chart & ${hxStart}–${hxEnd} History`;
+  } else {
+    const withVal = liveValue
+      ? `${titleName} Water Level Today — ${liveValue}, Chart & ${hxStart}–${hxEnd} History`
+      : '';
+    const baseHx = `${titleName} Water Level Today — Live Feet, Chart & ${hxStart}–${hxEnd} History`;
+    title = withVal && withVal.length <= 68 ? withVal : baseHx;
+  }
+} else if (!datedTitle && liveValue) {
+  const rich = `${titleName} Water Level Today — ${liveValue}, Live Chart & Ramp Read`;
+  if (rich.length <= 66) title = rich;
+}
+const useBrand = !datedTitle && !title.includes('—');
 // feet_from_full comes straight off the validated reading; the fuller feetBelowFull
 // fallback is computed further down and is not needed (or available) this early.
 const metaFeetFromFull = live ? (reading!.feet_from_full ?? null) : null;
@@ -126,11 +151,16 @@ const belowFullPhrase = metaFeetFromFull != null
 const descLead = livePct != null && liveFt != null
   ? `${lake.name} is ${livePct}% full (${pctSourceLabel}) at ${fmtNum(liveFt, 1)} ft on ${asOfFmt}${belowFullPhrase}.`
   : `${lake.name} is ${liveFigure}${belowFullPhrase} as of ${asOfFmt}.`;
+const hxTail = hxEntry
+  ? ` Live ${feedLabel(reading?.feed) || hxEntry.source} gage, 30-day chart & ${hxEntry.start.slice(0, 4)}–${hxEntry.end.slice(0, 4)} ${hxEntry.source} history.`
+  : (descCtx
+      ? `${descCtx} Live gage and 30-day trend.`
+      : ` Live ${feedLabel(reading?.feed) || 'USGS'} gage reading, 30-day trend, and boat-launch read.`);
 const descriptionDefault = liveFigure
-  ? (descCtx
-      ? `${descLead}${descCtx} Live gage and 30-day trend.`
-      : `${descLead} Live ${feedLabel(reading!.feed) || 'USGS'} gage reading, 30-day trend, and a plain-English boat-launch read.`)
-  : `${lake.name} water level and percent full from the live USGS/CDEC gauge, with the 30-day trend and a plain-English boat-launch read.`;
+  ? `${descLead}${hxTail}`
+  : hxEntry
+    ? `${lake.name} water level today, live chart, boat-launch read & ${hxEntry.start.slice(0, 4)}–${hxEntry.end.slice(0, 4)} ${hxEntry.source} historical record.`
+    : `${lake.name} water level and percent full from the live USGS/CDEC gauge, with the 30-day trend and a plain-English boat-launch read.`;
 // Dated-title pages get a 140-155 character description: the reading, then what the page
 // adds (trend, history, ramp outlook). The richest lead + tail pair that fits wins.
 let description = descriptionDefault;
@@ -218,13 +248,8 @@ const liveBandPct = band ? liveBandBelowFullPct(elev, band.fullPoolFt, band.dead
 const change30d = changeOverSeries(reading?.series);
 const elevM = elev != null ? Math.round(elev * 0.3048 * 10000) / 10000 : null;
 const calcFull = fullPool; // exposed to the inline calculator script
-
-import almPrice from '../../data/almanac.json';
-import hxData from '../../data/history-export.json';
-import HistoryExportOffer from '../../components/HistoryExportOffer.astro';
-const hxLake = hxData.lakes.some((l) => l.slug === slug);
 ---
-<BaseLayout title={title} description={description} path={`/lake/${slug}`} jsonLd={ld} brand={!datedTitle} noindex={noData} robots={noData ? 'noindex,follow' : undefined}>
+<BaseLayout title={title} description={description} path={`/lake/${slug}`} jsonLd={ld} brand={useBrand} noindex={noData} robots={noData ? 'noindex,follow' : undefined}>
   <div class="container">
 
     <div class="crumbs" style="padding-top:20px;">
@@ -240,23 +265,35 @@ const hxLake = hxData.lakes.some((l) => l.slug === slug);
       {live && <StatusStrip lake={lake} reading={reading!} slug={slug} />}
       <p style="font-size:14px;color:var(--t2);margin-top:8px;">{lake.river} · {stName} · operated by {lake.operator}</p>
       <p style="font-size:13px;color:var(--t2);margin-top:6px;">By <a href="/about/">{AUTHOR.name}</a>, independent developer behind <a href="https://zovo.one" rel="noopener">zovo.one</a>. Readings pulled live from the same {feedLabel(reading?.feed) || 'USGS'} feed the operator reports to.</p>
-      {/* CRO 2026-11-06 R4: the lake's own paid offer in the first phone screen, as one text link. */}
+      {/* CRO 2026-11-06 R4 + Sprint 9 L9 Wave 2: bot click-gated lake hero offer. */}
       {alm && (<>
-        <div data-cro="sprint-20261116-direct">
+        <div id="lake-hero-alm" data-cro="sprint-20261116-direct">
         <p class="lake-alm-line" data-alm-place="lake-hero" data-cro="sprint-20261115-lln-hero-almanac"
            data-s2-offer="lln-almanac-single" data-s2-product="almanac_single" data-s2-price={almPrice.priceSingleUsd}>Is {live && reading ? `${fmtNum(reading.level_ft, 1)} ft` : 'today\u2019s level'} normal for the date? The {lake.name} almanac shows the normal range for every day of the year.
-          <a href={import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? `${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=${slug}` : '/almanac/#pick'} rel="nofollow" data-lake={slug} data-cta="lake_hero_almanac">Get the {lake.name} almanac, ${almPrice.priceSingleUsd}</a>
-          <span class="lake-alm-micro">One payment, instant download, 60-day refund. <a class="lake-alm-alt" href={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE || '/almanac/'} rel="nofollow" data-cta="lake_hero_bundle">All {almPrice.lakeCount} lakes, ${almPrice.priceBundleUsd}</a></span></p>
+          {import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? (
+            <>
+              <a href="#lake-hero-alm" data-checkout-url={`${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=${slug}`} data-s8-offer="almanac_single" rel="nofollow noopener" data-lake={slug} data-cta="lake_hero_almanac">Get the {lake.name} almanac, ${almPrice.priceSingleUsd}</a>
+              <noscript><a href={`${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=${slug}`} rel="nofollow noopener">Get the {lake.name} almanac, ${almPrice.priceSingleUsd}</a></noscript>
+            </>
+          ) : (
+            <a href="/almanac/#pick" rel="nofollow" data-lake={slug} data-cta="lake_hero_almanac">Get the {lake.name} almanac, ${almPrice.priceSingleUsd}</a>
+          )}
+          <span class="lake-alm-micro">One payment, instant download, 60-day refund (Stripe checkout: BeLikeNative / AUTOM8 LLC). {import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE ? (
+            <>
+              <a class="lake-alm-alt" href="#lake-hero-alm" data-checkout-url={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE} data-s8-offer="almanac_bundle" rel="nofollow noopener" data-cta="lake_hero_bundle">All {almPrice.lakeCount} lakes, ${almPrice.priceBundleUsd}</a>
+              <noscript><a href={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE} rel="nofollow noopener">All {almPrice.lakeCount} lakes, ${almPrice.priceBundleUsd}</a></noscript>
+            </>
+          ) : (
+            <a class="lake-alm-alt" href="/almanac/" rel="nofollow" data-cta="lake_hero_bundle">All {almPrice.lakeCount} lakes, ${almPrice.priceBundleUsd}</a>
+          )}</span></p>
         </div>
-        {/* Sprint 2026-11-16 (lane D1): pre-pay box + not-ready form directly after the buy link. */}
+        {/* Sprint 2026-11-16 (lane D1): pre-pay box directly after the buy link. */}
         <S3PayBox price={almPrice.priceSingleUsd} refund="60-day refund, no questions"
           gets={`the ${lake.name} almanac: ${almPrice.lakes.find((l) => l.slug === slug)?.years ?? ''} years of daily levels, the normal range for every date, a ramp and dock threshold tool and the CSV record (one ZIP, works offline)`} />
       </>)}
-      {/* CRO 2026-11-13 (livedata impl): the Mead hero no longer leads with what the product
-          lacks. It offers what is true for Mead today: the free level-alerts waitlist below. */}
       {slug === 'lake-mead' && (
-        <p class="lake-alm-line" data-alm-place="mead-hero" data-cro="mead-hero-alerts">Want an email when Lake Mead crosses a level you pick?
-          <a href="#lln-alerts" data-cta="mead_hero_alerts">Join the Lake Mead alerts list, free</a></p>
+        <p class="lake-alm-line" data-alm-place="mead-hero" data-cro="mead-hero-alerts">Want an alert when Lake Mead crosses a level you pick?
+          <a href="#lln-alerts" data-cta="mead_hero_alerts">Set a free Lake Mead level alert</a></p>
       )}
     </div>
 
@@ -306,11 +343,6 @@ const hxLake = hxData.lakes.some((l) => l.slug === slug);
       <div id="s3-postresult" data-cro="sprint-20261116-postresult" data-s3-post data-s3-site="lakelevelnow" data-s3-product="almanac_single"
         data-s3-price={String(almPrice.priceSingleUsd)} data-s3-name="Lake Level Almanac (one lake)" data-s3-bc="site">
         <AlmanacPeek slug={slug} name={lake.name} alm={alm} />
-        <div class="s3-paybox" data-cro="sprint-20261116-paybox">
-          <p><strong>${almPrice.priceSingleUsd}</strong> once - the {lake.name} almanac: {almPrice.lakes.find((l) => l.slug === slug)?.years ?? ''} years of daily levels, the normal range for every date, a ramp and dock threshold tool and the CSV record (one ZIP, works offline)</p>
-          <p>Instant download after payment · 60-day refund, no questions</p>
-          <p>Secure checkout by Stripe - the page shows BeLikeNative, our company account</p>
-        </div>
         <script is:inline defer src="/s3-postresult.js?v=2"></script>
       </div>
     )}

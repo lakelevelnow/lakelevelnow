@@ -9,6 +9,7 @@ interface Props { state: 'CA' | 'TX'; stateName: string }
 const { state, stateName } = Astro.props;
 const lakes = data.lakes.filter((l) => l.state === state).sort((a, b) => a.name.localeCompare(b.name));
 const bundle = import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE || '/almanac/';
+const bundleIsStripe = bundle.startsWith('https://buy.stripe.com');
 const minYears = Math.min(...lakes.map((l) => l.years));
 const maxYears = Math.max(...lakes.map((l) => l.years));
 const place = `state-${state.toLowerCase()}`;
@@ -24,11 +25,19 @@ const place = `state-${state.toLowerCase()}`;
     <p class="readable st-alm-lakes">
       {stateName} lakes in the Almanac are {lakes.map((l, i) => <><a href={`/lake/${l.slug}/`}>{l.name}</a>{i < lakes.length - 2 ? ', ' : i === lakes.length - 2 ? ' and ' : '.'}</>)}
     </p>
+    <p class="st-alm-micro" style="margin:0 0 10px;">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
     <div class="st-alm-cta">
       <a class="st-alm-btn" href="/almanac/#pick" data-cta={`${place}_almanac_pick`}>Pick your lake, ${data.priceSingleUsd}</a>
-      <a href={bundle} data-alm-cta="bundle" data-cta={`${place}_almanac_bundle`} rel="nofollow">or all {data.lakeCount} lakes for ${data.priceBundleUsd}</a>
+      {bundleIsStripe ? (
+        <>
+          <a href={`#st-alm-h-${state}`} data-checkout-url={bundle} data-s8-offer="almanac_bundle" data-alm-cta="bundle" data-cta={`${place}_almanac_bundle`} rel="nofollow noopener">or all {data.lakeCount} lakes for ${data.priceBundleUsd}</a>
+          <noscript><a href={bundle} rel="nofollow noopener">All {data.lakeCount} lakes, ${data.priceBundleUsd}</a></noscript>
+        </>
+      ) : (
+        <a href={bundle} data-alm-cta="bundle" data-cta={`${place}_almanac_bundle`} rel="nofollow">or all {data.lakeCount} lakes for ${data.priceBundleUsd}</a>
+      )}
     </div>
-    <p class="st-alm-micro">One payment, no subscription. Instant download. 60-day refund, no questions. <a href="/almanac/sample/">See a free sample first</a>.</p>
+    <p class="st-alm-micro"><a href="/almanac/sample/">See a free sample first</a>.</p>
   </section>
 )}
 

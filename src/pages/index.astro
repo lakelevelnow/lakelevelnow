@@ -6,6 +6,7 @@ import { LAKES, freshLakes, byState, getReading, status, fmtNum, stateName } fro
 import { authorLd, breadcrumbLd } from '../lib/seo';
 import { levelStatus } from '../lib/seasonal';
 import almanacData from '../data/almanac.json';
+import hx from '../data/history-export.json';
 import posters from '../data/posters.json';
 // Lane LD: first year on the posters, from the same frozen facts the poster files were drawn from.
 // Lane H15: start years, not a year count, so the entry never clashes with the Almanac's 64 years.
@@ -15,19 +16,21 @@ import { almanacContext, leadSentence } from '../lib/almanac';
 import SupportLine from '../components/SupportLine.astro';
 import ZovoXpromo from '../components/ZovoXpromo.astro';
 import ShortAnswer from '../components/ShortAnswer.astro';
-import S3PayBox from '../components/S3PayBox.astro';
 import { CONTENT_CHECKED } from '../consts';
 
-// Hand-tuned 2026-10-08 for "lake levels" / "current lake levels" (1,922 impressions, pos 18).
-// The count is the lakes that have a live percent-full reading today, never the registry size.
-const pctCount = freshLakes().filter((x) => x.reading.pct_full != null).length;
-// CRO 2026-11-06 R2: one count on the page. The title, the badge and the short answer all use
-// the number of lakes with a current reading.
-const title = freshLakes().length >= 5
-  ? `Lake levels today: live readings for ${freshLakes().length} US lakes and reservoirs`
-  : 'Live US lake & reservoir water levels';
-const description = SITE.description;
+const ALERTS_BUY = 'https://buy.stripe.com/8x25kE3seek8fopebb43S3R';
+const meadHxHref = `${hx.linkLake}?client_reference_id=lake-mead`;
+const allHxHref = `${hx.linkAll}?client_reference_id=s9_l9_lln_home`;
+const alertsHomeHref = `${ALERTS_BUY}?client_reference_id=s9_l9_lln_home_alerts`;
+
+// Sprint 9 L9 Wave 2: high-CTR title & meta description for US lake level queries.
 const fresh = freshLakes();
+const title = fresh.length >= 5
+  ? `US Lake Water Levels Today — Live Feet, Charts & 1935–2026 History (${fresh.length} Lakes)`
+  : 'US Lake Water Levels Today — Live Feet, Charts & 1935–2026 History';
+const description = fresh.length >= 5
+  ? `Live water levels today for ${fresh.length} US lakes & reservoirs — Lake Mead, Powell, Shasta, Travis & more. Current feet, % full, 30-day charts & 1935–2026 history.`
+  : SITE.description;
 const toneHex = (t: string) => t === 'red' ? '#bb5a37' : t === 'amber' ? '#b07d1a' : t === 'green' || t === 'cyan' ? '#0b7d6a' : '#8a949a';
 
 const movers = [...fresh]
@@ -71,27 +74,39 @@ function liveSentence(l: { slug: string; sentence: string; todayDate: string }) 
 const almFeatureSentence = almFeature ? liveSentence(almFeature) : '';
 
 ---
-<BaseLayout title={title} description={description} path="/" jsonLd={ld}>
+<BaseLayout title={title} description={description} path="/" jsonLd={ld} brand={false}>
   <div class="container">
 
     <section class="hero">
       <div class="live-badge"><span class="dot"></span><span>{fresh.length} lakes live now</span></div>
       <h1>Live US lake &amp; reservoir water levels</h1>
       <p class="lead">Percent full and 30-day trend from USGS and CDEC gages, with a plain-English read on whether you can launch a boat.</p>
-      {/* CRO 2026-11-06 R2: say what is free and what is paid on the first screen, at 390 px too. */}
-      {/* Sprint 2026-11-15 (lane E): the home hero sells the all-lakes bundle in one click to Stripe. */}
-      <div class="hero-offer" data-alm-place="home-hero" data-cro="sprint-20261115-lln-home-bundle"
-           data-s2-offer="lln-almanac-bundle" data-s2-product="almanac_bundle" data-s2-price={almanacData.priceBundleUsd}>
-        <p class="hero-offer-t">Live levels are free on every page. The paid Lake Level Almanac adds {almYearsMin} to {almYearsMax} years of daily history: the normal range for every date, a ramp-threshold tool and CSV records.</p>
-        <p class="hero-offer-p">All {almanacData.lakeCount} Almanac lakes for ${almanacData.priceBundleUsd} once, or ${almanacData.priceSingleUsd} for one lake. Instant download, 60-day refund.</p>
-        <div class="hero-offer-cta" data-cro="sprint-20261116-direct">
-          <a class="hero-offer-btn" href={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE || '/almanac/'} rel="nofollow" data-cta="home_hero_bundle">Get all {almanacData.lakeCount} lakes, ${almanacData.priceBundleUsd}</a>
-          <a class="hero-offer-alt" href="/almanac/#pick" data-cta="home_hero_almanac">One lake, ${almanacData.priceSingleUsd}</a>
-          <a class="hero-offer-alt" href="/almanac/sample/" data-cta="home_hero_sample">Free sample</a>
+      {/* Sprint 9 L9 Wave 2: Universal CRO Standard primary offer — 1 dominant CTA, <details> CSV preview,
+          above-CTA BeLikeNative / AUTOM8 LLC disclosure, Bot Click-Gate, zero dead email promises. */}
+      <div class="hero-offer" id="home-offer" data-alm-place="home-hero" data-cro="sprint-20261126-s9-l9-home"
+           data-s2-offer="lln-history-export-lake" data-s2-product="lln-history-export-lake" data-s2-price={String(hx.priceLakeUsd)}>
+        <p class="hero-offer-t"><strong>Live levels are free on every page.</strong> Need the complete historical dataset or custom threshold alerts?</p>
+        <ul class="home-proof">
+          <li><strong>Instant ZIP download</strong> immediately after Stripe checkout — no account, no waiting.</li>
+          <li><strong>Lake Mead &amp; 16-Lake History Export (${hx.priceLakeUsd} one lake / ${hx.priceAllUsd} all {hx.lakes.length} lakes):</strong> clean CSV + Excel XLSX with 33,494 daily USBR Lake Mead rows (1935–2026), Powell, Travis, Buchanan &amp; 12 CA reservoirs.</li>
+          <li><strong>Lake Alerts Pro ($19 once for 12 months):</strong> custom elevation alerts across all {fresh.length} live lakes with daily or weekly summaries, no auto-renewal.</li>
+        </ul>
+        <details class="home-csv-sample">
+          <summary>Preview 3 real Lake Mead USBR CSV rows (1935–2026)</summary>
+          <pre><code>date,elevation_ft,source
+1935-02-02,670.00,USBR RISE site 921
+1983-07-24,1225.83,USBR RISE site 921
+2026-10-15,1037.53,USBR RISE site 921</code></pre>
+        </details>
+        <p class="home-trust">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
+        <div class="hero-offer-cta" data-cro="s9_l9_lln_home_cta">
+          <a class="hero-offer-btn" href="#home-offer" data-checkout-url={meadHxHref} data-s8-offer="lln-history-export-lake" data-lake="lake-mead" data-cta="home_hero_hx_mead" data-cro="s9_l9_lln_home_mead" rel="nofollow noopener">Download Lake Mead CSV + XLSX, ${hx.priceLakeUsd}</a>
+          <a class="hero-offer-alt" href="#home-offer" data-checkout-url={allHxHref} data-s8-offer="lln-history-export" data-cta="home_hero_hx_all" data-cro="s9_l9_lln_home_all" rel="nofollow noopener">All {hx.lakes.length} lakes, ${hx.priceAllUsd}</a>
+          <a class="hero-offer-alt" href="#home-offer" data-checkout-url={alertsHomeHref} data-s8-offer="lake_alerts" data-cta="home_hero_alerts" data-cro="s9_l9_lln_home_alerts" rel="nofollow noopener">Lake Alerts Pro, $19</a>
         </div>
-        {/* Sprint 2026-11-16 (lane D1): pre-pay box + not-ready form directly after the buy button. */}
-        <S3PayBox price={almanacData.priceBundleUsd} refund="60-day refund, no questions"
-          gets={`the Lake Level Almanac for all ${almanacData.lakeCount} lakes: ${almYearsMin} to ${almYearsMax} years of daily levels per lake, the normal range for every date, a ramp-threshold tool and CSV records (one ZIP per lake, works offline)`} />
+        <noscript>
+          <p class="home-trust">JavaScript is off: <a href={meadHxHref} rel="nofollow noopener">Lake Mead CSV + XLSX, ${hx.priceLakeUsd}</a> · <a href={allHxHref} rel="nofollow noopener">All {hx.lakes.length} lakes, ${hx.priceAllUsd}</a> · <a href={alertsHomeHref} rel="nofollow noopener">Lake Alerts Pro, $19</a></p>
+        </noscript>
       </div>
       {/* Lane LD 2026-11-09: the live $9 posters (sku llp), one compact entry in the first
           phone screen and a half, linked to /posters/ (never straight to Stripe). No pop-up. */}
@@ -113,21 +128,30 @@ const almFeatureSentence = almFeature ? liveSentence(almFeature) : '';
     <AdSlot pos="top" />
 
     {almFeature && (
-      <section class="alm-home">
+      <section class="alm-home" id="alm-home">
         <p class="alm-home-k">Is that level normal?</p>
         <p class="alm-home-lead">{almFeatureSentence}</p>
         <p class="alm-home-sub">
           Get daily normal ranges, a threshold explorer and CSV records for {almFeature.name}.
           ${almanacData.priceSingleUsd} once. Instant download. No subscription. 60-day refund, no questions.
         </p>
+        <p class="alm-home-trust" style="margin:12px 0 6px;">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
         <p class="alm-home-cta" data-alm-place="home">
-          <a class="alm-home-btn" href={ALMANAC_SINGLE ? `${ALMANAC_SINGLE}?client_reference_id=${almFeature.slug}` : '/almanac'} rel="nofollow" data-lake={almFeature.slug} data-cta="home_almanac_single">
-            {almFeature.name} almanac, ${almanacData.priceSingleUsd}
-          </a>
+          {ALMANAC_SINGLE ? (
+            <>
+              <a class="alm-home-btn" href="#alm-home" data-checkout-url={`${ALMANAC_SINGLE}?client_reference_id=${almFeature.slug}`} data-s8-offer="almanac_single" rel="nofollow noopener" data-lake={almFeature.slug} data-cta="home_almanac_single">
+                {almFeature.name} almanac, ${almanacData.priceSingleUsd}
+              </a>
+              <noscript><a href={`${ALMANAC_SINGLE}?client_reference_id=${almFeature.slug}`} rel="nofollow noopener">{almFeature.name} almanac, ${almanacData.priceSingleUsd}</a></noscript>
+            </>
+          ) : (
+            <a class="alm-home-btn" href="/almanac" rel="nofollow" data-lake={almFeature.slug} data-cta="home_almanac_single">
+              {almFeature.name} almanac, ${almanacData.priceSingleUsd}
+            </a>
+          )}
           <a class="alm-home-alt" href="/almanac/" data-cta="home_almanac_page">All {almanacData.lakeCount} lakes, ${almanacData.priceBundleUsd} &middot; see a free sample</a>
           <a class="alm-home-sample" href="/almanac/sample/">Open the sample almanac (Lake Powell)</a>
         </p>
-        <p class="alm-home-trust">{CHECKOUT_NAME}</p>
       </section>
     )}
 
@@ -224,6 +248,12 @@ const almFeatureSentence = almFeature ? liveSentence(almFeature) : '';
 </BaseLayout>
 
 <style>
+  .home-proof { margin: 8px 0 10px; padding-left: 20px; font-size: 14px; line-height: 1.5; color: var(--t1); }
+  .home-proof li { margin: 4px 0; }
+  .home-csv-sample { margin: 8px 0 10px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; background: var(--bg, #fff); }
+  .home-csv-sample summary { cursor: pointer; font-weight: 600; color: var(--teal-deep); }
+  .home-csv-sample pre { margin: 8px 0 0; overflow-x: auto; font-size: 12px; line-height: 1.45; }
+  .home-trust { margin: 8px 0 10px; font-size: 13px; line-height: 1.45; color: var(--t2); }
   /* Lane LD 2026-11-09: compact poster entry in the hero. One tap row, at least 44 px. */
   .home-pst { display: grid; grid-template-columns: 44px 1fr 20px; gap: 12px; align-items: center; margin: 14px 0 0; max-width: 680px;
     padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); color: var(--t1); min-height: 64px; }

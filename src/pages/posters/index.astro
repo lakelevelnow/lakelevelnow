@@ -67,13 +67,14 @@ const STORES_CHECKED = 'November 8, 2026';
         <figcaption>Drawn in code, to scale. The 18 x 24 in poster, dark, with a 2.75 in mat.</figcaption>
       </figure>
 
-      <div class="pp-buy" data-pp-place="posters-hero">
+      <div class="pp-buy" id="pp-buy-hero" data-pp-place="posters-hero">
         <p class="pp-price">${PRICE} <span>one time, instant download</span></p>
-        <a class="pp-btn" href={BUY} rel="nofollow" data-cta="posters_buy_hero" data-pp-buy>Get the posters, ${PRICE}</a>
+        <p class="pp-fine" style="margin-bottom:10px;">One-time payment · Instant download · 14-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
+        <a class="pp-btn" href="#pp-buy-hero" data-checkout-url={`${BUY}?client_reference_id=s9_l9_lln_posters_hero`} data-s8-offer="llp" rel="nofollow noopener" data-cta="posters_buy_hero" data-pp-buy>Get the posters, ${PRICE}</a>
+        <noscript><p class="pp-fine" style="margin-top:8px;"><a href={`${BUY}?client_reference_id=s9_l9_lln_posters_hero`} rel="nofollow noopener">Get the posters, ${PRICE}</a></p></noscript>
         {christmas && <p class="pp-gift-line">Nothing to ship. The files arrive the moment you pay, and a store near you can print them the same day.</p>}
         <p class="pp-pay">Pay with Apple Pay or Google Pay, or any card. No account needed.</p>
         <p class="pp-refund">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
-        <p class="pp-fine">{CHECKOUT_NAME}</p>
       </div>
       </div>
     </section>
@@ -181,12 +182,13 @@ const STORES_CHECKED = 'November 8, 2026';
     </section>
 
     <section class="pp-sec">
-      <div class="pp-buy pp-buy-end" data-pp-place="posters-end">
+      <div class="pp-buy pp-buy-end" id="pp-buy-end" data-pp-place="posters-end">
         <p class="pp-price">${PRICE} <span>three posters, eight variations each, plus the calendar</span></p>
-        <a class="pp-btn" href={BUY} rel="nofollow" data-cta="posters_buy_end" data-pp-buy>Get the posters, ${PRICE}</a>
+        <p class="pp-fine" style="margin-bottom:10px;">One-time payment · Instant download · 14-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
+        <a class="pp-btn" href="#pp-buy-end" data-checkout-url={`${BUY}?client_reference_id=s9_l9_lln_posters_end`} data-s8-offer="llp" rel="nofollow noopener" data-cta="posters_buy_end" data-pp-buy>Get the posters, ${PRICE}</a>
+        <noscript><p class="pp-fine" style="margin-top:8px;"><a href={`${BUY}?client_reference_id=s9_l9_lln_posters_end`} rel="nofollow noopener">Get the posters, ${PRICE}</a></p></noscript>
         <p class="pp-pay">Pay with Apple Pay or Google Pay, or any card.</p>
         <p class="pp-refund">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
-        <p class="pp-fine">{CHECKOUT_NAME}</p>
       </div>
       <p class="pp-src">The posters are drawn from the U.S. Bureau of Reclamation daily elevation files. Dead pool
       and minimum power pool are as listed in Reclamation's 5-year projections table.</p>

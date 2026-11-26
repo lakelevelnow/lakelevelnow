@@ -34,10 +34,12 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
       </div>
       <p class="adv-src">Measured in Google Analytics for {period}. The three pages that show listings had {n(a.pageViewsListingPages)} page views, Lake Mead {n(meadViews)} and Lake Powell {n(a.pageViewsPowellLevel)}. The whole site had {n(a.pageViews)}. Visitors from Google search were {a.googlePhonePct}% on a phone (Search Console, 30 days to November 7).</p>
 
-      <div class="adv-buy" data-mm-sku="lld" data-mm-place="advertise-top">
+      <div class="adv-buy" id="adv-buy-top" data-mm-sku="lld" data-mm-place="advertise-top">
         <p class="adv-price">${data.priceUsd} <span>for 12 months, paid once</span></p>
-        <a class="adv-btn" href={BUY} rel="nofollow" data-mm-link>List my business, ${data.priceUsd}</a>
-        <p class="adv-small">No auto renew. {CHECKOUT_NAME} Pay by card, Apple Pay or Google Pay. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+        <p class="adv-small" style="margin:0 0 10px;">No auto renew · 14-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
+        <a class="adv-btn" href="#adv-buy-top" data-checkout-url={BUY} data-s8-offer="lld" rel="nofollow noopener" data-mm-link>List my business, ${data.priceUsd}</a>
+        <noscript><p class="adv-small"><a href={BUY} rel="nofollow noopener">List my business, ${data.priceUsd}</a></p></noscript>
+        <p class="adv-small">Pay by card, Apple Pay or Google Pay. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
       </div>
 
       <h2>What you get</h2>
@@ -72,10 +74,12 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
         <li>I only list businesses that serve visitors to the lake.</li>
       </ul>
 
-      <div class="adv-buy" data-mm-sku="lld" data-mm-place="advertise-end">
+      <div class="adv-buy" id="adv-buy-end" data-mm-sku="lld" data-mm-place="advertise-end">
         <p class="adv-price">${data.priceUsd} <span>for 12 months, paid once</span></p>
-        <a class="adv-btn" href={BUY} rel="nofollow" data-mm-link>List my business, ${data.priceUsd}</a>
-        <p class="adv-small">No auto renew. {CHECKOUT_NAME} Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
+        <p class="adv-small" style="margin:0 0 10px;">No auto renew · 14-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
+        <a class="adv-btn" href="#adv-buy-end" data-checkout-url={BUY} data-s8-offer="lld" rel="nofollow noopener" data-mm-link>List my business, ${data.priceUsd}</a>
+        <noscript><p class="adv-small"><a href={BUY} rel="nofollow noopener">List my business, ${data.priceUsd}</a></p></noscript>
+        <p class="adv-small">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
       </div>
       <p class="adv-ask">Questions first? Email me at <a href="mailto:lipmichal@gmail.com?subject=Lake%20directory%20listing">lipmichal@gmail.com</a>.</p>
       <p>Michael Lip, {SITE.name}</p>

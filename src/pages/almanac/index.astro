@@ -97,13 +97,23 @@ const ld = [{
       {/* The bundle is the flagship and comes first in DOM order on every viewport. The
           single-lake button is an in-page jump to the lake table, not a bare payment link:
           a bare link sold a product with no lake attached. */}
-      <div class="alm-buy" data-alm-place="sales-hero">
+      <div class="alm-buy" id="alm-hero-buy" data-alm-place="sales-hero">
         <div class="alm-buy-main">
           <div class="alm-price">${data.priceBundleUsd}<span>one time &middot; all {data.lakeCount} lakes
             &middot; {totalReadings} daily readings &middot; {shallowest} to {deepest} years per lake</span></div>
-          <a class="alm-btn" href={BUNDLE_LINK} data-alm-buy="bundle" data-cta="pricing_almanac_bundle" rel="nofollow">
-            Get every lake, ${data.priceBundleUsd}
-          </a>
+          <p class="alm-micro" style="margin:0 0 10px;">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
+          {BUNDLE_LINK ? (
+            <>
+              <a class="alm-btn" href="#alm-hero-buy" data-checkout-url={BUNDLE_LINK} data-s8-offer="almanac_bundle" data-alm-buy="bundle" data-cta="pricing_almanac_bundle" rel="nofollow noopener">
+                Get every lake, ${data.priceBundleUsd}
+              </a>
+              <noscript><p class="alm-micro"><a href={BUNDLE_LINK} rel="nofollow noopener">Get every lake, ${data.priceBundleUsd}</a></p></noscript>
+            </>
+          ) : (
+            <a class="alm-btn" href="#pick" data-alm-buy="bundle" data-cta="pricing_almanac_bundle" rel="nofollow">
+              Get every lake, ${data.priceBundleUsd}
+            </a>
+          )}
           <p class="alm-micro">For marinas, dock builders, agents, guides and anyone who reports
           on more than one lake.</p>
         </div>
@@ -218,17 +228,33 @@ const ld = [{
                 <td>{l.obs.toLocaleString('en-US')}</td>
                 <td>{l.liveFt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ft{l.note}</td>
                 <td>{l.liveRead}</td>
-                <td><a class="alm-mini" data-alm-buy="single" data-cta={`table_${l.slug}`.slice(0, 40)} data-lake={l.slug}
-                       href={SINGLE_LINK ? `${SINGLE_LINK}?client_reference_id=${l.slug}` : ''}
-                       rel="nofollow">${data.priceSingleUsd}</a></td>
+                <td>{SINGLE_LINK ? (
+                  <>
+                    <a class="alm-mini" data-alm-buy="single" data-s8-offer="almanac_single" data-cta={`table_${l.slug}`.slice(0, 40)} data-lake={l.slug}
+                       href="#pick" data-checkout-url={`${SINGLE_LINK}?client_reference_id=${l.slug}`}
+                       rel="nofollow noopener">${data.priceSingleUsd}</a>
+                    <noscript><a href={`${SINGLE_LINK}?client_reference_id=${l.slug}`} rel="nofollow noopener">${data.priceSingleUsd}</a></noscript>
+                  </>
+                ) : (
+                  <a class="alm-mini" data-alm-buy="single" data-cta={`table_${l.slug}`.slice(0, 40)} data-lake={l.slug}
+                     href="" rel="nofollow">${data.priceSingleUsd}</a>
+                )}</td>
               </tr>
             ))}
             {[data].map((d) => (
               <tr class="alm-bundle-row">
                 <td colspan="5"><strong>Every lake above</strong> <span class="mut">&middot; all
                   {d.lakeCount} lakes, {totalReadings} daily readings, one ZIP</span></td>
-                <td><a class="alm-mini" data-alm-buy="bundle" data-cta="pricing_table_bundle" href={BUNDLE_LINK}
-                       rel="nofollow">${d.priceBundleUsd}</a></td>
+                <td>{BUNDLE_LINK ? (
+                  <>
+                    <a class="alm-mini" data-alm-buy="bundle" data-s8-offer="almanac_bundle" data-cta="pricing_table_bundle" href="#pick" data-checkout-url={BUNDLE_LINK}
+                       rel="nofollow noopener">${d.priceBundleUsd}</a>
+                    <noscript><a href={BUNDLE_LINK} rel="nofollow noopener">${d.priceBundleUsd}</a></noscript>
+                  </>
+                ) : (
+                  <a class="alm-mini" data-alm-buy="bundle" data-cta="pricing_table_bundle" href=""
+                     rel="nofollow">${d.priceBundleUsd}</a>
+                )}</td>
               </tr>
             ))}
           </tbody>
@@ -302,18 +328,26 @@ const ld = [{
         page</a> and it will be looked at; several of the lakes here were added that way.</div></div>
     </section>
 
-    <section class="section alm-close">
+    <section class="section alm-close" id="alm-close">
       <h2>{featuredSentence}</h2>
       <p class="readable">You can go and check that against the gage yourself. Working out what it
       means took {featured.obs.toLocaleString('en-US')} readings and a lot of arithmetic. That is
       what the ${data.priceSingleUsd} buys for one lake, and the ${data.priceBundleUsd} for all
       {data.lakeCount}.</p>
+      <p class="alm-micro" style="margin:10px 0 8px;">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
       <p class="alm-close-cta" data-alm-place="sales-close">
-        <a class="alm-btn" href={BUNDLE_LINK} data-alm-buy="bundle" data-cta="pricing_close_bundle" rel="nofollow">
-          Get every lake, ${data.priceBundleUsd}</a>
+        {BUNDLE_LINK ? (
+          <>
+            <a class="alm-btn" href="#alm-close" data-checkout-url={BUNDLE_LINK} data-s8-offer="almanac_bundle" data-alm-buy="bundle" data-cta="pricing_close_bundle" rel="nofollow noopener">
+              Get every lake, ${data.priceBundleUsd}</a>
+            <noscript><a href={BUNDLE_LINK} rel="nofollow noopener">Get every lake, ${data.priceBundleUsd}</a></noscript>
+          </>
+        ) : (
+          <a class="alm-btn" href="#pick" data-alm-buy="bundle" data-cta="pricing_close_bundle" rel="nofollow">
+            Get every lake, ${data.priceBundleUsd}</a>
+        )}
         <a class="alm-close-alt" href="#pick" data-alm-pick="close">or one lake for ${data.priceSingleUsd}</a>
       </p>
-      <p class="alm-micro">{CHECKOUT_NAME}</p>
     </section>
 
   </div>

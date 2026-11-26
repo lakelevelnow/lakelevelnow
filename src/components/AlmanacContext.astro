@@ -47,7 +47,9 @@ const ctx = almanacContext(slug, level, asOf);
 const lake = ctx?.lake ?? null;
 const LINK = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
 const buy = LINK ? `${LINK}?client_reference_id=${slug}` : '/almanac';
+const buyIsStripe = buy.startsWith('https://buy.stripe.com');
 const bundle = import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE || '/almanac/';
+const bundleIsStripe = bundle.startsWith('https://buy.stripe.com');
 const lead = ctx ? leadSentence(ctx) : '';
 const fmt = (n: number, d = 2) =>
   n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -87,10 +89,21 @@ const fmt = (n: number, d = 2) =>
         The provenance still sits directly beneath, for the reader who wants it. */}
     {showCta && (
       <div class="alm-ctx-cta" data-alm-place={place}>
-        <a class="alm-ctx-btn" href={buy} rel="nofollow"
-           data-alm-cta="lake" data-lake={slug} data-cta={ctaSingle}>
-          {slug === 'pine-flat-lake' ? `Get Pine Flat history + threshold tool, $${data.priceSingleUsd}` : `The full ${lake.name} almanac, $${data.priceSingleUsd}`}
-        </a>
+        <span class="alm-ctx-trust">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</span>
+        {buyIsStripe ? (
+          <>
+            <a class="alm-ctx-btn" href={`#alm-h-${slug}`} data-checkout-url={buy} data-s8-offer="almanac_single" rel="nofollow noopener"
+               data-alm-cta="lake" data-lake={slug} data-cta={ctaSingle}>
+              {slug === 'pine-flat-lake' ? `Get Pine Flat history + threshold tool, $${data.priceSingleUsd}` : `The full ${lake.name} almanac, $${data.priceSingleUsd}`}
+            </a>
+            <noscript><a class="alm-ctx-btn" href={buy} rel="nofollow noopener">{slug === 'pine-flat-lake' ? `Get Pine Flat history + threshold tool, $${data.priceSingleUsd}` : `The full ${lake.name} almanac, $${data.priceSingleUsd}`}</a></noscript>
+          </>
+        ) : (
+          <a class="alm-ctx-btn" href={buy} rel="nofollow"
+             data-alm-cta="lake" data-lake={slug} data-cta={ctaSingle}>
+            {slug === 'pine-flat-lake' ? `Get Pine Flat history + threshold tool, $${data.priceSingleUsd}` : `The full ${lake.name} almanac, $${data.priceSingleUsd}`}
+          </a>
+        )}
         <span class="alm-ctx-micro">
           {lake.years} years of daily record, the normal band for all 366 days, and a tool that
           tells you how often the lake has been below <em>your</em> ramp or dock elevation.
@@ -100,10 +113,17 @@ const fmt = (n: number, d = 2) =>
           {slug === 'pine-flat-lake' ? <a href="#pine-flat-sample">Pine Flat sample above</a> :
             <a href="/almanac/sample/">See a sample almanac (Lake Powell)</a>}
           <span class="alm-ctx-sep" aria-hidden="true">&middot;</span>
-          <a href={bundle} data-alm-cta="bundle" data-cta={ctaBundle} rel="nofollow">or all {data.lakeCount} lakes
-          for ${data.priceBundleUsd}</a>
+          {bundleIsStripe ? (
+            <>
+              <a href={`#alm-h-${slug}`} data-checkout-url={bundle} data-s8-offer="almanac_bundle" data-alm-cta="bundle" data-cta={ctaBundle} rel="nofollow noopener">or all {data.lakeCount} lakes
+              for ${data.priceBundleUsd}</a>
+              <noscript> (<a href={bundle} rel="nofollow noopener">all {data.lakeCount} lakes, ${data.priceBundleUsd}</a>)</noscript>
+            </>
+          ) : (
+            <a href={bundle} data-alm-cta="bundle" data-cta={ctaBundle} rel="nofollow">or all {data.lakeCount} lakes
+            for ${data.priceBundleUsd}</a>
+          )}
         </span>
-        <span class="alm-ctx-trust">{CHECKOUT_NAME}</span>
       </div>
     )}
 
