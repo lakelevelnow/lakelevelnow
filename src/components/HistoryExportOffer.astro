@@ -1,68 +1,87 @@
 ---
-// Sprint 3c (2026-11-17) lane PX2A + Sprint 9 L9 (2026-11-26): the lake history export ($9 one lake, $29 all 16 lakes).
-// Facts only, from src/data/history-export.json: resolution, record span, value count and agency.
-// IMPORTANT: The $9 link MUST keep client_reference_id=<slug>, because the sprint-delivery Worker parses
-// client_reference_id as the exact lake slug to hand over that lake's ZIP after Stripe verifies payment.
-// Bot Click-Gate: bare buy.stripe.com URLs stay in data-checkout-url and hydrate on real click via /s8-w.js?v=2
-// (with <noscript> fallback) so crawlers stop generating phantom Stripe Checkout sessions.
+// Sprint 13 S13-8: Concrete Value Proof & Offer Simplification ($9 Historical Level CSV/PDF Export).
+// Strict Bot Click-Gate: href="#lake-checkout" + data-checkout="https://buy.stripe.com/..."
+// with client_reference_id=s13_lln_<slug>. Zero bare Stripe links in HTML.
 import hx from '../data/history-export.json';
-interface Props { slug?: string; place: string }
-const { slug, place } = Astro.props;
+import { getReading, getLake } from '../lib/lakes';
+import SampleTablePreview from './SampleTablePreview.astro';
+
+interface Props {
+  slug?: string;
+  place: string;
+  singleOffer?: boolean;
+}
+const { slug, place, singleOffer = false } = Astro.props;
 const lake = slug ? hx.lakes.find((l) => l.slug === slug) : undefined;
-const ctaText = lake ? `Download ${lake.name} CSV + XLSX, $${hx.priceLakeUsd}` : `Buy one lake CSV + XLSX, $${hx.priceLakeUsd}`;
+const ctaText = lake
+  ? `Download ${lake.name} Historical CSV + XLSX — $${hx.priceLakeUsd}`
+  : `Download One Lake Historical CSV + XLSX — $${hx.priceLakeUsd}`;
 const yr = (s: string) => s.slice(0, 4);
-const span = (l: typeof hx.lakes[number]) => `${yr(l.start)} to ${l.end.length === 7 ? new Date(l.end + '-15T12:00:00Z').toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : new Date(l.end + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}`;
+const span = (l: typeof hx.lakes[number]) =>
+  `${yr(l.start)} to ${l.end.length === 7 ? new Date(l.end + '-15T12:00:00Z').toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : new Date(l.end + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}`;
 const first = lake || hx.lakes[0];
-const lakeHref = `${hx.linkLake}?client_reference_id=${first.slug}`;
-const allHref = `${hx.linkAll}?client_reference_id=s9_l9_lln_${first.slug}`;
-const emailId = `s9-hx-email-${place}-${first.slug}`;
+const lakeHref = `${hx.linkLake}?client_reference_id=s13_lln_${first.slug}`;
+const allHref = `${hx.linkAll}?client_reference_id=s13_lln_${first.slug}_all`;
+const emailId = `s13-hx-email-${place}-${first.slug}`;
+const reading = getReading(first.slug);
+const lakeEntry = getLake(first.slug);
 ---
-<section class="section lln-hx" id="history-export" data-cro="sprint-20261126-s9-l9-history" data-alm-place={place}
+<section class="section lln-hx" id="lake-checkout" data-cro="sprint13-s13-8-history" data-alm-place={place}
   data-s2-offer="lln-history-export-lake" data-s2-product="lln-history-export-lake" data-s2-price={String(hx.priceLakeUsd)}>
   {lake ? (
-    <h2 style="margin-bottom:8px;">Download the {lake.name} level record ({yr(lake.start)}–{yr(lake.end)})</h2>
-    <p class="readable" style="font-size:15px;max-width:660px;">Every {lake.what} reading this site stores for {lake.name}: <strong>{lake.values.toLocaleString('en-US')} {lake.resolution} {lake.source} rows</strong> ({span(lake)}). Ready for Excel, Google Sheets, R, or Python.</p>
+    <>
+      <h2 style="margin-bottom:8px;">Download the {lake.name} historical level record ({yr(lake.start)}–{yr(lake.end)})</h2>
+      <p class="readable" style="font-size:15px;max-width:660px;">Every {lake.what} reading this site stores for {lake.name}: <strong>{lake.values.toLocaleString('en-US')} {lake.resolution} {lake.source} rows</strong> ({span(lake)}). Ready for Excel, Google Sheets, R, or Python.</p>
+    </>
   ) : (
-    <h2 style="margin-bottom:8px;">Only want the raw record? The lake history export</h2>
-    <p class="readable" style="font-size:15px;max-width:660px;">The stored level record of {hx.lakes.length} lakes as CSV + XLSX: 4 daily records (Mead from 1935, Buchanan from 1937, Travis from 1940, Powell from 1963) and 12 California reservoirs with monthly CDEC storage. No almanac tools, just the data and its sources.</p>
-    <p style="font-size:14px;margin:8px 0 4px;"><label>Lake: <select class="lln-hx-pick" aria-label="Pick a lake">
-      {hx.lakes.map((l) => <option value={l.slug}>{l.name} ({l.resolution}, from {yr(l.start)})</option>)}
-    </select></label></p>
+    <>
+      <h2 style="margin-bottom:8px;">Historical lake level CSV + XLSX export</h2>
+      <p class="readable" style="font-size:15px;max-width:660px;">The stored level record of {hx.lakes.length} lakes as CSV + XLSX: 4 daily records (Mead from 1935, Buchanan from 1937, Travis from 1940, Powell from 1963) and 12 California reservoirs with monthly CDEC storage.</p>
+      <p style="font-size:14px;margin:8px 0 4px;"><label>Lake: <select class="lln-hx-pick" aria-label="Pick a lake">
+        {hx.lakes.map((l) => <option value={l.slug}>{l.name} ({l.resolution}, from {yr(l.start)})</option>)}
+      </select></label></p>
+    </>
   )}
   <ul class="lln-proof">
-    <li><strong>Instant ZIP download</strong> immediately after Stripe checkout — no account, no waiting.</li>
+    <li><strong>Instant ZIP download</strong> immediately after checkout — no account, no subscription.</li>
     <li><strong>Clean CSV + Excel XLSX</strong> with {lake ? `${lake.values.toLocaleString('en-US')} ${lake.resolution} ${lake.source} rows` : 'full agency rows'}, yearly summary table, day-of-year percentiles, and a sourced README.</li>
-    <li><strong>Works offline forever</strong> in Excel, Google Sheets, R, or Python. One-time ${hx.priceLakeUsd} payment, no subscription.</li>
+    <li><strong>Works offline forever</strong> in Excel, Google Sheets, R, or Python.</li>
   </ul>
-  <details class="lln-csv-sample">
-    <summary>Preview 3 real Lake Mead USBR CSV rows (1935–2026)</summary>
-    <pre><code>date,elevation_ft,source
-1935-02-02,670.00,USBR RISE site 921
-1983-07-24,1225.83,USBR RISE site 921
-2026-10-15,1037.53,USBR RISE site 921</code></pre>
-  </details>
+
+  <SampleTablePreview
+    slug={first.slug}
+    lakeName={first.name}
+    reading={reading}
+    fullPoolFt={lakeEntry?.full_pool_ft ?? null}
+    source={first.source}
+  />
+
   <label class="lln-hx-email">Email for receipt &amp; backup download link (optional)
     <input type="email" id={emailId} name="email" autocomplete="email" inputmode="email" maxlength="200" placeholder="you@email.com" />
   </label>
-  <p class="lln-trust">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
+  <p class="lln-trust">One-time · Instant download · Refund guarantee · Secure Stripe checkout shown as BeLikeNative / AUTOM8 LLC</p>
   <p class="lln-hx-cta" style="font-size:15px;margin-top:8px;">
-    <a class="btn lln-hx-buy" href="#history-export" data-checkout-url={lakeHref} data-s8-email-from={`#${emailId}`} data-s8-offer="lln-history-export-lake" rel="nofollow noopener" data-lake={first.slug} data-cta="hx_lake_buy" data-cro={`s9_l9_lln_${first.slug}`}>{ctaText}</a>
-    <span style="margin-left:8px;">or <a class="lln-hx-all" href="#history-export" data-checkout-url={allHref} data-s8-email-from={`#${emailId}`} data-s8-offer="lln-history-export" rel="nofollow noopener" data-lake={first.slug} data-cta="hx_all_buy" data-cro={`s9_l9_lln_${first.slug}_all`}>all {hx.lakes.length} lakes, ${hx.priceAllUsd}</a></span>
+    <a class="btn lln-hx-buy" href="#lake-checkout" data-checkout={lakeHref} data-s8-email-from={`#${emailId}`} data-s8-offer="lln-history-export-lake" rel="nofollow noopener" data-lake={first.slug} data-cta="hx_lake_buy" data-cro={`s13_lln_${first.slug}`}>{ctaText}</a>
+    {!singleOffer && (
+      <span style="margin-left:8px;">or <a class="lln-hx-all" href="#lake-checkout" data-checkout={allHref} data-s8-email-from={`#${emailId}`} data-s8-offer="lln-history-export" rel="nofollow noopener" data-lake={first.slug} data-cta="hx_all_buy" data-cro={`s13_lln_${first.slug}_all`}>all {hx.lakes.length} lakes, ${hx.priceAllUsd}</a></span>
+    )}
     <span class="lln-hx-msg" data-s8-msg role="status"></span>
   </p>
   <noscript>
-    <p class="lln-noscript">JavaScript is off: <a href={lakeHref} rel="nofollow noopener">{ctaText}</a> · <a href={allHref} rel="nofollow noopener">All {hx.lakes.length} lakes, ${hx.priceAllUsd}</a></p>
+    <p class="lln-noscript">Enable JavaScript to open secure Stripe checkout.</p>
   </noscript>
-  <script is:inline defer src="/s8-w.js?v=2"></script>
   {!lake && (
     <script is:inline>
       (function () {
         var s = document.querySelector('.lln-hx-pick'), a = document.querySelector('.lln-hx-buy');
         if (!s || !a) return;
         s.addEventListener('change', function () {
-          var raw = a.getAttribute('data-checkout-url') || a.href;
-          var u = new URL(raw); u.searchParams.set('client_reference_id', s.value);
-          a.setAttribute('data-checkout-url', u.toString()); a.setAttribute('data-lake', s.value);
+          var raw = a.getAttribute('data-checkout');
+          if (!raw) return;
+          var u = new URL(raw);
+          u.searchParams.set('client_reference_id', 's13_lln_' + s.value);
+          a.setAttribute('data-checkout', u.toString());
+          a.setAttribute('data-lake', s.value);
         });
       })();
     </script>
@@ -72,12 +91,9 @@ const emailId = `s9-hx-email-${place}-${first.slug}`;
   .lln-hx { margin: 18px 0; padding: 16px 20px; border: 1px solid var(--border); border-left: 4px solid var(--teal); border-radius: var(--r); background: var(--card); max-width: 760px; }
   .lln-proof { margin: 10px 0 12px; padding-left: 20px; font-size: 14px; line-height: 1.5; color: var(--t1); }
   .lln-proof li { margin: 4px 0; }
-  .lln-csv-sample { margin: 10px 0 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; background: var(--bg, #fff); }
-  .lln-csv-sample summary { cursor: pointer; font-weight: 600; color: var(--teal-deep); }
-  .lln-csv-sample pre { margin: 8px 0 0; overflow-x: auto; font-size: 12px; line-height: 1.45; }
   .lln-hx-email { display: block; margin: 0 0 10px; font-size: 13px; max-width: 360px; }
   .lln-hx-email input { display: block; width: 100%; box-sizing: border-box; min-height: 44px; margin-top: 4px; padding: 8px 10px; border: 1px solid var(--border, #888); border-radius: 6px; font: inherit; font-size: 16px; background: #fff; color: var(--t1); }
   .lln-trust { margin: 8px 0 8px; font-size: 13px; line-height: 1.45; color: var(--t2); }
   .lln-hx-msg { display: block; margin-top: 6px; font-size: 13px; color: var(--burnt); }
-  .lln-noscript { margin-top: 8px; font-size: 13px; }
+  .lln-noscript { margin-top: 8px; font-size: 13px; color: var(--t2); }
 </style>

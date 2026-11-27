@@ -36,9 +36,9 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
 
       <div class="adv-buy" id="adv-buy-top" data-mm-sku="lld" data-mm-place="advertise-top">
         <p class="adv-price">${data.priceUsd} <span>for 12 months, paid once</span></p>
-        <p class="adv-small" style="margin:0 0 10px;">No auto renew · 14-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
-        <a class="adv-btn" href="#adv-buy-top" data-checkout-url={BUY} data-s8-offer="lld" rel="nofollow noopener" data-mm-link>List my business, ${data.priceUsd}</a>
-        <noscript><p class="adv-small"><a href={BUY} rel="nofollow noopener">List my business, ${data.priceUsd}</a></p></noscript>
+        <p class="adv-small" style="margin:0 0 10px;">One-time · Instant download · Refund guarantee · Secure Stripe checkout shown as BeLikeNative / AUTOM8 LLC</p>
+        <a class="adv-btn" href="#lake-checkout" data-checkout={`${BUY}?client_reference_id=s13_lln_advertise_top`} data-s8-offer="lld" rel="nofollow noopener" data-mm-link>List my business, ${data.priceUsd}</a>
+        <noscript><p class="adv-small">Enable JavaScript to open secure Stripe checkout.</p></noscript>
         <p class="adv-small">Pay by card, Apple Pay or Google Pay. Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
       </div>
 
@@ -76,9 +76,9 @@ const ld = [breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Advertise', path
 
       <div class="adv-buy" id="adv-buy-end" data-mm-sku="lld" data-mm-place="advertise-end">
         <p class="adv-price">${data.priceUsd} <span>for 12 months, paid once</span></p>
-        <p class="adv-small" style="margin:0 0 10px;">No auto renew · 14-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
-        <a class="adv-btn" href="#adv-buy-end" data-checkout-url={BUY} data-s8-offer="lld" rel="nofollow noopener" data-mm-link>List my business, ${data.priceUsd}</a>
-        <noscript><p class="adv-small"><a href={BUY} rel="nofollow noopener">List my business, ${data.priceUsd}</a></p></noscript>
+        <p class="adv-small" style="margin:0 0 10px;">One-time · Instant download · Refund guarantee · Secure Stripe checkout shown as BeLikeNative / AUTOM8 LLC</p>
+        <a class="adv-btn" href="#lake-checkout" data-checkout={`${BUY}?client_reference_id=s13_lln_advertise_end`} data-s8-offer="lld" rel="nofollow noopener" data-mm-link>List my business, ${data.priceUsd}</a>
+        <noscript><p class="adv-small">Enable JavaScript to open secure Stripe checkout.</p></noscript>
         <p class="adv-small">Not useful? Email lipmichal@gmail.com within 14 days for a full refund.</p>
       </div>
       <p class="adv-ask">Questions first? Email me at <a href="mailto:lipmichal@gmail.com?subject=Lake%20directory%20listing">lipmichal@gmail.com</a>.</p>

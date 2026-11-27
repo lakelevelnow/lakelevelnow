@@ -209,7 +209,12 @@ if (live) {
 }
 
 const launchInfo = launchRead(reading);
+const rampStatusLabel = launchInfo.ok ? 'Usable (confirm local ramp)' : 'Low / Restricted (verify before launch)';
 const feedDisplay = feedLabel(reading?.feed) || feedLabel(lake.feed) || 'USBR/USGS';
+const TOP4_SLUGS = ['lake-powell', 'san-luis-reservoir', 'don-pedro-lake', 'kentucky-lake'] as const;
+const top4CrossLinks = TOP4_SLUGS.filter((s) => s !== slug)
+  .map((s) => LAKES.find((l) => l.slug === s))
+  .filter((l): l is NonNullable<typeof l> => !!l);
 const faqs = [
   { q: `How full is ${lake.name} right now?`, a: live
       ? (reading!.pct_full != null && reading!.level_ft != null
@@ -251,7 +256,7 @@ const datasetVars: Record<string, unknown>[] = [
   {
     '@type': 'PropertyValue',
     name: 'Boat ramp status',
-    value: launchInfo.label,
+    value: rampStatusLabel,
     description: launchInfo.text,
   },
 ];
@@ -267,7 +272,7 @@ const datasetLd: Record<string, unknown> = {
     hxEntry
       ? `with ${hxEntry.start.slice(0, 4)}–${hxEntry.end.slice(0, 4)} historical ${hxEntry.resolution} dataset (${fmtNum(hxEntry.values, 0)} records)`
       : 'and 30-day elevation trend',
-    `plus boat ramp launch status (${launchInfo.label}).`,
+    `plus boat ramp launch status (${rampStatusLabel}).`,
   ].join(', '),
   url: absUrl(`/lake/${slug}`),
   creator: orgRef(),
@@ -329,36 +334,6 @@ const calcFull = fullPool; // exposed to the inline calculator script
       {live && <StatusStrip lake={lake} reading={reading!} slug={slug} />}
       <p style="font-size:14px;color:var(--t2);margin-top:8px;">{lake.river} · {stName} · operated by {lake.operator}</p>
       <p style="font-size:13px;color:var(--t2);margin-top:6px;">By <a href="/about/">{AUTHOR.name}</a>, independent developer behind <a href="https://zovo.one" rel="noopener">zovo.one</a>. Readings pulled live from the same {feedLabel(reading?.feed) || 'USGS'} feed the operator reports to.</p>
-      {/* CRO 2026-11-06 R4 + Sprint 9 L9 Wave 2: bot click-gated lake hero offer. */}
-      {alm && (<>
-        <div id="lake-hero-alm" data-cro="sprint-20261116-direct">
-        <p class="lake-alm-line" data-alm-place="lake-hero" data-cro="sprint-20261115-lln-hero-almanac"
-           data-s2-offer="lln-almanac-single" data-s2-product="almanac_single" data-s2-price={almPrice.priceSingleUsd}>Is {live && reading ? `${fmtNum(reading.level_ft, 1)} ft` : 'today\u2019s level'} normal for the date? The {lake.name} almanac shows the normal range for every day of the year.
-          {import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE ? (
-            <>
-              <a href="#lake-hero-alm" data-checkout-url={`${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=${slug}`} data-s8-offer="almanac_single" rel="nofollow noopener" data-lake={slug} data-cta="lake_hero_almanac">Get the {lake.name} almanac, ${almPrice.priceSingleUsd}</a>
-              <noscript><a href={`${import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE}?client_reference_id=${slug}`} rel="nofollow noopener">Get the {lake.name} almanac, ${almPrice.priceSingleUsd}</a></noscript>
-            </>
-          ) : (
-            <a href="/almanac/#pick" rel="nofollow" data-lake={slug} data-cta="lake_hero_almanac">Get the {lake.name} almanac, ${almPrice.priceSingleUsd}</a>
-          )}
-          <span class="lake-alm-micro">One payment, instant download, 60-day refund (Stripe checkout: BeLikeNative / AUTOM8 LLC). {import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE ? (
-            <>
-              <a class="lake-alm-alt" href="#lake-hero-alm" data-checkout-url={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE} data-s8-offer="almanac_bundle" rel="nofollow noopener" data-cta="lake_hero_bundle">All {almPrice.lakeCount} lakes, ${almPrice.priceBundleUsd}</a>
-              <noscript><a href={import.meta.env.PUBLIC_ALMANAC_LINK_BUNDLE} rel="nofollow noopener">All {almPrice.lakeCount} lakes, ${almPrice.priceBundleUsd}</a></noscript>
-            </>
-          ) : (
-            <a class="lake-alm-alt" href="/almanac/" rel="nofollow" data-cta="lake_hero_bundle">All {almPrice.lakeCount} lakes, ${almPrice.priceBundleUsd}</a>
-          )}</span></p>
-        </div>
-        {/* Sprint 2026-11-16 (lane D1): pre-pay box directly after the buy link. */}
-        <S3PayBox price={almPrice.priceSingleUsd} refund="60-day refund, no questions"
-          gets={`the ${lake.name} almanac: ${almPrice.lakes.find((l) => l.slug === slug)?.years ?? ''} years of daily levels, the normal range for every date, a ramp and dock threshold tool and the CSV record (one ZIP, works offline)`} />
-      </>)}
-      {slug === 'lake-mead' && (
-        <p class="lake-alm-line" data-alm-place="mead-hero" data-cro="mead-hero-alerts">Want an alert when Lake Mead crosses a level you pick?
-          <a href="#lln-alerts" data-cta="mead_hero_alerts">Set a free Lake Mead level alert</a></p>
-      )}
     </div>
 
     {qas && <p class="qas" data-keyword={`${lake.name} water level`} style="font-size:15px;color:var(--t1);margin-top:14px;max-width:660px;font-weight:500;">{qas}</p>}
@@ -387,45 +362,17 @@ const calcFull = fullPool; // exposed to the inline calculator script
       </div>
     )}
 
-    {/* Sprint 9 L9 (2026-11-26): HistoryExportOffer ($9 CSV+XLSX) moved directly below LakeGauge
-        instead of buried at line 405, on the 16 lakes whose stored record is exported. */}
-    {hxLake && <HistoryExportOffer slug={slug} place="lake-history" />}
+    {/* Sprint 13 S13-8: Cold-Visitor Offer Simplification — 1 dominant CTA per viewport.
+        - History-export lakes (16 lakes incl. Powell, San Luis, Don Pedro, Mead): $9 CSV+XLSX directly below LakeGauge.
+        - All other lakes (incl. Kentucky Lake): $19 12-Month Ramp & Level Alerts below LakeGauge.
+        - Zero $79 / $199 cold-page bundles or duplicate competing offer boxes. */}
+    {hxLake && <HistoryExportOffer slug={slug} place="lake-history" singleOffer={true} />}
 
-    {/* Lane LD 2026-11-09: local business directory directly under the level and its trend
-        (intel N4). Lake Mead and Lake Powell only. Paid listings from src/data/directory.json,
-        or one small honest line inviting businesses when there are none. */}
-    {(slug === 'lake-mead' || slug === 'lake-powell') && <LocalDirectory part="listings" slug={slug} lakeName={lake.name} placement={slug === 'lake-mead' ? 'mead-lake-dir' : 'powell-lake-dir'} />}
+    {/* Free historical percentile context (showCta=false to avoid duplicate competing CTAs). */}
+    <AlmanacContext slug={slug} level={live ? reading!.level_ft : null} asOf={live ? reading!.as_of : null} showCta={false} />
 
-    {/* The $19 Almanac offer sits below the gauge and its trend chart (2026-10-20, owner
-        apply #5). Above them it pushed the ramp read and the trend out of the first phone
-        screen; the visitor now gets the reading before the offer. */}
-    {/* adsense-w2: the offer shows only on lakes the Almanac covers (it is about this lake).
-        The "not included, see other lakes" cross-sell on uncovered lakes is removed. */}
-    {/* Post-result Pro CTA directly below the gauge on every Almanac-covered lake page:
-        offer_view when seen after interaction, pre-pay box next to the direct Stripe buy link (0 popups on load). */}
-    {alm && (
-      <div id="s3-postresult" data-cro="sprint-20261116-postresult" data-s3-post data-s3-site="lakelevelnow" data-s3-product="almanac_single"
-        data-s3-price={String(almPrice.priceSingleUsd)} data-s3-name="Lake Level Almanac (one lake)" data-s3-bc="site">
-        <AlmanacPeek slug={slug} name={lake.name} alm={alm} />
-        <script is:inline defer src="/s3-postresult.js?v=2"></script>
-      </div>
-    )}
-
-
-    {/* Directly under the gauge, on purpose. The visitor came for one number and it is
-        immediately above this; the one question the number leaves open is whether it is
-        normal, and this answers it before asking for anything. Renders nothing for a lake
-        with no long record, so all 44 pages are safe to wrap. */}
-    <AlmanacContext slug={slug} level={live ? reading!.level_ft : null} asOf={live ? reading!.as_of : null} />
-    {/* Sprint 2026-11-15 lane L: web push level alerts on every lake page with a level reading (1 free alert, Pro $19 for 12 months). */}
-    <LevelAlerts slug={slug} name={lake.name} placement={slug === 'lake-mead' ? 'mead-alerts' : slug === 'lake-powell' ? 'powell-alerts' : 'lake-alerts'} cro={slug === 'lake-mead' ? 'mead-alerts-signup' : slug === 'lake-powell' ? 'powell-alerts-signup' : undefined} business={slug === 'lake-mead' || slug === 'lake-powell'} />
-    {slug === 'lake-mead' && <MeadAlmanacNote place="mead" />}
-    {/* With no listings, the small invite to businesses comes after the Almanac block. */}
-    {(slug === 'lake-mead' || slug === 'lake-powell') && <LocalDirectory part="invite" slug={slug} lakeName={lake.name} placement={slug === 'lake-mead' ? 'mead-lake-dir' : 'powell-lake-dir'} />}
-    {/* Mobile money 2026-11-08 (llp): the owner's Almanac funnel above stays exactly as it was.
-        The poster card comes after it, on Lake Mead after the Powell Almanac box and on Lake
-        Powell after the Almanac answer and its buy links. Order in lanes/G2/NOTES.md. */}
-    {posterLake && <PosterOffer lake={posterLake} placement={posterLake === 'lake-mead' ? 'mead-lake' : 'powell-lake'} cta={posterLake === 'lake-mead' ? 'mead_lake_posters' : 'powell_lake_posters'} />}
+    {/* Ramp & level alerts (1 free browser alert + 1 clean $19 12-Month Ramp & Level Alerts CTA). */}
+    <LevelAlerts slug={slug} name={lake.name} placement={slug === 'lake-mead' ? 'mead-alerts' : slug === 'lake-powell' ? 'powell-alerts' : 'lake-alerts'} cro={slug === 'lake-mead' ? 'mead-alerts-signup' : slug === 'lake-powell' ? 'powell-alerts-signup' : undefined} showSample={!hxLake} />
 
     {/* Unique, data-derived facts for this lake (adsense-1025): level vs full pool, trend,
         exact source station, recreation status. Only where a reading exists. */}
@@ -574,6 +521,21 @@ const calcFull = fullPool; // exposed to the inline calculator script
     </section>
 
     <AdSlot pos="end" />
+
+    {top4CrossLinks.length > 0 && (
+      <section class="section" data-cro="s13-top4-crosslinks">
+        <h2 style="margin-bottom:14px;">Most-checked US reservoirs today</h2>
+        <div class="grid cols-4">
+          {top4CrossLinks.map((l) => {
+            const r = getReading(l.slug); const hex = r?.fresh ? toneHex(status(r.pct_full, r.feet_from_full).tone) : '#8a949a';
+            const has = !!r && (r.pct_full != null || r.level_ft != null);
+            const val = has ? (r!.pct_full != null ? `${r!.pct_full}%` : `${fmtNum(r!.level_ft, 1)} ft`) : 'n/a';
+            const bar = r?.fresh && r.pct_full != null ? `${r.pct_full}%` : '48%';
+            return <a class="lake-card" href={`/lake/${l.slug}/`} style="padding:18px;"><div class="name" style="font-size:13px;">{l.name}</div><div class="val" style={`font-size:24px;margin-top:8px;color:${hex};`}>{val}</div><div class="bar" style="margin-top:12px;"><i style={`width:${bar};background:${hex}`}></i></div></a>;
+          })}
+        </div>
+      </section>
+    )}
 
     {related.length > 0 && (
       <section class="section">

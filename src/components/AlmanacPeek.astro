@@ -11,7 +11,7 @@ import type { AlmanacContext } from '../lib/almanac';
 interface Props { slug: string; name: string; alm: AlmanacContext | null; }
 const { slug, name, alm } = Astro.props;
 const SINGLE = import.meta.env.PUBLIC_ALMANAC_LINK_SINGLE || '';
-const stripeHref = SINGLE ? `${SINGLE}?client_reference_id=${slug}` : '';
+const stripeHref = SINGLE ? `${SINGLE}?client_reference_id=s13_lln_${slug}` : '';
 ---
 
 <aside class="alm-peek" id="alm-peek" aria-label="Lake Level Almanac" data-alm-place="lake-below-chart">
@@ -36,15 +36,12 @@ const stripeHref = SINGLE ? `${SINGLE}?client_reference_id=${slug}` : '';
   )}
   {alm && <label class="alm-peek-email">Email for the download link (optional)
     <input type="email" id={`s8-email-${slug}`} name="email" autocomplete="email" inputmode="email" maxlength="200" placeholder="you@email.com" /></label>}
-  {alm && <p class="alm-peek-trust">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>}
+  {alm && <p class="alm-peek-trust">One-time · Instant download · Refund guarantee · Secure Stripe checkout shown as BeLikeNative / AUTOM8 LLC</p>}
   {alm ? (
     stripeHref ? (
-      <>
-        <a class="alm-peek-buy" href="#alm-peek" data-checkout-url={stripeHref} data-alm-cta="lake" data-cta="peek_almanac_single" data-lake={slug}
-          data-s8-email-from={`#s8-email-${slug}`} data-s8-offer="almanac_single" data-cro={`s9_l9_lln_${slug}`}
-          rel="nofollow noopener">Get {name} Almanac for ${PRICE_SINGLE}</a>
-        <noscript><a class="alm-peek-buy" href={stripeHref} rel="nofollow noopener">Get {name} Almanac for ${PRICE_SINGLE}</a></noscript>
-      </>
+      <a class="alm-peek-buy" href="#lake-checkout" data-checkout={stripeHref} data-alm-cta="lake" data-cta="peek_almanac_single" data-lake={slug}
+        data-s8-email-from={`#s8-email-${slug}`} data-s8-offer="almanac_single" data-cro={`s13_lln_${slug}`}
+        rel="nofollow noopener">Get {name} Almanac for ${PRICE_SINGLE}</a>
     ) : (
       <a class="alm-peek-buy" href="/almanac/" data-alm-cta="lake" data-cta="peek_almanac_single" data-lake={slug}
         rel="nofollow">Get {name} Almanac for ${PRICE_SINGLE}</a>
@@ -52,7 +49,6 @@ const stripeHref = SINGLE ? `${SINGLE}?client_reference_id=${slug}` : '';
   ) : <a class="alm-peek-buy" href="/almanac/">See the {LAKE_COUNT} covered lakes at ${PRICE_SINGLE} each</a>}
   {alm && <a class="alm-peek-more" href={slug === 'pine-flat-lake' ? '#pine-flat-sample' : `#alm-h-${slug}`}>{slug === 'pine-flat-lake' ? 'See Pine Flat sample' : 'See what is included'}</a>}
   {alm && <small class="alm-peek-note">We use your email for this order only. <span data-s8-msg role="status"></span></small>}
-  {alm && <script is:inline defer src="/s8-w.js?v=2"></script>}
 </aside>
 
 <style>

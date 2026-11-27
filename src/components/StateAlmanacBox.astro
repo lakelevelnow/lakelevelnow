@@ -25,14 +25,11 @@ const place = `state-${state.toLowerCase()}`;
     <p class="readable st-alm-lakes">
       {stateName} lakes in the Almanac are {lakes.map((l, i) => <><a href={`/lake/${l.slug}/`}>{l.name}</a>{i < lakes.length - 2 ? ', ' : i === lakes.length - 2 ? ' and ' : '.'}</>)}
     </p>
-    <p class="st-alm-micro" style="margin:0 0 10px;">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
+    <p class="st-alm-micro" style="margin:0 0 10px;">One-time · Instant download · Refund guarantee · Secure Stripe checkout shown as BeLikeNative / AUTOM8 LLC</p>
     <div class="st-alm-cta">
       <a class="st-alm-btn" href="/almanac/#pick" data-cta={`${place}_almanac_pick`}>Pick your lake, ${data.priceSingleUsd}</a>
       {bundleIsStripe ? (
-        <>
-          <a href={`#st-alm-h-${state}`} data-checkout-url={bundle} data-s8-offer="almanac_bundle" data-alm-cta="bundle" data-cta={`${place}_almanac_bundle`} rel="nofollow noopener">or all {data.lakeCount} lakes for ${data.priceBundleUsd}</a>
-          <noscript><a href={bundle} rel="nofollow noopener">All {data.lakeCount} lakes, ${data.priceBundleUsd}</a></noscript>
-        </>
+        <a href="#lake-checkout" data-checkout={`${bundle}?client_reference_id=s13_lln_${place}`} data-s8-offer="almanac_bundle" data-alm-cta="bundle" data-cta={`${place}_almanac_bundle`} rel="nofollow noopener">or all {data.lakeCount} lakes for ${data.priceBundleUsd}</a>
       ) : (
         <a href={bundle} data-alm-cta="bundle" data-cta={`${place}_almanac_bundle`} rel="nofollow">or all {data.lakeCount} lakes for ${data.priceBundleUsd}</a>
       )}

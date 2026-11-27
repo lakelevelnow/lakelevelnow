@@ -89,15 +89,12 @@ const fmt = (n: number, d = 2) =>
         The provenance still sits directly beneath, for the reader who wants it. */}
     {showCta && (
       <div class="alm-ctx-cta" data-alm-place={place}>
-        <span class="alm-ctx-trust">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</span>
+        <span class="alm-ctx-trust">One-time · Instant download · Refund guarantee · Secure Stripe checkout shown as BeLikeNative / AUTOM8 LLC</span>
         {buyIsStripe ? (
-          <>
-            <a class="alm-ctx-btn" href={`#alm-h-${slug}`} data-checkout-url={buy} data-s8-offer="almanac_single" rel="nofollow noopener"
-               data-alm-cta="lake" data-lake={slug} data-cta={ctaSingle}>
-              {slug === 'pine-flat-lake' ? `Get Pine Flat history + threshold tool, $${data.priceSingleUsd}` : `The full ${lake.name} almanac, $${data.priceSingleUsd}`}
-            </a>
-            <noscript><a class="alm-ctx-btn" href={buy} rel="nofollow noopener">{slug === 'pine-flat-lake' ? `Get Pine Flat history + threshold tool, $${data.priceSingleUsd}` : `The full ${lake.name} almanac, $${data.priceSingleUsd}`}</a></noscript>
-          </>
+          <a class="alm-ctx-btn" href="#lake-checkout" data-checkout={`${LINK}?client_reference_id=s13_lln_${slug}`} data-s8-offer="almanac_single" rel="nofollow noopener"
+             data-alm-cta="lake" data-lake={slug} data-cta={ctaSingle}>
+            {slug === 'pine-flat-lake' ? `Get Pine Flat history + threshold tool, $${data.priceSingleUsd}` : `The full ${lake.name} almanac, $${data.priceSingleUsd}`}
+          </a>
         ) : (
           <a class="alm-ctx-btn" href={buy} rel="nofollow"
              data-alm-cta="lake" data-lake={slug} data-cta={ctaSingle}>
@@ -113,16 +110,7 @@ const fmt = (n: number, d = 2) =>
           {slug === 'pine-flat-lake' ? <a href="#pine-flat-sample">Pine Flat sample above</a> :
             <a href="/almanac/sample/">See a sample almanac (Lake Powell)</a>}
           <span class="alm-ctx-sep" aria-hidden="true">&middot;</span>
-          {bundleIsStripe ? (
-            <>
-              <a href={`#alm-h-${slug}`} data-checkout-url={bundle} data-s8-offer="almanac_bundle" data-alm-cta="bundle" data-cta={ctaBundle} rel="nofollow noopener">or all {data.lakeCount} lakes
-              for ${data.priceBundleUsd}</a>
-              <noscript> (<a href={bundle} rel="nofollow noopener">all {data.lakeCount} lakes, ${data.priceBundleUsd}</a>)</noscript>
-            </>
-          ) : (
-            <a href={bundle} data-alm-cta="bundle" data-cta={ctaBundle} rel="nofollow">or all {data.lakeCount} lakes
-            for ${data.priceBundleUsd}</a>
-          )}
+          <a href="/almanac/" data-alm-cta="bundle" data-cta={ctaBundle}>see all {data.lakeCount} lakes</a>
         </span>
       </div>
     )}

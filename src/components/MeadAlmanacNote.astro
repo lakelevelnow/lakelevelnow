@@ -15,17 +15,14 @@ const id = place.replace('-', '_');
   <aside class="mead-alm" data-alm-place={place} data-cro="mead-almanac-powell-true" aria-labelledby={`mead-alm-${place}`}>
     <h2 id={`mead-alm-${place}`}>Lake Powell almanac: the reservoir that feeds Lake Mead</h2>
     <p>The Lake Level Almanac covers Lake Powell, upstream on the same river (the Lake Mead history is the free chart on this site). It shows whether Powell is normal for each date of the year, from {powell.years} years of daily readings.</p>
-    <p class="mead-alm-micro" style="margin:0 0 10px;">One-time payment · Instant download · 60-day refund · Secure Stripe checkout (shown as BeLikeNative / AUTOM8 LLC, our parent company).</p>
+    <p class="mead-alm-micro" style="margin:0 0 10px;">One-time · Instant download · Refund guarantee · Secure Stripe checkout shown as BeLikeNative / AUTOM8 LLC</p>
     <div class="mead-alm-cta" data-cro="sprint-20261116-direct">
       {SINGLE ? (
-        <>
-          <a class="mead-alm-btn" href={`#mead-alm-${place}`} data-checkout-url={`${SINGLE}?client_reference_id=lake-powell`} data-s8-offer="almanac_single" rel="nofollow noopener" data-lake="lake-powell" data-cta={`${id}_almanac_powell`}>Lake Powell almanac, ${alm.priceSingleUsd}</a>
-          <noscript><a class="mead-alm-btn" href={`${SINGLE}?client_reference_id=lake-powell`} rel="nofollow noopener">Lake Powell almanac, ${alm.priceSingleUsd}</a></noscript>
-        </>
+        <a class="mead-alm-btn" href="#lake-checkout" data-checkout={`${SINGLE}?client_reference_id=s13_lln_lake-powell`} data-s8-offer="almanac_single" rel="nofollow noopener" data-lake="lake-powell" data-cta={`${id}_almanac_powell`}>Lake Powell almanac, ${alm.priceSingleUsd}</a>
       ) : (
         <a class="mead-alm-btn" href="/almanac/#pick" rel="nofollow" data-lake="lake-powell" data-cta={`${id}_almanac_powell`}>Lake Powell almanac, ${alm.priceSingleUsd}</a>
       )}
-      <a class="mead-alm-alt" href="/almanac/" data-cta={`${id}_almanac_all`}>All {alm.lakeCount} lakes, ${alm.priceBundleUsd}, with a free sample</a>
+      <a class="mead-alm-alt" href="/almanac/" data-cta={`${id}_almanac_all`}>All {alm.lakeCount} lakes, with a free sample</a>
     </div>
     {/* Sprint 2026-11-16 (lane D1): pre-pay box directly after the buy button. */}
     <S3PayBox price={alm.priceSingleUsd} refund="60-day refund, no questions"
