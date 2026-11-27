@@ -14,6 +14,7 @@ import LakeFacts from '../../components/LakeFacts.astro';
 import PosterOffer from '../../components/PosterOffer.astro';
 import S3PayBox from '../../components/S3PayBox.astro';
 import HistoryExportOffer from '../../components/HistoryExportOffer.astro';
+import FreeSnapshotCsv from '../../components/FreeSnapshotCsv.astro';
 import almPrice from '../../data/almanac.json';
 import hxData from '../../data/history-export.json';
 // import RecreationAffiliates from '../../components/RecreationAffiliates.astro'; // enable with the box below
@@ -360,6 +361,7 @@ const calcFull = fullPool; // exposed to the inline calculator script
         <p><span class="em-strong">No live gage feed</span>: no public agency feed for {lake.name} reports to this site. Reference data below; for the current figure, see the
         <a href={feedLabel(reading?.feed) === 'CDEC' && lake.cdec_id ? `https://cdec.water.ca.gov/dynamicapp/staMeta?station_id=${lake.cdec_id}` : feedLabel(reading?.feed) === 'USBR' ? 'https://www.usbr.gov/lc/region/g4000/riverops/webreports/hourlyweb.json' : (lake.usgs_site ? `https://waterdata.usgs.gov/monitoring-location/${lake.usgs_site}/` : '#')}>operator's page</a>.</p>
       </div>
+      <FreeSnapshotCsv slug={slug} lakeName={lake.name} reading={reading} fullPoolFt={lake.full_pool_ft} source={feedDisplay} />
     )}
 
     {/* Sprint 13 S13-8: Cold-Visitor Offer Simplification — 1 dominant CTA per viewport.

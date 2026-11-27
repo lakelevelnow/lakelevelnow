@@ -5,6 +5,7 @@
 import hx from '../data/history-export.json';
 import { getReading, getLake } from '../lib/lakes';
 import SampleTablePreview from './SampleTablePreview.astro';
+import FreeSnapshotCsv from './FreeSnapshotCsv.astro';
 
 interface Props {
   slug?: string;
@@ -20,9 +21,9 @@ const yr = (s: string) => s.slice(0, 4);
 const span = (l: typeof hx.lakes[number]) =>
   `${yr(l.start)} to ${l.end.length === 7 ? new Date(l.end + '-15T12:00:00Z').toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : new Date(l.end + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}`;
 const first = lake || hx.lakes[0];
-const lakeHref = `${hx.linkLake}?client_reference_id=s13_lln_${first.slug}`;
-const allHref = `${hx.linkAll}?client_reference_id=s13_lln_${first.slug}_all`;
-const emailId = `s13-hx-email-${place}-${first.slug}`;
+const lakeHref = `${hx.linkLake}?client_reference_id=s14_lln_${first.slug}`;
+const allHref = `${hx.linkAll}?client_reference_id=s14_lln_${first.slug}_all`;
+const emailId = `s14-hx-email-${place}-${first.slug}`;
 const reading = getReading(first.slug);
 const lakeEntry = getLake(first.slug);
 ---
@@ -56,14 +57,22 @@ const lakeEntry = getLake(first.slug);
     source={first.source}
   />
 
+  <FreeSnapshotCsv
+    slug={first.slug}
+    lakeName={first.name}
+    reading={reading}
+    fullPoolFt={lakeEntry?.full_pool_ft ?? null}
+    source={first.source}
+  />
+
   <label class="lln-hx-email">Email for receipt &amp; backup download link (optional)
     <input type="email" id={emailId} name="email" autocomplete="email" inputmode="email" maxlength="200" placeholder="you@email.com" />
   </label>
   <p class="lln-trust">One-time · Instant download · Refund guarantee · Secure Stripe checkout shown as BeLikeNative / AUTOM8 LLC</p>
   <p class="lln-hx-cta" style="font-size:15px;margin-top:8px;">
-    <a class="btn lln-hx-buy" href="#lake-checkout" data-checkout={lakeHref} data-s8-email-from={`#${emailId}`} data-s8-offer="lln-history-export-lake" rel="nofollow noopener" data-lake={first.slug} data-cta="hx_lake_buy" data-cro={`s13_lln_${first.slug}`}>{ctaText}</a>
+    <a class="btn lln-hx-buy" href="#lake-checkout" data-checkout={lakeHref} data-s8-email-from={`#${emailId}`} data-s8-offer="lln-history-export-lake" rel="nofollow noopener" data-lake={first.slug} data-cta="hx_lake_buy" data-cro={`s14_lln_${first.slug}`}>{ctaText}</a>
     {!singleOffer && (
-      <span style="margin-left:8px;">or <a class="lln-hx-all" href="#lake-checkout" data-checkout={allHref} data-s8-email-from={`#${emailId}`} data-s8-offer="lln-history-export" rel="nofollow noopener" data-lake={first.slug} data-cta="hx_all_buy" data-cro={`s13_lln_${first.slug}_all`}>all {hx.lakes.length} lakes, ${hx.priceAllUsd}</a></span>
+      <span style="margin-left:8px;">or <a class="lln-hx-all" href="#lake-checkout" data-checkout={allHref} data-s8-email-from={`#${emailId}`} data-s8-offer="lln-history-export" rel="nofollow noopener" data-lake={first.slug} data-cta="hx_all_buy" data-cro={`s14_lln_${first.slug}_all`}>all {hx.lakes.length} lakes, ${hx.priceAllUsd}</a></span>
     )}
     <span class="lln-hx-msg" data-s8-msg role="status"></span>
   </p>
@@ -79,7 +88,7 @@ const lakeEntry = getLake(first.slug);
           var raw = a.getAttribute('data-checkout');
           if (!raw) return;
           var u = new URL(raw);
-          u.searchParams.set('client_reference_id', 's13_lln_' + s.value);
+          u.searchParams.set('client_reference_id', 's14_lln_' + s.value);
           a.setAttribute('data-checkout', u.toString());
           a.setAttribute('data-lake', s.value);
         });

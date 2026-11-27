@@ -4,6 +4,7 @@
 // client_reference_id=s13_lln_<slug>. Concrete 3-row sample preview + exact disclosure. Zero $199 clutter.
 import { getReading, getLake, fmtNum, lastReadingDate, feedLabel } from '../lib/lakes';
 import SampleTablePreview from './SampleTablePreview.astro';
+import FreeSnapshotCsv from './FreeSnapshotCsv.astro';
 
 interface Props {
   slug: string;
@@ -20,7 +21,7 @@ const lakeEntry = getLake(slug);
 const level = r && r.level_ft != null && Number.isFinite(r.level_ft) ? r.level_ft : null;
 const id = `la-${place}`;
 const BUY = 'https://buy.stripe.com/8x25kE3seek8fopebb43S3R';
-const proHref = `${BUY}?client_reference_id=s13_lln_${slug}`;
+const proHref = `${BUY}?client_reference_id=s14_lln_${slug}`;
 const cta = `${place.replace(/-/g, '_')}`.slice(0, 32);
 ---
 {level != null && (
@@ -64,9 +65,18 @@ const cta = `${place.replace(/-/g, '_')}`.slice(0, 32);
         source={feedLabel(r?.feed) || 'USGS/CDEC'}
       />
     )}
+    {showSample && (
+      <FreeSnapshotCsv
+        slug={slug}
+        lakeName={name}
+        reading={r}
+        fullPoolFt={lakeEntry?.full_pool_ft ?? null}
+        source={feedLabel(r?.feed) || 'USGS/CDEC'}
+      />
+    )}
     <p class="la-trust">One-time · Instant download · Refund guarantee · Secure Stripe checkout shown as BeLikeNative / AUTOM8 LLC</p>
     <p class="la-btns">
-      <a class="la-buy" href="#lake-checkout" data-checkout={proHref} data-s8-offer="lake_alerts" data-cta={`${cta}_pro`} data-lake={slug} data-cro={`s13_lln_${slug}_alerts`} rel="nofollow noopener">Get 12-Month Ramp &amp; Level Alerts — $19</a>
+      <a class="la-buy" href="#lake-checkout" data-checkout={proHref} data-s8-offer="lake_alerts" data-cta={`${cta}_pro`} data-lake={slug} data-cro={`s14_lln_${slug}_alerts`} rel="nofollow noopener">Get 12-Month Ramp &amp; Level Alerts — $19</a>
       <a class="la-mng" href="/alerts/" data-cta={`${cta}_manage`}>Manage my alerts</a>
     </p>
     <noscript>
