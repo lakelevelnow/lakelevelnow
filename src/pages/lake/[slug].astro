@@ -20,7 +20,7 @@ import hxData from '../../data/history-export.json';
 import { almanacContext, descriptionClause } from '../../lib/almanac';
 import { SITE, AUTHOR } from '../../consts';
 import { LAKES, getReading, launchRead, status, fmtNum, stateName, POWELL_BAND, changeOverSeries, liveBandBelowFullPct, feedLabel, POWELL_HISTORY, compareToMark, fmtRecordDate, lastReadingDate} from '../../lib/lakes';
-import { lakeLd, authorLd, breadcrumbLd, speakableLd } from '../../lib/seo';
+import { lakeLd, authorLd, breadcrumbLd, speakableLd, faqLd, absUrl, orgRef, sourceFor } from '../../lib/seo';
 import { seasonalRead, diffWords } from '../../lib/seasonal';
 import { caChartFor } from '../../lib/cahistory';
 
@@ -208,19 +208,83 @@ if (live) {
   }
 }
 
+const launchInfo = launchRead(reading);
+const feedDisplay = feedLabel(reading?.feed) || feedLabel(lake.feed) || 'USBR/USGS';
 const faqs = [
   { q: `How full is ${lake.name} right now?`, a: live
-      ? (reading!.pct_full != null ? `${lake.name} is about ${reading!.pct_full}% full as of ${asOfFmt}.` : `The most recent reading puts ${lake.name} at ${fmtNum(reading!.level_ft,1)} feet.`)
+      ? (reading!.pct_full != null && reading!.level_ft != null
+          ? `${lake.name} is about ${reading!.pct_full}% full at ${fmtNum(reading!.level_ft, 1)} feet as of ${asOfFmt}.`
+          : reading!.pct_full != null
+            ? `${lake.name} is about ${reading!.pct_full}% full as of ${asOfFmt}.`
+            : `The most recent reading puts ${lake.name} at ${fmtNum(reading!.level_ft,1)} feet as of ${asOfFmt}.`)
       : reading && (reading.level_ft != null || reading.pct_full != null)
         ? `The last reading, on ${lastReadingDate(reading.as_of)}, put ${lake.name} at ${reading.pct_full != null ? `${reading.pct_full}% full` : `${fmtNum(reading.level_ft,1)} ft`}. The feed has not reported since, so check the operator (${lake.operator}) for today's figure.`
         : `${lake.name} has no public gage feed on ${SITE.name}. Full-pool reference is ${lake.full_pool_ft!=null?fmtNum(lake.full_pool_ft,0)+' ft':'listed on the operator page'}; check the operator (${lake.operator}) for the current figure.` },
-  { q: `Can I launch a boat at ${lake.name}?`, a: `${launchRead(reading).text} Individual ramps open and close on their own schedules and on local hazards.` },
+  { q: `Can I launch a boat at ${lake.name}?`, a: `${launchInfo.text} Individual ramps open and close on their own schedules and on local hazards.` },
   { q: `Where does ${lake.name}'s level come from?`, a: `${SITE.name} pulls it from the ${feedLabel(reading?.feed) || 'operator'} public water-data feed${feedLabel(reading?.feed) === 'CDEC' ? ' (California Data Exchange)' : feedLabel(reading?.feed) === 'USBR' ? ' (U.S. Bureau of Reclamation)' : feedLabel(reading?.feed) === 'TWDB' ? ' (Texas Water Development Board)' : feedLabel(reading?.feed) === 'USACE' ? ' (U.S. Army Corps of Engineers CWMS Data API)' : ''}. The reading is timestamped in the gauge above.${reading?.pct_source === 'twdb' && reading?.feed !== 'twdb' ? ' Percent full comes from the Texas Water Development Board, which converts the same elevation into storage each day.' : ''}` },
   { q: `Who operates ${lake.name}?`, a: `${lake.name}, on the ${lake.river}, is operated by ${lake.operator}. Reservoir releases, flood-control drawdowns, and water-supply decisions are theirs.` },
+  ...(hxEntry ? [{
+    q: `How far back does ${lake.name}'s historical water level dataset go?`,
+    a: `The ${lake.name} historical record from ${hxEntry.source} covers ${hxEntry.start.slice(0, 4)}–${hxEntry.end.slice(0, 4)} (${fmtNum(hxEntry.values, 0)} ${hxEntry.resolution} readings of ${hxEntry.what}).`
+  }] : []),
 ];
+
+const datasetSrc = sourceFor(reading?.feed || lake.feed);
+const datasetTemporal = hxEntry
+  ? `${hxEntry.start}/${hxEntry.end}`
+  : caChart
+    ? `${caChart.recordStart}/2026`
+    : (reading?.as_of ? `${reading.as_of.slice(0, 10)}/..` : '2026');
+const datasetVars: Record<string, unknown>[] = [
+  {
+    '@type': 'PropertyValue',
+    name: 'Water surface elevation',
+    ...(reading?.level_ft != null ? { value: reading.level_ft } : {}),
+    unitText: 'feet above mean sea level',
+  },
+  ...(reading?.pct_full != null ? [{
+    '@type': 'PropertyValue',
+    name: 'Percent full',
+    value: reading.pct_full,
+    unitText: 'percent',
+  }] : []),
+  {
+    '@type': 'PropertyValue',
+    name: 'Boat ramp status',
+    value: launchInfo.label,
+    description: launchInfo.text,
+  },
+];
+const datasetLd: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: `${lake.name} Water Level & Elevation Dataset`,
+  description: [
+    reading?.level_ft != null
+      ? `Live ${lake.name} water surface elevation (${fmtNum(reading.level_ft, 1)} ft${reading.pct_full != null ? `, ${reading.pct_full}% full` : ''}${asOfFmt ? ` as of ${asOfFmt}` : ''})`
+      : `Live ${lake.name} water level monitoring`,
+    `sourced from ${feedDisplay} public water data`,
+    hxEntry
+      ? `with ${hxEntry.start.slice(0, 4)}–${hxEntry.end.slice(0, 4)} historical ${hxEntry.resolution} dataset (${fmtNum(hxEntry.values, 0)} records)`
+      : 'and 30-day elevation trend',
+    `plus boat ramp launch status (${launchInfo.label}).`,
+  ].join(', '),
+  url: absUrl(`/lake/${slug}`),
+  creator: orgRef(),
+  publisher: orgRef(),
+  isAccessibleForFree: true,
+  temporalCoverage: datasetTemporal,
+  spatialCoverage: { '@type': 'Place', name: `${lake.name}, ${stName}` },
+  measurementTechnique: `${feedDisplay} public gage feed`,
+  variableMeasured: datasetVars,
+  ...(datasetSrc ? { isBasedOn: [datasetSrc] } : {}),
+  ...(reading?.as_of ? { dateModified: reading.as_of } : {}),
+};
 
 const ld = [
   lakeLd({ name: lake.name, path: `/lake/${slug}`, state: stName, river: lake.river, levelFt: reading?.level_ft ?? null, pctFull: reading?.pct_full ?? null, asOf: reading?.as_of, feed: reading?.feed }),
+  datasetLd,
+  faqLd(faqs),
   speakableLd(`/lake/${slug}`),
   authorLd(),
   breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Lakes', path: '/lakes' }, { name: lake.name, path: `/lake/${slug}` }]),

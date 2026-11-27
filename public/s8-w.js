@@ -104,4 +104,42 @@
   document.addEventListener('auxclick', function (ev) {
     if (ev.button === 1) onClick(ev);
   }, true);
+
+  /* Sprint 10 S10-8: auto-expiring 1-line dismissible Zovo Black Friday $79 bar
+     (2026-11-27T00:00:00Z to 2026-12-02T00:00:00Z UTC ONLY). */
+  (function () {
+    var now = Date.now();
+    var START = Date.UTC(2026, 10, 27, 0, 0, 0); // 2026-11-27T00:00:00Z
+    var END = Date.UTC(2026, 11, 2, 0, 0, 0);    // 2026-12-02T00:00:00Z
+    if (now < START || now >= END) return;
+    var KEY = 'lln_zovo_bfcm_2026_dismissed';
+    try { if (localStorage.getItem(KEY) === '1') return; } catch (_) {}
+
+    function mountBar() {
+      if (document.getElementById('zovo-bfcm-bar') || !document.body) return;
+      var bar = document.createElement('div');
+      bar.id = 'zovo-bfcm-bar';
+      bar.setAttribute('data-cro', 'sprint10-bfcm-bar');
+      bar.setAttribute('role', 'region');
+      bar.setAttribute('aria-label', 'Zovo Black Friday offer');
+      bar.style.cssText = 'position:relative;background:#111;color:#fff;font:500 13px/1.4 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;text-align:center;padding:8px 36px 8px 14px;border-bottom:1px solid rgba(255,255,255,0.12);';
+      bar.innerHTML = 'Black Friday (Nov 27\u2013Dec 1 UTC): Zovo Pro Lifetime (all 15 Chrome extensions) is <strong>$79</strong> once (reg. $99) \u2014 <a href="https://zovo.one/pricing?utm_source=lakelevelnow&amp;utm_medium=bfcm_bar" target="_blank" rel="noopener" style="color:#fff;text-decoration:underline;font-weight:700;">Claim $79 Lifetime &rarr;</a>';
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('aria-label', 'Dismiss Black Friday banner');
+      btn.textContent = '\u00d7';
+      btn.style.cssText = 'position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:rgba(255,255,255,0.75);font:700 18px/1 sans-serif;cursor:pointer;padding:4px 6px;';
+      btn.addEventListener('click', function () {
+        if (bar.parentNode) bar.parentNode.removeChild(bar);
+        try { localStorage.setItem(KEY, '1'); } catch (_) {}
+      });
+      bar.appendChild(btn);
+
+      document.body.insertBefore(bar, document.body.firstChild);
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountBar);
+    else mountBar();
+  })();
 })();
